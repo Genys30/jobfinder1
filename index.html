@@ -14,6 +14,7 @@
     --ink-faint:#9c9687;--rule:#d9d2c2;--accent:#c97f0c;--accent-2:#d63916;
     --li:#0a66c2;--li-pale:rgba(10,102,194,0.07);--li-border:rgba(10,102,194,0.2);
   --cm:#00897b;--cm-pale:rgba(0,137,123,0.07);
+  --gh:#2e7d32;--gh-pale:rgba(46,125,50,0.07);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--ink);font-family:'Fraunces',Georgia,serif;
@@ -117,6 +118,12 @@
   .job.cm-row:hover{background:linear-gradient(90deg,var(--cm-pale),transparent 70%);}
   .job.cm-row:hover .title{color:var(--cm);}
   .job.cm-row:hover .arrow{color:var(--cm);}
+  .gh-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--gh);
+    padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .job.gh-row:hover{background:linear-gradient(90deg,var(--gh-pale),transparent 70%);}
+  .job.gh-row:hover .title{color:var(--gh);}
+  .job.gh-row:hover .arrow{color:var(--gh);}
   .company-cell{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .company-cell .size{color:var(--ink-faint);margin-left:6px;}
@@ -177,6 +184,11 @@
     <span class="src-dot" style="background:var(--cm)"></span>
     <span id="cmStatusText">Comeet: loading…</span>
   </div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc">
+    <span class="src-dot" style="background:var(--gh)"></span>
+    <span id="ghStatusText">Greenhouse: loading…</span>
+  </div>
 </div>
 
 <!-- Filters -->
@@ -214,6 +226,7 @@
       <option value="">All sources</option>
       <option value="linkedin">LinkedIn</option>
       <option value="comeet">Comeet</option>
+      <option value="greenhouse">Greenhouse</option>
     </select>
   </div>
   <div class="field">
@@ -268,6 +281,7 @@ const SIZE_LABEL = {s:'small',m:'mid',l:'large',xl:'enterprise'};
 let TM_JOBS  = [];   // techmap
 let LI_JOBS  = [];   // linkedin
 let CM_JOBS  = [];   // comeet
+let GH_JOBS  = [];   // greenhouse
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -291,6 +305,7 @@ const $liStatus  = document.getElementById('liStatusText');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
 const $cmStatus = document.getElementById('cmStatusText');
+const $ghStatus = document.getElementById('ghStatusText');
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
 function esc(s){
@@ -382,6 +397,27 @@ function normComeet(row, filename){
     size:'', level: g('employment_type')||'',
     city: g('location'),
     url:  g('url'),
+    updated: g('date')||fnDate,
+    workType
+  };
+}
+
+// Greenhouse CSV columns: title, company, location, date, url, department, workplace_type
+function normGreenhouse(row, filename){
+  const g = k => (row[k]==null?'':String(row[k]).trim());
+  const title   = g('title').split('\n')[0].trim();
+  const company = g('company');
+  if(!title||!company) return null;
+  const fnDate  = (filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
+  const wt = g('workplace_type').toLowerCase();
+  const workType = wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'';
+  return{
+    source:'greenhouse', fnArea:'greenhouse',
+    title, company,
+    category: g('department')||'greenhouse',
+    size:'', level:'',
+    city:  g('location'),
+    url:   g('url'),
     updated: g('date')||fnDate,
     workType
   };
@@ -501,14 +537,50 @@ async function loadComeet(){
   });
   if($cmStatus) $cmStatus.innerHTML='Comeet: <strong>'+CM_JOBS.length.toLocaleString()+' jobs</strong>';
 }
+// ─── LOAD GREENHOUSE ─────────────────────────────────────────────────────────
+async function loadGreenhouse(){
+  if($ghStatus) $ghStatus.innerHTML='Greenhouse: <span style="color:var(--ink-faint)">loading…</span>';
+  const filenames=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+    filenames.push('greenhouse_jobs_'+y+'-'+m+'-'+day+'.csv');
+  }
+  const allRows=(await Promise.all(filenames.map(async fname=>{
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return [];
+      const text=await r.text();
+      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normGreenhouse(row,fname)).filter(Boolean);
+    }catch(e){return [];}
+  }))).flat();
+
+  if(allRows.length===0){
+    if($ghStatus) $ghStatus.innerHTML='Greenhouse: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+  const seen=new Set();
+  GH_JOBS=allRows.filter(r=>{
+    const k=r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  GH_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated),db=parseDate(b.updated);
+    if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
+  });
+  if($ghStatus) $ghStatus.innerHTML='Greenhouse: <strong>'+GH_JOBS.length.toLocaleString()+' jobs</strong>';
+}
 
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
   if(activeSrc==='techmap')  return TM_JOBS;
   if(activeSrc==='linkedin') return LI_JOBS;
-  if(activeSrc==='comeet')   return CM_JOBS;
+  if(activeSrc==='comeet')      return CM_JOBS;
+  if(activeSrc==='greenhouse') return GH_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -581,10 +653,11 @@ function render(){
     const lvBadge = r.level?'<span class="level-badge">'+esc(r.level)+'</span>':'';
     const liBadge = r.source==='linkedin'?'<span class="li-badge">LI</span>':'';
     const cmBadge = r.source==='comeet'?'<span class="cm-badge">CM</span>':'';
-    const rowCls  = r.source==='linkedin'?' li-row':r.source==='comeet'?' cm-row':'';
+    const ghBadge = r.source==='greenhouse'?'<span class="gh-badge">GH</span>':'';
+    const rowCls  = r.source==='linkedin'?' li-row':r.source==='comeet'?' cm-row':r.source==='greenhouse'?' gh-row':'';
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+lvBadge+liBadge+cmBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+lvBadge+liBadge+cmBadge+ghBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
@@ -623,7 +696,8 @@ render();
   // Load LinkedIn + Comeet in parallel
   await Promise.all([
     loadLinkedIn(),
-    loadComeet()
+    loadComeet(),
+    loadGreenhouse()
   ]).catch(e=>{
     console.error('load error', e);
   });
