@@ -54,16 +54,6 @@
   .databar-sep{color:var(--rule);}
 
   /* ─── Source pills ─── */
-  .src-strip{padding:10px 48px;border-bottom:1px solid var(--rule);
-    display:flex;gap:8px;align-items:center;}
-  .src-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--ink-faint);margin-right:4px;}
-  .src-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;
-    text-transform:uppercase;padding:5px 12px;border-radius:2px;cursor:pointer;
-    border:1px solid var(--rule);background:transparent;color:var(--ink-dim);transition:all .15s;}
-  .src-pill:hover{border-color:var(--ink-dim);color:var(--ink);}
-  .src-pill.active{background:var(--ink);color:var(--bg);border-color:var(--ink);}
-  .src-pill.li-active{background:var(--li);color:#fff;border-color:var(--li);}
 
   /* ─── Filters ─── */
   .filters{display:grid;grid-template-columns:1.5fr repeat(4,1fr) auto;gap:12px;
@@ -148,7 +138,7 @@
     .arrow{display:none;}
   }
   @media(max-width:700px){
-    header,.filters,.status,main,footer,.databar,.src-strip{padding-left:22px;padding-right:22px;}
+    header,.filters,.status,main,footer,.databar,
     .filters{grid-template-columns:1fr 1fr;}
   }
 </style>
@@ -175,13 +165,6 @@
     <span id="liStatusText">LinkedIn: loading…</span>
   </div>
 
-</div>
-
-<!-- Source filter -->
-<div class="src-strip">
-  <span class="src-label">Source</span>
-  <button class="src-pill active" data-src="all">All</button>
-  <button class="src-pill" data-src="linkedin">LinkedIn</button>
 </div>
 
 <!-- Filters -->
@@ -230,7 +213,7 @@
 </main>
 
 <footer>
-  <span>techmap · ODbL v1.0 · linkedin via github.com/Genys30/jobfinder</span>
+  <span>techmap · ODbL v1.0 · linkedin via github.com/Genys30/jobfinder1</span>
   <span id="stamp"></span>
 </footer>
 
@@ -245,11 +228,9 @@ const TECHMAP_FNS = [
 const TECHMAP_BASE = 'https://raw.githubusercontent.com/mluggy/techmap/main/jobs/';
 
 // Your repo — the code will auto-discover all linkedin_jobs_*.csv files
-const LI_REPO    = 'Genys30/jobfinder';
+const LI_REPO    = 'Genys30/jobfinder1';
 const LI_RAW     = 'https://raw.githubusercontent.com/' + LI_REPO + '/main/';
-const LI_API     = 'https://api.github.com/repos/' + LI_REPO + '/contents/';
 // Pattern: linkedin_jobs_YYYY-MM-DD.csv  OR  linkedin_jobs.csv
-const LI_PATTERN = /^linkedin_jobs(?:_\d{4}-\d{2}-\d{2})?\.csv$/i;
 
 const PAGE       = 50;
 const SIZE_LABEL = {s:'small',m:'mid',l:'large',xl:'enterprise'};
@@ -259,14 +240,13 @@ let TM_JOBS  = [];   // techmap
 let LI_JOBS  = [];   // linkedin (all files combined)
 let FILTERED = [];
 let visible  = PAGE;
-let activeSrc = 'all';
+const activeSrc = 'linkedin';
 
 // ─── DOM ─────────────────────────────────────────────────────────────────────
 const $q        = document.getElementById('q');
 const $city     = document.getElementById('city');
 const $company  = document.getElementById('company');
 const $category = document.getElementById('category');
-const $level    = document.getElementById('level');
 const $date     = document.getElementById('date');
 const $reset    = document.getElementById('reset');
 const $list     = document.getElementById('list');
@@ -379,70 +359,50 @@ async function loadTechmap(){
     if(da&&db) return db-da; if(db) return 1; if(da) return -1; return 0;
   });
   const now = new Date();
-  $lastBuild.textContent = 'live · '+now.toISOString().slice(0,10);
+  $lastBuild.textContent = 'live · '+new Date().toISOString().slice(0,10);
   $stamp.textContent = 'last sync '+now.toLocaleTimeString();
 }
 
-// ─── LOAD LINKEDIN (auto-discover all CSV files in repo) ──────────────────────
+// ─── LOAD LINKEDIN ───────────────────────────────────────────────────────────
 async function loadLinkedIn(){
-  $liStatus.innerHTML = 'LinkedIn: <span style="color:var(--ink-faint)">scanning repo…</span>';
-  try {
-    // Use GitHub API to list repo contents
-    const res = await fetch(LI_API + '?t=' + Date.now(), {
-      headers:{'Accept':'application/vnd.github.v3+json'}
-    });
-    if(!res.ok) throw new Error('GitHub API '+res.status);
-    const files = await res.json();
+  $liStatus.innerHTML='LinkedIn: <span style="color:var(--ink-faint)">loading…</span>';
 
-    // Find all matching CSV files, sort newest first
-    const csvFiles = files
-      .filter(f => f.type==='file' && LI_PATTERN.test(f.name))
-      .sort((a,b)=>b.name.localeCompare(a.name)); // newest date first
-
-    if(csvFiles.length===0){
-      $liStatus.innerHTML = 'LinkedIn: <span class="err">no linkedin_jobs*.csv found in repo</span>';
-      return;
-    }
-
-
-    // Load all matching CSVs and merge
-    const allRows = await Promise.all(csvFiles.map(async f => {
-      try {
-        const r = await fetch(LI_RAW + f.name + '?t=' + Date.now());
-        if(!r.ok) return [];
-        const text = await r.text();
-        const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,
-          transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
-        return parsed.data.map(row=>normLinkedIn(row, f.name)).filter(Boolean);
-      } catch(e){ return []; }
-    }));
-
-    LI_JOBS = allRows.flat();
-
-    // Dedupe within LinkedIn (same job across multiple daily files)
-    const seen = new Set();
-    LI_JOBS = LI_JOBS.filter(r=>{
-      const k = r.url||(r.company+'|'+r.title+'|'+r.city);
-      if(seen.has(k)) return false; seen.add(k); return true;
-    });
-
-    // Remove jobs already in techmap
-    const tmUrls = new Set(TM_JOBS.map(r=>r.url).filter(Boolean));
-    LI_JOBS = LI_JOBS.filter(r=>!r.url||!tmUrls.has(r.url));
-
-    LI_JOBS.sort((a,b)=>{
-      const da=parseDate(a.updated), db=parseDate(b.updated);
-      if(da&&db) return db-da; if(db) return 1; if(da) return -1; return 0;
-    });
-
-    $liStatus.innerHTML = 'LinkedIn: <strong>'+LI_JOBS.length.toLocaleString()+' jobs</strong>';
-
-  } catch(e){
-    $liStatus.innerHTML = 'LinkedIn: <span class="err">⚠ '+esc(e.message)+'</span>';
-    console.error('LI load error', e);
+  const filenames=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+    filenames.push('linkedin_jobs_'+y+'-'+m+'-'+day+'.csv');
   }
-}
+  filenames.push('linkedin_jobs.csv');
 
+  // Fetch ALL in parallel — 404s resolve instantly, only existing files take time
+  const allRows=(await Promise.all(filenames.map(async fname=>{
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return [];
+      const text=await r.text();
+      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^﻿/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normLinkedIn(row,fname)).filter(Boolean);
+    }catch(e){return [];}
+  }))).flat();
+
+  if(allRows.length===0){
+    $liStatus.innerHTML='LinkedIn: <span style="color:var(--accent-2)">no files found — upload linkedin_jobs_YYYY-MM-DD.csv to repo</span>';
+    return;
+  }
+
+  const seen=new Set();
+  LI_JOBS=allRows.filter(r=>{
+    const k=r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  LI_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated),db=parseDate(b.updated);
+    if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
+  });
+  $liStatus.innerHTML='LinkedIn: <strong>'+LI_JOBS.length.toLocaleString()+' jobs</strong>';
+}
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
   if(activeSrc==='techmap') return TM_JOBS;
@@ -466,7 +426,7 @@ function populateDropdowns(){
       .forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
     if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
   };
-  fill($city,'city'); fill($company,'company'); fill($category,'category'); fill($level,'level');
+  fill($city,'city'); fill($company,'company'); fill($category,'category'); 
 }
 
 // ─── FILTER ──────────────────────────────────────────────────────────────────
@@ -475,7 +435,7 @@ function applyFilters(){
   const city    = $city.value;
   const company = $company.value;
   const category= $category.value;
-  const level   = $level.value;
+  const level   = '';
   const days    = $date.value ? parseInt($date.value) : null;
   const cutoff  = days ? Date.now()-days*86400000 : null;
 
@@ -484,7 +444,7 @@ function applyFilters(){
     if(city    && r.city!==city)       return false;
     if(company && r.company!==company) return false;
     if(category&& r.category!==category)return false;
-    if(level   && r.level!==level)     return false;
+    
     if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q))) return false;
     if(cutoff){
       const d = parseDate(r.updated);
@@ -545,22 +505,12 @@ function exportCSV(){
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
-// ─── SOURCE PILLS ────────────────────────────────────────────────────────────
-document.querySelectorAll('.src-pill').forEach(p=>{
-  p.addEventListener('click',()=>{
-    activeSrc = p.dataset.src;
-    document.querySelectorAll('.src-pill').forEach(x=>x.classList.remove('active','li-active'));
-    p.classList.add(activeSrc==='linkedin'?'li-active':'active');
-    populateDropdowns(); applyFilters();
-  });
-});
-
 // ─── EVENTS ──────────────────────────────────────────────────────────────────
 let qTimer;
 $q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFilters,120);});
-[$city,$company,$category,$level,$date].forEach(el=>el.addEventListener('change',applyFilters));
+[$city,$company,$category, $date].forEach(el=>el.addEventListener('change',applyFilters));
 $reset.addEventListener('click',()=>{
-  $q.value='';$city.value='';$company.value='';$category.value='';$level.value='';$date.value='';
+  $q.value='';$city.value='';$company.value='';$category.value='';$date.value='';
   applyFilters();
 });
 $more.addEventListener('click',()=>{visible+=PAGE;render();});
@@ -569,12 +519,19 @@ $export.addEventListener('click',exportCSV);
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
 (async()=>{
-  await Promise.all([
-    loadTechmap().catch(e=>console.error('techmap',e)),
-    loadLinkedIn().catch(e=>console.error('linkedin',e))
-  ]);
+  // Load LinkedIn first
+  await loadLinkedIn().catch(e=>{
+    $liStatus.innerHTML='LinkedIn: <span style="color:var(--accent-2)">error: '+esc(String(e))+'</span>';
+  });
+  $lastBuild.textContent='live · '+new Date().toISOString().slice(0,10);
   populateDropdowns();
   applyFilters();
+
+  // Load techmap in background
+  loadTechmap().then(()=>{
+    populateDropdowns();
+    applyFilters();
+  }).catch(e=>console.error('techmap',e));
 })();
 </script>
 </body>
