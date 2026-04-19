@@ -16,6 +16,8 @@
   --cm:#00897b;--cm-pale:rgba(0,137,123,0.07);
   --gh:#2e7d32;--gh-pale:rgba(46,125,50,0.07);
   --lv:#c2410c;--lv-pale:rgba(194,65,12,0.07);
+  --ab:#7c3aed;--ab-pale:rgba(124,58,237,0.07);
+  --wk:#0369a1;--wk-pale:rgba(3,105,161,0.07);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--ink);font-family:'Carlito','Calibri','Gill Sans MT',sans-serif;
@@ -125,6 +127,12 @@
   .job.gh-row:hover{background:linear-gradient(90deg,var(--gh-pale),transparent 70%);}
   .job.gh-row:hover .title{color:var(--gh);}
   .job.gh-row:hover .arrow{color:var(--gh);}
+  .ab-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--ab);padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .wk-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--wk);padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .job.ab-row:hover{background:linear-gradient(90deg,var(--ab-pale),transparent 70%);}
+  .job.ab-row:hover .title{color:var(--ab);}.job.ab-row:hover .arrow{color:var(--ab);}
+  .job.wk-row:hover{background:linear-gradient(90deg,var(--wk-pale),transparent 70%);}
+  .job.wk-row:hover .title{color:var(--wk);}.job.wk-row:hover .arrow{color:var(--wk);}
   .lv-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--lv);padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
   .job.lv-row:hover{background:linear-gradient(90deg,var(--lv-pale),transparent 70%);}
   .job.lv-row:hover .title{color:var(--lv);}  .job.lv-row:hover .arrow{color:var(--lv);}
@@ -168,7 +176,7 @@
   .an-sublabel{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);margin-top:4px;}
   .an-row{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;}
   .an-row.equal{grid-template-columns:1fr 1fr;}
-  .an-box{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:20px 24px;}
+  .an-box{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:20px 24px;}.an-box canvas{max-height:220px;}
   .an-box-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:16px;}
   .an-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);margin-top:10px;text-align:center;}
   @media(max-width:900px){.an-cards{grid-template-columns:1fr 1fr;}.an-row,.an-row.equal{grid-template-columns:1fr;}}
@@ -290,6 +298,8 @@
       <option value="comeet">Comeet</option>
       <option value="greenhouse">Greenhouse</option>
       <option value="lv">Lever</option>
+      <option value="ab">Ashby</option>
+      <option value="wk">Workable</option>
     </select>
   </div>
   <div class="field">
@@ -407,6 +417,8 @@ let LI_JOBS  = [];   // linkedin
 let CM_JOBS  = [];   // comeet
 let GH_JOBS  = [];   // greenhouse
 let LV_JOBS  = [];   // lever
+let AB_JOBS  = [];   // ashby
+let WK_JOBS  = [];   // workable
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -427,6 +439,8 @@ const $lastBuild= document.getElementById('lastBuild');
 const $export   = document.getElementById('export');
 const $liStatus  = document.getElementById('liStatusText');
 const $segment   = document.getElementById('segment');
+const $abStatus  = document.getElementById('abStatusText');
+const $wkStatus  = document.getElementById('wkStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -709,6 +723,22 @@ async function loadGreenhouse(){
   if($ghStatus) $ghStatus.innerHTML='Greenhouse: <strong>'+GH_JOBS.length.toLocaleString()+' jobs</strong>';
 }
 
+
+function normAshby(row, fname){
+  const g = k => (row[k]||'').trim();
+  const date = fname.match(/(\d{4}-\d{2}-\d{2})/)?.[1]||'';
+  return {source:'ab',fnArea:'ab',title:g('title'),company:g('company'),
+    location:g('location'),date:g('date')||date,url:g('url'),
+    workType:(g('workplace_type')||'').toLowerCase()};
+}
+function normWorkable(row, fname){
+  const g = k => (row[k]||'').trim();
+  const date = fname.match(/(\d{4}-\d{2}-\d{2})/)?.[1]||'';
+  return {source:'wk',fnArea:'wk',title:g('title'),company:g('company'),
+    location:g('location'),date:g('date')||date,url:g('url'),
+    workType:(g('workplace_type')||'').toLowerCase()};
+}
+
 function normLever(row, filename){
   const g=k=>(row[k]==null?'':String(row[k]).trim());
   const title=g('title').split('\n')[0].trim();
@@ -720,6 +750,32 @@ function normLever(row, filename){
   return{source:'lv',fnArea:'lv',title,company,category:g('department')||'lv',
     size:'',level:'',city:g('location'),url:g('url'),updated:g('date')||fnDate,workType};
 }
+
+async function loadAshby(){
+  const dates=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);}
+  const rows=[];
+  await Promise.all(dates.map(async dt=>{
+    const fname=`ashby_jobs_${dt}.csv`;
+    try{const r=await fetch(LI_RAW+fname);if(!r.ok)return;const t=await r.text();
+      Papa.parse(t,{header:true,skipEmptyLines:true,transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase(),
+        complete:res=>res.data.forEach(row=>rows.push(normAshby(row,fname)))});}catch(e){}
+  }));
+  AB_JOBS=rows;
+  if($abStatus) $abStatus.innerHTML=rows.length?`Ashby: <strong>${rows.length} jobs</strong>`:`Ashby: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
+}
+async function loadWorkable(){
+  const dates=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);}
+  const rows=[];
+  await Promise.all(dates.map(async dt=>{
+    const fname=`workable_jobs_${dt}.csv`;
+    try{const r=await fetch(LI_RAW+fname);if(!r.ok)return;const t=await r.text();
+      Papa.parse(t,{header:true,skipEmptyLines:true,transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase(),
+        complete:res=>res.data.forEach(row=>rows.push(normWorkable(row,fname)))});}catch(e){}
+  }));
+  WK_JOBS=rows;
+  if($wkStatus) $wkStatus.innerHTML=rows.length?`Workable: <strong>${rows.length} jobs</strong>`:`Workable: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
+}
+
 async function loadLever(){
   if($lvStatus) $lvStatus.innerHTML='Lever: <span style="color:var(--ink-faint)">loading…</span>';
   const filenames=[];
@@ -761,8 +817,10 @@ function getPool(){
   if(activeSrc==='comeet')      return CM_JOBS;
   if(activeSrc==='greenhouse') return GH_JOBS;
   if(activeSrc==='lv') return LV_JOBS;
+  if(activeSrc==='ab') return AB_JOBS;
+  if(activeSrc==='wk') return WK_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -942,10 +1000,13 @@ function render(){
     const cmBadge = r.source==='comeet'?'<span class="cm-badge">CM</span>':'';
     const ghBadge = r.source==='greenhouse'?'<span class="gh-badge">GH</span>':'';
     const lvBadge = r.source==='lv'?'<span class="lv-badge">LV</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row'})[r.source]||'';
+    const abBadge = r.source==='ab'?'<span class="ab-badge">AB</span>':'';
+    const wkBadge = r.source==='wk'?'<span class="wk-badge">WK</span>':'';
+
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row'})[r.source]||'';
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
@@ -1046,7 +1107,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;

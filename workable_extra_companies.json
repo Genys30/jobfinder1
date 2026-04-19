@@ -1,0 +1,9 @@
+[
+  {"token": "atera",         "name": "Atera"},
+  {"token": "papaya-global", "name": "Papaya Global"},
+  {"token": "solaredge",     "name": "SolarEdge"},
+  {"token": "healthy-io",    "name": "Healthy.io"},
+  {"token": "innovid",       "name": "Innovid"},
+  {"token": "bigpanda",      "name": "BigPanda"},
+  {"token": "cloudinary",    "name": "Cloudinary"}
+]

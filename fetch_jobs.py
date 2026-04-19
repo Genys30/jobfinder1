@@ -193,6 +193,75 @@ def run_lever(tm):
     write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'lever_jobs_{TODAY}.csv')
 
 
+# ══ ASHBY ════════════════════════════════════════════════════════════════════
+def run_ashby(tm):
+    print("\n-- Ashby -----------------------------------------------------------")
+    seen = set(); all_t = []
+    extras = load_extras('ashby_extra_companies.json')
+    for c in extras:
+        t = c['token'].lower()
+        if t not in seen: seen.add(t); all_t.append(c)
+    print(f"  Companies: {len(all_t)}")
+    jobs = []
+    for i, c in enumerate(all_t, 1):
+        token, name = c['token'], c.get('name', c['token'])
+        print(f"  [{i}/{len(all_t)}] {name}")
+        try:
+            r = requests.get(f'https://api.ashbyhq.com/posting-api/job-board/{token}',
+                timeout=30, headers=HEADERS)
+            if not r.ok: print(f"    - {r.status_code}"); continue
+            pos = []
+            for job in r.json().get('jobPostings', []):
+                if not job.get('isListed', True): continue
+                loc    = job.get('locationName', '')
+                remote = job.get('locationIsRemote', False)
+                if not is_israel(loc, remote=remote): continue
+                wt = 'Remote' if remote else ('Hybrid' if 'hybrid' in loc.lower() else '')
+                pos.append({'title': job.get('title',''), 'company': name,
+                    'location': loc, 'date': (job.get('publishedDate') or '')[:10],
+                    'url': job.get('externalLink') or job.get('jobUrl',''),
+                    'department': job.get('departmentName',''), 'workplace_type': wt})
+            print(f"    + {len(pos)}"); jobs.extend(pos)
+        except Exception as e: print(f"    x {e}")
+    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'ashby_jobs_{TODAY}.csv')
+
+
+# ══ WORKABLE ═════════════════════════════════════════════════════════════════
+def run_workable(tm):
+    print("\n-- Workable --------------------------------------------------------")
+    seen = set(); all_t = []
+    extras = load_extras('workable_extra_companies.json')
+    for c in extras:
+        t = c['token'].lower()
+        if t not in seen: seen.add(t); all_t.append(c)
+    print(f"  Companies: {len(all_t)}")
+    jobs = []
+    for i, c in enumerate(all_t, 1):
+        token, name = c['token'], c.get('name', c['token'])
+        print(f"  [{i}/{len(all_t)}] {name}")
+        try:
+            r = requests.get(f'https://apply.workable.com/api/v1/widget/accounts/{token}',
+                timeout=30, headers=HEADERS)
+            if not r.ok: print(f"    - {r.status_code}"); continue
+            pos = []
+            for job in r.json().get('jobs', []):
+                loc    = job.get('location', {})
+                city   = loc.get('city','')
+                country= loc.get('country_code','')
+                remote = loc.get('telecommuting', False)
+                loc_str= loc.get('location_str','') or f"{city}, {loc.get('country','')}"
+                if not is_israel(loc_str + ' ' + city, country, remote): continue
+                wt = 'Remote' if remote else ''
+                pos.append({'title': job.get('title',''), 'company': name,
+                    'location': city or loc_str.split(',')[0].strip(),
+                    'date': (job.get('created_at') or '')[:10],
+                    'url': job.get('url',''), 'department': job.get('department',''),
+                    'workplace_type': wt})
+            print(f"    + {len(pos)}"); jobs.extend(pos)
+        except Exception as e: print(f"    x {e}")
+    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'workable_jobs_{TODAY}.csv')
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     print(f"=== fetch_jobs.py  {TODAY} ===\n")
@@ -201,6 +270,8 @@ def main():
     run_comeet(comeet)
     run_greenhouse(gh)
     run_lever(lever)
+    run_ashby({})
+    run_workable({})
     print("\n=== All done ===")
 
 if __name__ == '__main__':
