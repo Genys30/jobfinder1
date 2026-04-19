@@ -40,10 +40,10 @@ Geopolitical Risk Project Lead,Alice,Ramat Gan,2026-04-16,https://alice.io/posit
 Infrastructure Red Team Specialist (Maternity Leave Rep),Alice,Ramat Gan,2026-04-17,https://alice.io/positions/position-15_766,Intelligence,Hybrid
 Intel Desk Team Lead,Alice,Ramat Gan,2026-04-16,https://alice.io/positions/position-1E_86C,Intelligence,Hybrid
 Intelligence Infrastructure Expert (Maternity leave replacement),Alice,Ramat Gan,2026-04-16,https://alice.io/positions/position-87_76F,Intelligence,Hybrid
-Malware Researcher,Alice,Ramat Gan,2026-04-19,https://alice.io/positions/position-5D_46F?t=1769440433534,Security,Hybrid
+Malware Researcher,Alice,Ramat Gan,2026-04-19,https://alice.io/positions/position-5D_46F,Security,Hybrid
 Malware Researcher (Mid-Level),Alice,Ramat Gan,2026-04-19,https://alice.io/positions/position-B0_757?t=1774284936757&t=1776272777825,Security,On-site
 Marketing Automation Specialist (Maternity Leave Cover),Alice,Ramat Gan,2026-04-17,https://alice.io/positions/position-C7_369,Finance,Hybrid
-Mobile Threat Analyst,Alice,Ramat Gan,2026-04-19,https://alice.io/positions/position-13_76F?t=1776234184507,Intelligence,Hybrid
+Mobile Threat Analyst,Alice,Ramat Gan,2026-04-19,https://alice.io/positions/position-13_76F,Intelligence,Hybrid
 Office Manager & Welfare Operations (Maternity Leave Cover),Alice,Ramat Gan,2026-04-19,https://alice.io/positions/position-D9_669?t=1772978488402,Human Resources,On-site
 Research Team Lead - Online Child Safety,Alice,Ramat Gan,2026-04-16,https://alice.io/positions/position-32_F5D,Intelligence,Hybrid
 Sales Executive,Alice,New York,2026-04-17,https://alice.io/positions/position-29_268,Sales,Remote
@@ -436,7 +436,7 @@ Lead Enterprise Account Manager (Player-Coach),Lusha,Tel Aviv-Yafo,2026-04-18,ht
 Mid-Market & Enterprise Account Executive,Lusha,Tel Aviv-Yafo,2026-04-18,https://www.lusha.com/careers/co/tel-aviv/0C.561/mid-market-enterprise-account-executive/,Sales,Hybrid
 "R&D Director, Core Solutions",Lusha,Tel Aviv-Yafo,2026-04-19,https://www.lusha.com/careers/co/tel-aviv/42.96A/rd-director-core-solutions/?t=1776593063002,R&D,Hybrid
 Senior BI Data Engineer,Lusha,Tel Aviv-Yafo,2026-04-19,https://www.lusha.com/careers/co/tel-aviv/6F.26C/senior-bi-data-engineer/,R&D,Hybrid
-Senior Business Analyst,Lusha,Tel Aviv-Yafo,2026-04-19,https://www.lusha.com/careers/co/tel-aviv/6D.86A/senior-business-analyst/?t=1775993965947,HQ,Hybrid
+Senior Business Analyst,Lusha,Tel Aviv-Yafo,2026-04-19,https://www.lusha.com/careers/co/tel-aviv/6D.86A/senior-business-analyst/,HQ,Hybrid
 Senior Data Analyst,Lusha,Tel Aviv-Yafo,2026-04-18,https://www.lusha.com/careers/co/tel-aviv/FE.86F/senior-data-analyst/,R&D,Hybrid
 Senior Data Product Manager,Lusha,Tel Aviv-Yafo,2026-04-14,https://www.lusha.com/careers/co/tel-aviv/C6.46A/senior-data-product-manager/,Product Management,Hybrid
 Senior Full Stack Developer,Lusha,Tel Aviv-Yafo,2026-04-15,https://www.lusha.com/careers/co/tel-aviv/B7.A5F/senior-full-stack-developer/,R&D,Hybrid
@@ -512,7 +512,7 @@ Senior Motion Graphic Artist,SuperPlay,Tel Aviv-Yafo,2026-04-19,https://www.supe
 Server QA Engineer,SuperPlay,Warsaw,2026-04-15,https://www.superplay.co/careers-position/EF.86B/,R&D,Remote
 Technical Artist,SuperPlay,Tel Aviv-Yafo,2026-04-16,https://www.superplay.co/careers-position/69.762/,R&D,On-site
 Technical Artist (Rigging & Pipeline),SuperPlay,Tel Aviv-Yafo,2026-04-15,https://www.superplay.co/careers-position/FB.86A/,Art & Design,On-site
-VIP Account Manager,SuperPlay,Tel Aviv-Yafo,2026-04-19,https://www.superplay.co/careers-position/A8.865/?t=1775469880131,Support,On-site
+VIP Account Manager,SuperPlay,Tel Aviv-Yafo,2026-04-19,https://www.superplay.co/careers-position/A8.865/,Support,On-site
 Communications Manager,Checkmarx,US- Remote,2026-04-18,https://checkmarx.com/job-openings/position/73.56A/,Marketing,Remote
 "Director, Business Intelligence & AI",Checkmarx,Ramat Gan,2026-04-17,https://checkmarx.com/job-openings/position/8D.86B/,CFO,Hybrid
 Marketing Operations & AI Automation Manager,Checkmarx,US- Remote,2026-04-17,https://checkmarx.com/job-openings/position/3F.66C/,Marketing,Remote
@@ -599,7 +599,7 @@ Director of Global Marketing,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.
 Director of Product,WSC Sports,Ramat-Gan,2026-04-17,https://wsc-sports.com/career/director-of-product/,Product,Hybrid
 FP&A Analyst,WSC Sports,Ramat-Gan,2026-04-17,https://wsc-sports.com/career/fpa-analyst/,Finance,Hybrid
 Generative AI Evangelist,WSC Sports,Ramat-Gan,2026-04-16,https://wsc-sports.com/career/generative-ai-evangelist/,Engineering,Hybrid
-Marketing Tech Ops Manager,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/marketing-tech-ops-manager/?t=1775985399990,Marketing,Hybrid
+Marketing Tech Ops Manager,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/marketing-tech-ops-manager/,Marketing,Hybrid
 ML Engineering Team Lead,WSC Sports,Ramat-Gan,2026-04-18,https://wsc-sports.com/career/algorithm-software-team-lead/,Engineering,Hybrid
 Multimodal Algorithm Developer,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/nlp-algorithm-developer/,Engineering,Hybrid
 Product Designer,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/product-designer/,Product,Hybrid
@@ -620,7 +620,7 @@ Frontend Team Leader - Czech Republic,Zero Networks,Czech Republic,2025-12-05,ht
 Linux Developer,Zero Networks,Ramat Gan,2026-04-13,https://zeronetworks.com/careers/details?uid=10.E4B,Engineering,On-site
 Network Data Analyst,Zero Networks,Ramat Gan,2026-03-24,https://zeronetworks.com/careers/details?uid=7C.E41,Data,On-site
 On-Prem Backend Engineer (Network Oriented),Zero Networks,Ramat Gan,2026-01-31,https://zeronetworks.com/careers/details?uid=70.D51,Engineering,On-site
-QA Engineer,Zero Networks,Ramat Gan,2026-04-19,https://zeronetworks.com/careers/details?uid=F4.945&t=1776596153719,Engineering,On-site
+QA Engineer,Zero Networks,Ramat Gan,2026-04-19,https://zeronetworks.com/careers/details?uid=F4.945,Engineering,On-site
 Regional Sales Manager,Zero Networks,Munich,2026-03-11,https://zeronetworks.com/careers/details?uid=85.76D,Sales,Remote
 Regional Sales Manager-Atlanta,Zero Networks,Georgia,2026-01-15,https://zeronetworks.com/careers/details?uid=44.463,Sales,Remote
 Regional Sales Manager-Atlanta,Zero Networks,Atlanta,2026-01-15,https://zeronetworks.com/careers/details?uid=44.463,Sales,Remote
@@ -719,7 +719,7 @@ Customer Success Manager (Central),Aidoc,New York,2026-04-18,https://www.aidoc.c
 Customer Success Manager (Eastern US),Aidoc,New York,2026-04-18,https://www.aidoc.com/about/careers/co/united-states/39.061/customer-success-manager-eastern-us/all/#positions,Customer Success,Remote
 Customer Success Manager - DACH region,Aidoc,Berlin,2026-04-16,https://www.aidoc.com/about/careers/co/eu/C0.F5F/customer-success-manager-dach-region/all/#positions,Customer Success,Remote
 "Customer Success Manager, West",Aidoc,New York,2026-04-19,https://www.aidoc.com/about/careers/co/united-states/EB.A54/customer-success-manager-west/all/#positions,Customer Success,Remote
-Implementation Manager,Aidoc,New York,2026-04-19,https://www.aidoc.com/about/careers/co/united-states/F9.667/implementation-manager/all/,Delivery,Remote
+Implementation Manager,Aidoc,New York,2026-04-19,https://www.aidoc.com/about/careers/co/united-states/F9.667/implementation-manager/all/#positions,Delivery,Remote
 Marketing Design Lead,Aidoc,Tel Aviv-Yafo,2026-04-19,https://www.aidoc.com/about/careers/co/tel-aviv/C4.760/marketing-design-lead/all/#positions,Marketing,Hybrid
 Post Market Surveillance & QMS Specialist,Aidoc,Tel Aviv-Yafo,2026-04-18,https://www.aidoc.com/about/careers/co/tel-aviv/55.760/post-market-surveillance-qms-specialist/all/#positions,Regulatory Affairs and Legal,On-site
 Principal Software Engineer,Aidoc,Tel Aviv-Yafo,2026-04-19,https://www.aidoc.com/about/careers/co/tel-aviv/DC.651/principal-software-engineer/all/,Engineering,Hybrid
@@ -796,7 +796,7 @@ Global Procurement Manager,Coralogix,Ramat Gan,2026-04-18,https://coralogix.com/
 Lead Organizational Intelligence Engineer,Coralogix,Ramat Gan,2026-04-01,https://coralogix.com/careers/co/ramat-gan-israel/33.566/lead-organizational-intelligence-engineer/all/,Engineering,Hybrid
 Principal Architect,Coralogix,Ramat Gan,2026-04-19,https://coralogix.com/careers/co/berlin-germany/52.363/principal-architect/all/,Engineering,Hybrid
 Product Manager,Coralogix,Ramat Gan,2026-04-13,https://coralogix.com/careers/co/ramat-gan-israel/62.36F/product-manager/all/,Product,Hybrid
-Senior Backend Engineer - OpenTelemetry,Coralogix,Berlin,2026-04-17,https://coralogix.com/careers/co/berlin-germany/EE.842/senior-backend-engineer-opentelemetry/all/,Engineering,Remote
+Senior Backend Engineer - OpenTelemetry,Coralogix,Berlin,2026-04-19,https://coralogix.com/careers/co/berlin-germany/EE.842/senior-backend-engineer-opentelemetry/all/?_gl=1*hc728q*_up*MQ..&gclid=CjwKCAjw7vzOBhBxEiwAc7WNr5r3Ad0MyDgYnizS3Hm1RqZSV5MotbMk73yWcdFnKJEOTeH_aGrtExoCoOwQAvD_BwE&gbraid=0AAAAAobtWqXw4ZMLa5moxBhBECkozMT9q,Engineering,Remote
 Senior Full Stack Engineer (Integrations Onboarding),Coralogix,Berlin,2026-04-19,https://coralogix.com/careers/co/berlin-germany/B9.668/senior-full-stack-engineer-integrations-onboarding/all/,Engineering,Remote
 Senior Infrastructure Engineer,Coralogix,Ramat Gan,2026-04-15,https://coralogix.com/careers/co/ramat-gan-israel/62.264/senior-infrastructure-engineer/all/,Engineering,Hybrid
 Site Reliability Engineer (FedRAMP / Security),Coralogix,New York,2026-04-19,https://coralogix.com/careers/co/new-york-us/33.C5F/site-reliability-engineer-fedramp-security/all/?fbclid=IwZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQPMTczODQ3NjQyNjcwMzcwAAEeA6QDopVx4g9zzjPave4EhuWmy9Po0Tjj-X0sCnAptFHwJJdNx-QFATDJEfM_aem_ZqR2pZ3sqUp5NJwb4wYiHQ,Engineering,Remote
@@ -901,7 +901,6 @@ Cloud Security Lead,Island,Tel Aviv-Yafo,2026-04-16,https://www.island.io/positi
 Escalation Engineer,Island,Tel Aviv-Yafo,2026-04-12,https://www.island.io/positions/position-93_047,Engineering,On-site
 Global Procurement Manager,Island,Tel Aviv-Yafo,2026-04-10,https://www.island.io/positions/position-18_F59,Operations,On-site
 IT Lab System Engineer,Island,Tel Aviv-Yafo,2026-04-07,https://www.island.io/positions/position-A1_66C,Engineering,On-site
-IT Support Specialist,Island,Tel Aviv-Yafo,2026-04-15,https://www.island.io/positions/position-DE_86E,,On-site
 Payroll & AP Specialist,Island,Tel Aviv-Yafo,2026-04-15,https://www.island.io/positions/position-42_86F,Finance,Hybrid
 Product Security Architect,Island,Tel Aviv-Yafo,2026-04-08,https://www.island.io/positions/position-54_46A,Product Management,On-site
 Product Support Engineer,Island,Tel Aviv-Yafo,2026-04-12,https://www.island.io/positions/position-13_E48,Support,On-site
