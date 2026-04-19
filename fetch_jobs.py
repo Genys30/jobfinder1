@@ -21,7 +21,7 @@ TECHMAP_FNS = [
     'hardware','hr','legal','marketing','procurement-operations','product',
     'project-management','qa','sales','security','software','support'
 ]
-TECHMAP_BASE = 'https://raw.githubusercontent.com/mlughy/techmap/main/jobs/'
+TECHMAP_BASE = 'https://raw.githubusercontent.com/mluggy/techmap/main/jobs/'
 
 COMEET_PAGE  = 'https://www.comeet.com/jobs/{slug}/{uid}'
 COMEET_API   = 'https://www.comeet.co/careers-api/2.0/company/{uid}/positions?token={token}&details=false'

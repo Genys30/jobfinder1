@@ -1,5 +1,14 @@
 [
-  {"token": "wix",     "name": "Wix"},
-  {"token": "monday",  "name": "Monday.com"},
-  {"token": "fiverr",  "name": "Fiverr"}
+  {"token": "wizinc",        "name": "Wiz"},
+  {"token": "fireblocks",    "name": "Fireblocks"},
+  {"token": "mondaydotcom",  "name": "Monday.com"},
+  {"token": "payoneer",      "name": "Payoneer"},
+  {"token": "sweetsecurity", "name": "Sweet Security"},
+  {"token": "fiverr",        "name": "Fiverr"},
+  {"token": "similarweb",    "name": "SimilarWeb"},
+  {"token": "outbrain",      "name": "Outbrain"},
+  {"token": "varonis",       "name": "Varonis"},
+  {"token": "snyk",          "name": "Snyk"},
+  {"token": "wix",           "name": "Wix"},
+  {"token": "cyberark",      "name": "CyberArk"}
 ]
