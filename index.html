@@ -278,7 +278,7 @@
       <option value="public">Public Sector</option>
       <option value="industrial">Industrial</option>
       <option value="retail">Retail</option>
-      <option value="agrotech">Agrotech</option>
+      <option value="agritech">Agritech</option>
       <option value="foodtech">Foodtech</option>
     </select>
   </div>
@@ -348,11 +348,6 @@
   </div>
   <!-- Row 1: Sector bar + Role donut -->
   <div class="an-row">
-    <div class="an-box">
-      <div class="an-box-title">Jobs by sector</div>
-      <canvas id="chartSector" height="260"></canvas>
-      <div class="an-note">Click a bar to filter jobs by sector</div>
-    </div>
     <div class="an-box">
       <div class="an-box-title">Role type distribution</div>
       <canvas id="chartRole" height="260"></canvas>
@@ -855,8 +850,8 @@ const KNOWN_COMPANIES = {
   'plarium':'gaming','bagelcode':'gaming','jelly button':'gaming',
   'dynamic yield':'retail','yotpo':'retail','global-e':'retail','global e':'retail',
   'syte':'retail','finaloop':'retail','feedvisor':'retail',
-  'netafim':'agrotech','taranis':'agrotech','phytech':'agrotech',
-  'cropx':'agrotech','weedout':'agrotech','prospera':'agrotech',
+  'netafim':'agritech','taranis':'agritech','phytech':'agritech',
+  'cropx':'agritech','weedout':'agritech','prospera':'agritech',
   'aleph farms':'foodtech','supermeat':'foodtech','future meat':'foodtech',
   'redefine meat':'foodtech','remilk':'foodtech','imagindairy':'foodtech',
 }
@@ -873,7 +868,7 @@ const SECTOR_KW = {
   public:     /\b(government|municipal|govtech|gov.?tech|ministry|utilities|smart city|public sector|civic tech|e.?gov|federal|national(?! security))\b/i,
   industrial: /\b(industrial(?! security)|manufacturing|factory|plant(?! based)|production(?! studio)|supply chain|logistics(?! tech)|warehouse|scada|plc\b|automation(?! marketing)|process control|iot(?! security)|industry 4|smart factory|predictive maintenance)\b/i,
   retail:     /\b(retail|e.?commerce|ecommerce|marketplace|fashion|apparel|consumer goods|fmcg|grocery|supermarket|last.?mile|direct.?to.?consumer|dtc\b|brand(?! safety)|loyalty(?! security)|point.?of.?sale|pos\b)\b/i,
-  agrotech:   /\b(agro|agrotech|agriculture|agritech|farm(?!ed meat)|crop|irrigation|precision farm|soil(?! security)|fertilizer|livestock|dairy(?! tech)|plant(?! base).*tech|field(?! security)|harvest)\b/i,
+  agritech:   /\b(agro|agritech|agriculture|agritech|farm(?!ed meat)|crop|irrigation|precision farm|soil(?! security)|fertilizer|livestock|dairy(?! tech)|plant(?! base).*tech|field(?! security)|harvest)\b/i,
   foodtech:   /\b(food(?! security)|foodtech|food.?tech|nutrition|protein(?! security)|plant.?based|cultivated meat|cell.*meat|fermentation(?! bio)|beverage|restaurant(?! tech)|culinary|food safety|alternative protein|meat.*alternative)\b/i,
 };
 
@@ -1013,17 +1008,12 @@ render();
 
 // ─── ANALYTICS ───────────────────────────────────────────────────────────────
 const CHART_INSTANCES = {};
-const PALETTE = ['#c97f0c','#d63916','#2e7d32','#0a66c2','#7c3aed','#00695c','#b71c1c','#e65100','#01579b','#4a148c'];
-const ROLE_LABELS = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Management',intern:'Intern'};
-const SECTOR_LABELS = {cyber:'Cyber',fintech:'Fintech',health:'Health',media:'Media',hardware:'Hardware',defence:'Defence',automotive:'Auto',gaming:'Gaming',public:'Public',industrial:'Industrial',retail:'Retail',agrotech:'Agrotech',foodtech:'Foodtech'};
+const PALETTE = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c','#b71c1c','#e65100','#01579b','#4a148c','#558b2f','#6d4c41'];
+const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern'};
+const SECTOR_LABELS = {cyber:'Cyber',fintech:'Fintech',health:'Health',media:'Media',hardware:'Hardware',defence:'Defence',automotive:'Auto',gaming:'Gaming',public:'Public',industrial:'Industrial',retail:'Retail',agritech:'Agritech',foodtech:'Foodtech'};
 
 function destroyChart(id){ if(CHART_INSTANCES[id]){ CHART_INSTANCES[id].destroy(); delete CHART_INSTANCES[id]; } }
-
-function count(arr, fn){
-  const m={};
-  arr.forEach(r=>{ const k=fn(r); if(k){ m[k]=(m[k]||0)+1; } });
-  return m;
-}
+function count(arr,fn){ const m={}; arr.forEach(r=>{ const k=fn(r); if(k){ m[k]=(m[k]||0)+1; } }); return m; }
 function topN(obj,n){ return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n); }
 
 function switchToJobs(filterFn){
@@ -1032,113 +1022,141 @@ function switchToJobs(filterFn){
   applyFilters();
 }
 
-function renderAnalytics(){
+// ── Trend chart: load multiple dated LinkedIn CSVs ──────────────────────────
+async function loadTrendData(){
+  const results = [];
+  for(let i=13; i>=0; i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    const fname = `linkedin_jobs_${y}-${m}-${day}.csv`;
+    const label = `${day}/${m}`;
+    try{
+      const r = await fetch(LI_RAW+fname);
+      if(!r.ok){ results.push({label,count:0}); continue; }
+      const text = await r.text();
+      const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      results.push({label, count: parsed.data.filter(row=>row.title||row.company).length});
+    }catch(e){ results.push({label,count:0}); }
+  }
+  return results;
+}
+
+async function renderAnalytics(){
   const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS];
   const seen=new Set();
-  const jobs=pool.filter(r=>{const k=r.url||(r.company+'|'+r.title);if(seen.has(k))return false;seen.add(k);return true;});
+  const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
 
   // ── Metric cards ──
   document.getElementById('anTotal').textContent = jobs.length.toLocaleString();
-
   const bySector = count(jobs, r=>classifySector(r.company));
-  const topSec   = topN(bySector,1)[0];
-  if(topSec){ document.getElementById('anTopSector').textContent=SECTOR_LABELS[topSec[0]]||topSec[0]; document.getElementById('anTopSectorN').textContent=topSec[1]+' jobs'; }
-
   const byRole   = count(jobs, r=>classifySegment(r.title));
+  const topSec   = topN(bySector,1)[0];
   const topRole  = topN(byRole,1)[0];
+  if(topSec){ document.getElementById('anTopSector').textContent=SECTOR_LABELS[topSec[0]]||topSec[0]; document.getElementById('anTopSectorN').textContent=topSec[1]+' jobs'; }
   if(topRole){ document.getElementById('anTopRole').textContent=ROLE_LABELS[topRole[0]]||topRole[0]; document.getElementById('anTopRoleN').textContent=topRole[1]+' jobs'; }
-
   const remCount = jobs.filter(r=>(r.workType||'').includes('remote')).length;
   document.getElementById('anRemote').textContent = Math.round(remCount/jobs.length*100)+'%';
 
-  // Card click → filter jobs
-  document.getElementById('anCardSector').onclick=()=>{ if(topSec) switchToJobs(()=>{ if($sector) $sector.value=topSec[0]; }); };
-  document.getElementById('anCardRole').onclick=()=>{ if(topRole) switchToJobs(()=>{ if($segment) $segment.value=topRole[0]; }); };
-  document.getElementById('anCardRemote').onclick=()=>{ switchToJobs(()=>{ if($worktype) $worktype.value='remote'; }); };
+  document.getElementById('anCardSector').onclick=()=>{ if(topSec) switchToJobs(()=>{ if($sector)$sector.value=topSec[0]; }); };
+  document.getElementById('anCardRole').onclick=()=>{   if(topRole) switchToJobs(()=>{ if($segment)$segment.value=topRole[0]; }); };
+  document.getElementById('anCardRemote').onclick=()=>{ switchToJobs(()=>{ if($worktype)$worktype.value='remote'; }); };
 
-  // ── Chart helpers ──
-  const chartOpts = (extra={})=>({
-    responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>ctx.parsed.y??ctx.parsed+' jobs'}}},
-    ...extra
-  });
+  const baseOpts = { responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{boxPadding:4}} };
 
-  // ── Sector bar ──
-  destroyChart('sector');
-  const secData = topN(bySector,13);
-  const ctxSec  = document.getElementById('chartSector').getContext('2d');
-  CHART_INSTANCES['sector'] = new Chart(ctxSec,{
-    type:'bar',
-    data:{labels:secData.map(([k])=>SECTOR_LABELS[k]||k), datasets:[{data:secData.map(([,v])=>v),backgroundColor:PALETTE[0],borderRadius:3}]},
-    options:chartOpts({indexAxis:'y',onClick:(_,els)=>{ if(els[0]!=null){ const sec=secData[els[0].index][0]; switchToJobs(()=>{ if($sector)$sector.value=sec; }); } }})
+  // ── Trend line ──
+  destroyChart('trend');
+  const trendData = await loadTrendData();
+  const activeDays = trendData.filter(d=>d.count>0);
+  const ctxTrend = document.getElementById('chartTrend').getContext('2d');
+  CHART_INSTANCES['trend'] = new Chart(ctxTrend,{
+    type:'line',
+    data:{
+      labels: trendData.map(d=>d.label),
+      datasets:[{
+        data: trendData.map(d=>d.count),
+        borderColor:'#c97f0c', backgroundColor:'rgba(201,127,12,.1)',
+        fill:true, tension:.4, pointRadius:5,
+        pointBackgroundColor: trendData.map(d=>d.count>0?'#c97f0c':'transparent'),
+        pointBorderColor: trendData.map(d=>d.count>0?'#c97f0c':'transparent'),
+      }]
+    },
+    options:{...baseOpts,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} LinkedIn jobs posted`}}},
+      scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},
+              x:{grid:{display:false}}}
+    }
   });
 
   // ── Role donut ──
   destroyChart('role');
   const roleData = topN(byRole,10).filter(([k])=>k);
-  const ctxRole  = document.getElementById('chartRole').getContext('2d');
-  CHART_INSTANCES['role'] = new Chart(ctxRole,{
+  CHART_INSTANCES['role'] = new Chart(document.getElementById('chartRole').getContext('2d'),{
     type:'doughnut',
     data:{labels:roleData.map(([k])=>ROLE_LABELS[k]||k), datasets:[{data:roleData.map(([,v])=>v),backgroundColor:PALETTE}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}},
-      onClick:(_,els)=>{ if(els[0]!=null){ const seg=roleData[els[0].index][0]; switchToJobs(()=>{ if($segment)$segment.value=seg; }); } }}
-  });
-
-  // ── Top companies ──
-  destroyChart('companies');
-  const byComp  = count(jobs, r=>r.company);
-  const compData= topN(byComp,15);
-  const ctxComp = document.getElementById('chartCompanies').getContext('2d');
-  CHART_INSTANCES['companies'] = new Chart(ctxComp,{
-    type:'bar',
-    data:{labels:compData.map(([k])=>k), datasets:[{data:compData.map(([,v])=>v),backgroundColor:PALETTE[1],borderRadius:3}]},
-    options:chartOpts({indexAxis:'y',onClick:(_,els)=>{ if(els[0]!=null){ const comp=compData[els[0].index][0]; switchToJobs(()=>{ $company.value=comp; }); } }})
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($segment)$segment.value=roleData[els[0].index][0]; }); } }}
   });
 
   // ── Work type donut ──
   destroyChart('worktype');
   const wtMap={'remote':'Remote','hybrid':'Hybrid','onsite':'On-site','':'Unspecified'};
   const byWt  = count(jobs, r=>r.workType||'');
-  const wtData= Object.entries(byWt);
-  const ctxWt = document.getElementById('chartWorkType').getContext('2d');
-  CHART_INSTANCES['worktype'] = new Chart(ctxWt,{
+  const wtData= Object.entries(byWt).filter(([k,v])=>v>0);
+  CHART_INSTANCES['worktype'] = new Chart(document.getElementById('chartWorkType').getContext('2d'),{
     type:'doughnut',
     data:{labels:wtData.map(([k])=>wtMap[k]||k), datasets:[{data:wtData.map(([,v])=>v),backgroundColor:['#2e7d32','#0a66c2','#c97f0c','#d9d2c2']}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
-      onClick:(_,els)=>{ if(els[0]!=null){ const wt=wtData[els[0].index][0]; switchToJobs(()=>{ if($worktype)$worktype.value=wt; }); } }}
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($worktype)$worktype.value=wtData[els[0].index][0]; }); } }}
   });
 
   // ── Source donut ──
   destroyChart('source');
   const srcLabels={'linkedin':'LinkedIn','comeet':'Comeet','greenhouse':'Greenhouse','lv':'Lever','techmap':'Techmap'};
-  const bySrc  = count(jobs, r=>r.source);
-  const srcData= Object.entries(bySrc);
-  const ctxSrc = document.getElementById('chartSource').getContext('2d');
-  CHART_INSTANCES['source'] = new Chart(ctxSrc,{
+  const bySrc = count(jobs, r=>r.source);
+  const srcData= Object.entries(bySrc).filter(([,v])=>v>0);
+  CHART_INSTANCES['source'] = new Chart(document.getElementById('chartSource').getContext('2d'),{
     type:'doughnut',
     data:{labels:srcData.map(([k])=>srcLabels[k]||k), datasets:[{data:srcData.map(([,v])=>v),backgroundColor:['#0a66c2','#00897b','#2e7d32','#c2410c','#888']}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
-      onClick:(_,els)=>{ if(els[0]!=null){ const src=srcData[els[0].index][0]; switchToJobs(()=>{ if($source)$source.value=src; }); } }}
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($source)$source.value=srcData[els[0].index][0]; }); } }}
+  });
+
+  // ── Top companies horizontal bar ──
+  destroyChart('companies');
+  const byComp  = count(jobs, r=>r.company);
+  const compData= topN(byComp,20);
+  CHART_INSTANCES['companies'] = new Chart(document.getElementById('chartCompanies').getContext('2d'),{
+    type:'bar',
+    data:{labels:compData.map(([k])=>k), datasets:[{data:compData.map(([,v])=>v),backgroundColor:'#0a66c2',borderRadius:3}]},
+    options:{...baseOpts, indexAxis:'y',
+      scales:{x:{grid:{color:'rgba(0,0,0,.05)'}},y:{ticks:{font:{size:11}}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ $company.value=compData[els[0].index][0]; }); } }}
   });
 
   // ── Sector × Role stacked bar ──
   destroyChart('heatmap');
-  const topSectors = topN(bySector,8).map(([k])=>k);
-  const topRoles   = topN(byRole,6).filter(([k])=>k).map(([k])=>k);
-  const roleColors = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c'];
-  const datasets   = topRoles.map((role,i)=>({
+  // Use only sectors with >10 jobs for clean chart
+  const validSectors = topN(bySector,10).filter(([,v])=>v>10).map(([k])=>k);
+  const validRoles   = topN(byRole,6).filter(([k])=>k).map(([k])=>k);
+  const roleColors   = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c'];
+  const datasets = validRoles.map((role,i)=>({
     label: ROLE_LABELS[role]||role,
-    data: topSectors.map(sec=>jobs.filter(r=>classifySector(r.company)===sec&&classifySegment(r.title)===role).length),
-    backgroundColor: roleColors[i], borderRadius:2
+    data: validSectors.map(sec=>jobs.filter(r=>classifySector(r.company)===sec&&classifySegment(r.title)===role).length),
+    backgroundColor: roleColors[i], borderRadius:2, borderSkipped:false
   }));
-  const ctxHeat = document.getElementById('chartHeatmap').getContext('2d');
-  CHART_INSTANCES['heatmap'] = new Chart(ctxHeat,{
+  CHART_INSTANCES['heatmap'] = new Chart(document.getElementById('chartHeatmap').getContext('2d'),{
     type:'bar',
-    data:{labels:topSectors.map(k=>SECTOR_LABELS[k]||k), datasets},
+    data:{labels:validSectors.map(k=>SECTOR_LABELS[k]||k), datasets},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}},
-      scales:{x:{stacked:true},y:{stacked:true}}}
+      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'}}}}
   });
 }
 
@@ -1156,7 +1174,7 @@ document.getElementById('vbtnAnalytics').addEventListener('click',()=>{
   document.querySelector('main').style.display='none';
   document.querySelector('.status').style.display='none';
   document.getElementById('analyticsPanel').style.display='block';
-  renderAnalytics();
+  renderAnalytics().catch(console.error);
 });
 
 </script>
