@@ -381,7 +381,9 @@ function normLinkedIn(row, filename){
   };
   const rawTitle = g('title', ['job title','position','role']);
   const title    = rawTitle.split('\n')[0].trim();
-  const company  = g('company', ['company name','employer']);
+  // Clean company: strip LinkedIn noise like '2 connections · 3 hours ago · Within the past 24 hours'
+  const rawComp  = g('company', ['company name','employer']);
+  const company  = rawComp.split('\n')[0].replace(/\d+\s+connection.*$/i,'').replace(/\d+\s+hour.*$/i,'').replace(/within the past.*$/i,'').replace(/·.*$/,'').trim();
   if(!title || !company) return null;
 
   const fnDate = (filename.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
