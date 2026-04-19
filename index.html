@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>jobfinder · Israeli tech jobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+  :root {
+    --bg:#f5f1e8;--panel:#ffffff;--ink:#1a1a17;--ink-dim:#5c5849;
+    --ink-faint:#9c9687;--rule:#d9d2c2;--accent:#c97f0c;--accent-2:#d63916;
+    --li:#0a66c2;--li-pale:rgba(10,102,194,0.07);--li-border:rgba(10,102,194,0.2);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Fraunces',Georgia,serif;
+    -webkit-font-smoothing:antialiased;min-height:100vh;
+    background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(201,127,12,.10),transparent 60%),
+                     radial-gradient(ellipse 60% 40% at 100% 100%,rgba(214,57,22,.05),transparent 60%);}
+
+  /* ─── Header ─── */
+  header{padding:40px 48px 28px;border-bottom:1px solid var(--rule);}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);
+    margin-right:8px;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;}
+  @keyframes pulse{50%{opacity:.35;}}
+  h1{font-size:clamp(44px,7vw,96px);font-weight:300;font-style:italic;letter-spacing:-.03em;line-height:.95;}
+  h1 .accent{color:var(--accent);font-style:normal;font-weight:500;}
+  .sub{margin-top:18px;max-width:640px;color:var(--ink-dim);font-size:16px;line-height:1.5;}
+  .sub a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--ink-faint);text-underline-offset:3px;}
+  .sub a:hover{text-decoration-color:var(--accent);}
+  .byline{margin-top:14px;max-width:640px;font-size:13.5px;color:var(--ink-dim);line-height:1.6;}
+  .byline em{font-style:italic;opacity:.75;}
+  .byline a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:1px;}
+  .byline a:hover{opacity:.8;}
+
+  /* ─── Data status bar ─── */
+  .databar{
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+    padding:12px 48px;border-bottom:1px solid var(--rule);
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    background:rgba(245,241,232,.5);
+  }
+  .datasrc{display:flex;align-items:center;gap:8px;}
+  .src-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .src-dot.tm{background:var(--accent);}
+  .src-dot.li{background:var(--li);}
+  .datasrc span{color:var(--ink-dim);letter-spacing:.06em;}
+  .datasrc strong{color:var(--ink);}
+  .datasrc .err{color:var(--accent-2);}
+  .databar-sep{color:var(--rule);}
+
+  /* ─── Source pills ─── */
+  .src-strip{padding:10px 48px;border-bottom:1px solid var(--rule);
+    display:flex;gap:8px;align-items:center;}
+  .src-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-faint);margin-right:4px;}
+  .src-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;padding:5px 12px;border-radius:2px;cursor:pointer;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-dim);transition:all .15s;}
+  .src-pill:hover{border-color:var(--ink-dim);color:var(--ink);}
+  .src-pill.active{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+  .src-pill.li-active{background:var(--li);color:#fff;border-color:var(--li);}
+
+  /* ─── Filters ─── */
+  .filters{display:grid;grid-template-columns:1.5fr repeat(4,1fr) auto;gap:12px;
+    padding:22px 48px;border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:10;
+    backdrop-filter:blur(12px);background-color:rgba(245,241,232,.88);}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0;}
+  .field label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-faint);}
+  .field input,.field select{background:var(--panel);border:1px solid var(--rule);color:var(--ink);
+    padding:11px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;border-radius:2px;
+    outline:none;transition:border-color .15s,background .15s;width:100%;
+    appearance:none;-webkit-appearance:none;text-overflow:ellipsis;}
+  .field select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%235c5849' stroke-width='1.2' fill='none'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:28px;}
+  .field input:focus,.field select:focus{border-color:var(--accent);background:#fffdf7;}
+  .field input::placeholder{color:var(--ink-faint);}
+  .reset{align-self:end;background:transparent;color:var(--ink-dim);border:1px solid var(--rule);
+    padding:11px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.15em;cursor:pointer;border-radius:2px;transition:all .15s;}
+  .reset:hover{color:var(--accent-2);border-color:var(--accent-2);}
+
+  /* ─── Status bar ─── */
+  .status{padding:14px 48px;font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);
+    border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;
+    align-items:center;gap:24px;}
+  .status .count strong{color:var(--accent);font-weight:700;}
+  .progress{height:1px;background:var(--rule);flex:1;max-width:240px;overflow:hidden;position:relative;}
+  .progress::after{content:'';position:absolute;inset:0;background:var(--accent);
+    transform:scaleX(var(--pct,0));transform-origin:left;transition:transform .3s;}
+  .export-btn{background:transparent;color:var(--ink-dim);border:1px solid var(--rule);
+    padding:6px 14px;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;
+    letter-spacing:.18em;cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap;}
+  .export-btn:hover:not(:disabled){color:var(--accent);border-color:var(--accent);}
+  .export-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+  /* ─── Job rows ─── */
+  main{padding:0 48px 64px;}
+  .job{display:grid;grid-template-columns:90px 1fr 200px 180px 140px 28px;gap:20px;
+    align-items:baseline;padding:22px 0;border-bottom:1px solid var(--rule);
+    transition:background .2s;cursor:pointer;text-decoration:none;color:inherit;}
+  .job:hover{background:linear-gradient(90deg,rgba(201,127,12,.08),transparent 70%);}
+  .job:hover .title{color:var(--accent);}
+  .job:hover .arrow{color:var(--accent);transform:translateX(4px);}
+  .job.li-row:hover{background:linear-gradient(90deg,var(--li-pale),transparent 70%);}
+  .job.li-row:hover .title{color:var(--li);}
+  .job.li-row:hover .arrow{color:var(--li);}
+  .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);letter-spacing:.05em;}
+  .title{font-family:'Fraunces',serif;font-size:20px;font-weight:400;line-height:1.25;
+    letter-spacing:-.01em;transition:color .15s;}
+  .level-badge{display:inline-block;margin-left:10px;font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-faint);
+    border:1px solid var(--rule);padding:2px 8px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .li-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--li);
+    padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .company-cell{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .company-cell .size{color:var(--ink-faint);margin-left:6px;}
+  .category{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);
+    text-transform:lowercase;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .city{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);
+    direction:rtl;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .arrow{font-family:'JetBrains Mono',monospace;color:var(--ink-faint);
+    transition:color .15s,transform .15s;text-align:right;}
+  .empty,.loading,.error{padding:80px 0;text-align:center;color:var(--ink-dim);font-style:italic;font-size:18px;}
+  .error{color:var(--accent-2);font-style:normal;font-family:'JetBrains Mono',monospace;font-size:13px;}
+  .more-wrap{padding:36px 0;text-align:center;}
+  .more{background:transparent;color:var(--ink);border:1px solid var(--rule);padding:14px 36px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.2em;cursor:pointer;border-radius:2px;transition:all .15s;}
+  .more:hover{border-color:var(--accent);color:var(--accent);}
+
+  footer{padding:28px 48px;border-top:1px solid var(--rule);color:var(--ink-faint);
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;
+    text-transform:uppercase;display:flex;justify-content:space-between;}
+
+  @media(max-width:1100px){
+    .filters{grid-template-columns:1fr 1fr 1fr;}
+    .reset{grid-column:1/-1;}
+    .job{grid-template-columns:1fr;gap:4px;padding:18px 0;}
+    .arrow{display:none;}
+  }
+  @media(max-width:700px){
+    header,.filters,.status,main,footer,.databar,.src-strip{padding-left:22px;padding-right:22px;}
+    .filters{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">
+    <span><span class="dot"></span>jobfinder / israeli tech</span>
+    <span id="lastBuild">loading…</span>
+  </div>
+  <h1>Israeli tech <span class="accent">jobs,</span><br>searched seriously.</h1>
+  <p class="byline">
+    Built by <a href="https://www.linkedin.com/in/jennysotnik/" target="_blank" rel="noopener">Jenny Sotnik Talisman</a> —
+    turning the messy public data of the Israeli tech scene into actual signal.<br>
+    <em>"In a sea of noise, I build the lighthouse."</em>
+  </p>
+</header>
+
+<!-- Live data sources status -->
+<div class="databar">
+  <div class="datasrc">
+    <span class="src-dot li"></span>
+    <span id="liStatusText">LinkedIn: loading…</span>
+  </div>
+
+</div>
+
+<!-- Source filter -->
+<div class="src-strip">
+  <span class="src-label">Source</span>
+  <button class="src-pill active" data-src="all">All</button>
+  <button class="src-pill" data-src="linkedin">LinkedIn</button>
+</div>
+
+<!-- Filters -->
+<section class="filters">
+  <div class="field">
+    <label for="q">Position · free text</label>
+    <input id="q" type="text" placeholder="e.g. backend, product, devops…" autocomplete="off" />
+  </div>
+  <div class="field">
+    <label for="city">City</label>
+    <select id="city"><option value="">All cities</option></select>
+  </div>
+  <div class="field">
+    <label for="company">Company</label>
+    <select id="company"><option value="">All companies</option></select>
+  </div>
+  <div class="field">
+    <label for="category">Industry</label>
+    <select id="category"><option value="">All industries</option></select>
+  </div>
+  <div class="field">
+    <label for="date">Posted</label>
+    <select id="date">
+      <option value="">Any time</option>
+      <option value="1">Today</option>
+      <option value="3">Last 3 days</option>
+      <option value="7">Last 7 days</option>
+      <option value="14">Last 14 days</option>
+      <option value="30">Last 30 days</option>
+    </select>
+  </div>
+  <button class="reset" id="reset">Reset</button>
+</section>
+
+<div class="status">
+  <span class="count" id="count">Loading…</span>
+  <div class="progress" id="progress" style="--pct:0"></div>
+  <button id="export" class="export-btn" disabled>↓ Export CSV</button>
+</div>
+
+<main>
+  <div id="list"></div>
+  <div class="more-wrap" id="moreWrap" style="display:none;">
+    <button class="more" id="more">Load more</button>
+  </div>
+</main>
+
+<footer>
+  <span>techmap · ODbL v1.0 · linkedin via github.com/Genys30/jobfinder</span>
+  <span id="stamp"></span>
+</footer>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+
+const TECHMAP_FNS = [
+  'admin','business','data-science','design','devops','finance','frontend',
+  'hardware','hr','legal','marketing','procurement-operations','product',
+  'project-management','qa','sales','security','software','support'
+];
+const TECHMAP_BASE = 'https://raw.githubusercontent.com/mluggy/techmap/main/jobs/';
+
+// Your repo — the code will auto-discover all linkedin_jobs_*.csv files
+const LI_REPO    = 'Genys30/jobfinder';
+const LI_RAW     = 'https://raw.githubusercontent.com/' + LI_REPO + '/main/';
+const LI_API     = 'https://api.github.com/repos/' + LI_REPO + '/contents/';
+// Pattern: linkedin_jobs_YYYY-MM-DD.csv  OR  linkedin_jobs.csv
+const LI_PATTERN = /^linkedin_jobs(?:_\d{4}-\d{2}-\d{2})?\.csv$/i;
+
+const PAGE       = 50;
+const SIZE_LABEL = {s:'small',m:'mid',l:'large',xl:'enterprise'};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let TM_JOBS  = [];   // techmap
+let LI_JOBS  = [];   // linkedin (all files combined)
+let FILTERED = [];
+let visible  = PAGE;
+let activeSrc = 'all';
+
+// ─── DOM ─────────────────────────────────────────────────────────────────────
+const $q        = document.getElementById('q');
+const $city     = document.getElementById('city');
+const $company  = document.getElementById('company');
+const $category = document.getElementById('category');
+const $level    = document.getElementById('level');
+const $date     = document.getElementById('date');
+const $reset    = document.getElementById('reset');
+const $list     = document.getElementById('list');
+const $count    = document.getElementById('count');
+const $progress = document.getElementById('progress');
+const $moreWrap = document.getElementById('moreWrap');
+const $more     = document.getElementById('more');
+const $stamp    = document.getElementById('stamp');
+const $lastBuild= document.getElementById('lastBuild');
+const $export   = document.getElementById('export');
+const $liStatus = document.getElementById('liStatusText');
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Parses M/D/YYYY (LinkedIn) and ISO dates
+function parseDate(s){
+  if(!s) return null;
+  const mdy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s.trim());
+  if(mdy) return new Date(+mdy[3], +mdy[1]-1, +mdy[2]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function formatDate(s){
+  const d = parseDate(s);
+  if(!d) return '—';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+}
+
+// Strip country/district from LinkedIn location: keep only city
+function cleanCity(loc){
+  if(!loc) return '';
+  return loc.split(',')[0].replace(/\s*\(.*?\)$/,'').trim();
+}
+
+function csvCell(v){
+  const s = v==null?'':String(v);
+  return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+
+// ─── NORMALIZE ───────────────────────────────────────────────────────────────
+function normTechmap(row, fn){
+  const g = k => (row[k]==null?'':String(row[k]).trim());
+  return {
+    source:'techmap', fnArea:fn,
+    title:g('title'), company:g('company'), category:g('category'),
+    size:g('size').toLowerCase(), level:g('level'),
+    city:g('city'), url:g('url'), updated:g('updated')
+  };
+}
+
+function normLinkedIn(row, filename){
+  // column names from LinkedIn CSV export: title, company, location, date, url
+  const keys = Object.keys(row);
+  const g = (primary, alts=[]) => {
+    const k = keys.find(k=>k.toLowerCase().trim()===primary)
+           || keys.find(k=>alts.some(a=>k.toLowerCase().includes(a)));
+    return k ? (row[k]==null?'':String(row[k]).trim()) : '';
+  };
+  const rawTitle = g('title', ['job title','position','role']);
+  const title    = rawTitle.split('\n')[0].trim();
+  const company  = g('company', ['company name','employer']);
+  if(!title || !company) return null;
+
+  // Extract date from filename as fallback: linkedin_jobs_2026-04-19.csv -> 2026-04-19
+  const fnDate = (filename.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+
+  return {
+    source:'linkedin', fnArea:'linkedin',
+    title, company, category:'linkedin', size:'', level:'',
+    city:cleanCity(g('location',['city','place'])),
+    url:g('url',['link','job url','apply']),
+    updated: g('date',['posted','date posted']) || fnDate
+  };
+}
+
+// ─── LOAD TECHMAP ─────────────────────────────────────────────────────────────
+async function loadTechmap(){
+  let done = 0;
+  const update = () => {
+    $progress.style.setProperty('--pct', done/TECHMAP_FNS.length);
+  };
+
+  const results = await Promise.all(TECHMAP_FNS.map(async fn => {
+    try {
+      const res = await fetch(TECHMAP_BASE + fn + '.csv');
+      if(!res.ok) throw 0;
+      const text = await res.text();
+      const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      done++; update();
+      return parsed.data.map(r=>normTechmap(r,fn));
+    } catch(e){ done++; update(); return []; }
+  }));
+
+  TM_JOBS = results.flat().filter(r=>r.title&&r.company);
+
+  // Dedupe
+  const seen = new Set();
+  TM_JOBS = TM_JOBS.filter(r=>{
+    const k = r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+  TM_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated), db=parseDate(b.updated);
+    if(da&&db) return db-da; if(db) return 1; if(da) return -1; return 0;
+  });
+  const now = new Date();
+  $lastBuild.textContent = 'live · '+now.toISOString().slice(0,10);
+  $stamp.textContent = 'last sync '+now.toLocaleTimeString();
+}
+
+// ─── LOAD LINKEDIN (auto-discover all CSV files in repo) ──────────────────────
+async function loadLinkedIn(){
+  $liStatus.innerHTML = 'LinkedIn: <span style="color:var(--ink-faint)">scanning repo…</span>';
+  try {
+    // Use GitHub API to list repo contents
+    const res = await fetch(LI_API + '?t=' + Date.now(), {
+      headers:{'Accept':'application/vnd.github.v3+json'}
+    });
+    if(!res.ok) throw new Error('GitHub API '+res.status);
+    const files = await res.json();
+
+    // Find all matching CSV files, sort newest first
+    const csvFiles = files
+      .filter(f => f.type==='file' && LI_PATTERN.test(f.name))
+      .sort((a,b)=>b.name.localeCompare(a.name)); // newest date first
+
+    if(csvFiles.length===0){
+      $liStatus.innerHTML = 'LinkedIn: <span class="err">no linkedin_jobs*.csv found in repo</span>';
+      return;
+    }
+
+
+    // Load all matching CSVs and merge
+    const allRows = await Promise.all(csvFiles.map(async f => {
+      try {
+        const r = await fetch(LI_RAW + f.name + '?t=' + Date.now());
+        if(!r.ok) return [];
+        const text = await r.text();
+        const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,
+          transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+        return parsed.data.map(row=>normLinkedIn(row, f.name)).filter(Boolean);
+      } catch(e){ return []; }
+    }));
+
+    LI_JOBS = allRows.flat();
+
+    // Dedupe within LinkedIn (same job across multiple daily files)
+    const seen = new Set();
+    LI_JOBS = LI_JOBS.filter(r=>{
+      const k = r.url||(r.company+'|'+r.title+'|'+r.city);
+      if(seen.has(k)) return false; seen.add(k); return true;
+    });
+
+    // Remove jobs already in techmap
+    const tmUrls = new Set(TM_JOBS.map(r=>r.url).filter(Boolean));
+    LI_JOBS = LI_JOBS.filter(r=>!r.url||!tmUrls.has(r.url));
+
+    LI_JOBS.sort((a,b)=>{
+      const da=parseDate(a.updated), db=parseDate(b.updated);
+      if(da&&db) return db-da; if(db) return 1; if(da) return -1; return 0;
+    });
+
+    $liStatus.innerHTML = 'LinkedIn: <strong>'+LI_JOBS.length.toLocaleString()+' jobs</strong>';
+
+  } catch(e){
+    $liStatus.innerHTML = 'LinkedIn: <span class="err">⚠ '+esc(e.message)+'</span>';
+    console.error('LI load error', e);
+  }
+}
+
+// ─── POOL ────────────────────────────────────────────────────────────────────
+function getPool(){
+  if(activeSrc==='techmap') return TM_JOBS;
+  if(activeSrc==='linkedin') return LI_JOBS;
+  // Merge, dedupe by URL
+  const seen = new Set();
+  return [...TM_JOBS,...LI_JOBS].filter(r=>{
+    const k = r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+}
+
+// ─── DROPDOWNS ───────────────────────────────────────────────────────────────
+function populateDropdowns(){
+  const pool = getPool();
+  const heLocale = (a,b)=>a.localeCompare(b,'he');
+  const fill = (sel, key) => {
+    const cur = sel.value;
+    while(sel.options.length>1) sel.remove(1);
+    [...new Set(pool.map(r=>r[key]).filter(Boolean))].sort(heLocale)
+      .forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+    if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
+  };
+  fill($city,'city'); fill($company,'company'); fill($category,'category'); fill($level,'level');
+}
+
+// ─── FILTER ──────────────────────────────────────────────────────────────────
+function applyFilters(){
+  const q       = $q.value.trim().toLowerCase();
+  const city    = $city.value;
+  const company = $company.value;
+  const category= $category.value;
+  const level   = $level.value;
+  const days    = $date.value ? parseInt($date.value) : null;
+  const cutoff  = days ? Date.now()-days*86400000 : null;
+
+  const pool = getPool();
+  FILTERED = pool.filter(r=>{
+    if(city    && r.city!==city)       return false;
+    if(company && r.company!==company) return false;
+    if(category&& r.category!==category)return false;
+    if(level   && r.level!==level)     return false;
+    if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q))) return false;
+    if(cutoff){
+      const d = parseDate(r.updated);
+      // techmap: strict. LinkedIn: skip if no date, filter if date exists and is old
+      if(r.source==='techmap' && (!d||d.getTime()<cutoff)) return false;
+      if(r.source==='linkedin' && d && d.getTime()<cutoff) return false;
+    }
+    return true;
+  });
+  visible = PAGE;
+  render();
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render(){
+  const total = getPool().length;
+  $count.innerHTML = '<strong>'+FILTERED.length.toLocaleString()+'</strong> open role'
+    +(FILTERED.length===1?'':'s')+' · '+total.toLocaleString()+' indexed';
+  $export.disabled = FILTERED.length===0;
+  $export.textContent = FILTERED.length>0 ? '↓ Export '+FILTERED.length+' as CSV' : '↓ Export CSV';
+
+  if(total===0){ $list.innerHTML='<div class="loading">Fetching jobs…</div>'; return; }
+  if(FILTERED.length===0){
+    $list.innerHTML='<div class="empty">No roles match your filters.</div>';
+    $moreWrap.style.display='none'; return;
+  }
+
+  const slice = FILTERED.slice(0,visible);
+  $list.innerHTML = slice.map(r=>{
+    const href   = r.url||'#';
+    const target = r.url?'target="_blank" rel="noopener"':'';
+    const szLabel = SIZE_LABEL[r.size]||r.size;
+    const szMarkup= szLabel?'<span class="size">· '+esc(szLabel)+'</span>':'';
+    const lvBadge = r.level?'<span class="level-badge">'+esc(r.level)+'</span>':'';
+    const liBadge = r.source==='linkedin'?'<span class="li-badge">LI</span>':'';
+    const rowCls  = r.source==='linkedin'?' li-row':'';
+    return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
+      +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
+      +'<span class="title">'+esc(r.title)+lvBadge+liBadge+'</span>'
+      +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
+      +'<span class="category">'+esc(r.category||'—')+'</span>'
+      +'<span class="city">'+esc(r.city||'—')+'</span>'
+      +'<span class="arrow">↗</span></a>';
+  }).join('');
+  $moreWrap.style.display = FILTERED.length>visible?'block':'none';
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────────
+function exportCSV(){
+  if(!FILTERED.length) return;
+  const hdr = ['updated','company','title','level','category','size','city','url','source'];
+  const rows = FILTERED.map(r=>[r.updated,r.company,r.title,r.level,r.category,r.size,r.city,r.url,r.source].map(csvCell).join(','));
+  const blob = new Blob(['\uFEFF'+hdr.join(',')+'\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'jobfinder-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+// ─── SOURCE PILLS ────────────────────────────────────────────────────────────
+document.querySelectorAll('.src-pill').forEach(p=>{
+  p.addEventListener('click',()=>{
+    activeSrc = p.dataset.src;
+    document.querySelectorAll('.src-pill').forEach(x=>x.classList.remove('active','li-active'));
+    p.classList.add(activeSrc==='linkedin'?'li-active':'active');
+    populateDropdowns(); applyFilters();
+  });
+});
+
+// ─── EVENTS ──────────────────────────────────────────────────────────────────
+let qTimer;
+$q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFilters,120);});
+[$city,$company,$category,$level,$date].forEach(el=>el.addEventListener('change',applyFilters));
+$reset.addEventListener('click',()=>{
+  $q.value='';$city.value='';$company.value='';$category.value='';$level.value='';$date.value='';
+  applyFilters();
+});
+$more.addEventListener('click',()=>{visible+=PAGE;render();});
+$export.addEventListener('click',exportCSV);
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+render();
+(async()=>{
+  await Promise.all([
+    loadTechmap().catch(e=>console.error('techmap',e)),
+    loadLinkedIn().catch(e=>console.error('linkedin',e))
+  ]);
+  populateDropdowns();
+  applyFilters();
+})();
+</script>
+</body>
+</html>
