@@ -32,8 +32,8 @@ Freelancer - AI Red Team Experts,Alice,New York,2026-04-14,https://alice.io/posi
 Freelancer - Cyber Threat Experts,Alice,New York,2026-04-17,https://alice.io/positions/position-5C_061,Freelancers,Remote
 Freelancer - GenAI Experts,Alice,New York,2026-04-15,https://alice.io/positions/position-9F_F5D,Freelancers,Remote
 Freelancer - OSINT/WEBINT Experts,Alice,New York,2026-04-18,https://alice.io/positions/position-AC_06A,Freelancers,Remote
-GenAI Account Executive,Alice,New York,2026-04-19,https://alice.io/positions/position-BB_368#apply-form,Sales,Remote
-GenAI Account Executive,Alice,London,2026-04-19,https://alice.io/positions/position-BB_368#apply-form,Sales,Remote
+GenAI Account Executive,Alice,New York,2026-04-19,https://alice.io/positions/position-BB_368,Sales,Remote
+GenAI Account Executive,Alice,London,2026-04-19,https://alice.io/positions/position-BB_368,Sales,Remote
 GenAI Analyst,Alice,Ramat Gan,2026-04-19,https://alice.io/positions/position-F5_468,Intelligence,Hybrid
 GenAI Security Specialist,Alice,Ramat Gan,2026-04-19,https://alice.io/positions/position-00_C55,Intelligence,Hybrid
 Geopolitical Risk Project Lead,Alice,Ramat Gan,2026-04-16,https://alice.io/positions/position-60_662,Intelligence,Hybrid
@@ -471,7 +471,7 @@ Senior Frontend Engineer,Exodigo,Tel Aviv,2026-04-19,https://www.exodigo.com/ope
 Senior Software Engineer - Data Acquistion (Field Team),Exodigo,Tel Aviv,2026-04-19,https://www.exodigo.com/open-positions/Senior_Software_Engineer_-_Data_Acquistion_Field_Team_13-260,R&D,On-site
 Signal Analyst,Exodigo,Tel Aviv,2026-04-19,https://www.exodigo.com/open-positions/signal-analyst?fbclid=IwdGRjcARJ8XdleHRuA2FlbQIxMQBzcnRjBmFwcF9pZAo2NjI4NTY4Mzc5AAEeh8GrVOkcx-aLeBYP5LsxfRKsSowDUgRZxNqomgHNNU5nZtKGtKtMzZGqCgU_aem_tjI0koBf46Il7rCy8uYJyA,Product Operation,On-site
 Platform Engineer,Tikal,Tel Aviv-Yafo,2026-04-17,https://www.tikalk.com/career/platform-engineer-8a.54e/,DevOps,Hybrid
-Senior Backend Engineer,Tikal,Tel Aviv-Yafo,2026-04-19,https://www.tikalk.com/career/senior-backend-engineer-13.532/,Backend,Hybrid
+Senior Backend Engineer,Tikal,Tel Aviv-Yafo,2026-04-19,https://www.tikalk.com/career/senior-backend-engineer-13.532,Backend,Hybrid
 Senior Data Engineer,Tikal,Tel Aviv-Yafo,2026-04-19,https://www.tikalk.com/career/senior-data-engineer-03.53c/,Backend,Hybrid
 Senior DevOps Engineer,Tikal,Tel Aviv-Yafo,2026-04-19,https://www.tikalk.com/career/senior-devops-engineer-68.63e,DevOps,Hybrid
 Senior Fullstack Engineer,Tikal,Tel Aviv-Yafo,2026-04-19,https://www.tikalk.com/career/senior-fullstack-engineer-54.b36,Fullstack,Hybrid
@@ -599,7 +599,7 @@ Generative AI Evangelist,WSC Sports,Ramat-Gan,2026-04-16,https://wsc-sports.com/
 Marketing Tech Ops Manager,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/marketing-tech-ops-manager/,Marketing,Hybrid
 ML Engineering Team Lead,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/algorithm-software-team-lead/?t=1776599692468,Engineering,Hybrid
 Multimodal Algorithm Developer,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/nlp-algorithm-developer/,Engineering,Hybrid
-Product Designer,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/product-designer/,Product,Hybrid
+Product Designer,WSC Sports,Ramat-Gan,2026-04-19,https://wsc-sports.com/career/product-designer/?t=1776356282487&fbclid=IwZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQKNjYyODU2ODM3OQABHrsPDeD-jX5IHmf3uchjJLrm887dyNRpnqieJk5ttJKx8sc3xJwOJxbpHYFM_aem_nAPN16sg4_JFCQb1w8cxVQ,Product,Hybrid
 Senior Frontend Developer,WSC Sports,Ramat-Gan,2026-04-18,https://wsc-sports.com/career/frontend-developer/,Engineering,Hybrid
 AI Growth Builder,Arpeely,Tel Aviv-Jaffa,2026-04-14,https://www.comeet.com/jobs/arpeely/57.001/ai-growth-builder/69.766,AI Browser,Hybrid
 AI Growth Marketing Manager,Arpeely,Tel Aviv-Jaffa,2026-04-13,https://www.comeet.com/jobs/arpeely/57.001/ai-growth-marketing-manager/F7.861,Product,Hybrid
@@ -740,8 +740,8 @@ Strategic Product Analyst,Aidoc,Tel Aviv,2026-04-19,https://www.aidoc.com/about/
 Talent Acquisition Partner,Aidoc,Tel Aviv-Yafo,2026-04-16,https://www.aidoc.com/about/careers/co/tel-aviv/83.461/talent-acquisition-partner/all/#positions,People,Hybrid
 "Talent Acquisition Partner, GTM Healthtech",Aidoc,Remote,2026-04-19,https://www.aidoc.com/about/careers/co/remote/0F.260/talent-acquisition-partner-gtm-healthtech/all/#positions,People,Remote
 "Talent Acquisition Partner, GTM Healthtech",Aidoc,New York,2026-04-19,https://www.aidoc.com/about/careers/co/remote/0F.260/talent-acquisition-partner-gtm-healthtech/all/#positions,People,Remote
-Backend Engineer,Imagen,Giv'atayim,2026-04-19,https://imagen-ai.com/careers/co/careers/A0.661/backend-engineer/all/?amp=,R&D,Hybrid
-Backend Team Lead,Imagen,Giv'atayim,2026-04-19,https://imagen-ai.com/careers/co/careers/57.F58/backend-team-lead/all/?button_clicked=1&id=1&layout=blog,R&D,Hybrid
+Backend Engineer,Imagen,Giv'atayim,2026-04-19,https://imagen-ai.com/careers/co/careers/A0.661/backend-engineer/all/?t=1776411288111,R&D,Hybrid
+Backend Team Lead,Imagen,Giv'atayim,2026-04-19,https://imagen-ai.com/careers/co/careers/57.F58/backend-team-lead/all/?Itemid=50&id=1&layout=blog&view=category,R&D,Hybrid
 Deep Learning Algorithm Engineer,Imagen,Giv'atayim,2026-04-19,https://imagen-ai.com/careers/co/careers/C9.062/deep-learning-algorithm-engineer/all/?v=1j&tag1=Entail&tag2=Entail&tg=SEO,R&D,Hybrid
 Deep Learning Algorithm Intern,Imagen,Giv'atayim,2026-04-19,https://imagen-ai.com/careers/co/careers/5C.769/deep-learning-algorithm-intern/all/?button_clicked=1&v=1j&clear=1,R&D,Hybrid
 Head of Engineering,Imagen,Giv'atayim,2026-04-19,https://imagen-ai.com/careers/co/careers/FC.06C/head-of-engineering/all/,R&D,Hybrid
@@ -755,10 +755,10 @@ Salesforce System Analyst,Gett,Tel Aviv,2026-04-19,https://www.gett.com/careers/
 Senior Product Designer,Gett,Tel Aviv,2026-04-19,https://www.gett.com/careers/9F.D5E/?,Design,Hybrid
 Staff DevOps Engineer,Gett,Tel Aviv,2026-04-19,https://www.gett.com/careers/C7.B5F/?t=1776410362736&fbclid=IwZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQMMjU2MjgxMDQwNTU4AAEe43x-MsabcUE9_QF-wziB83QnvH88B5NqOH2czHwWT-8RtvT0XYyjAqisyE4_aem_M6EMikRHR6TSi3CZ-v9Xow,R&D,Hybrid
 Talent Acquisition Specialist - Maternity Leave Replacement,Gett,Tel Aviv,2026-04-18,https://www.gett.com/careers/C8.76F/,People,Hybrid
-Taxi Line Representative (On site),Gett,Tel Aviv,2026-04-19,https://www.gett.com/careers/E6.859/?,Operations,On-site
+Taxi Line Representative (On site),Gett,Tel Aviv,2026-04-19,https://www.gett.com/careers/E6.859/?utm_id=120243163858440774,Operations,On-site
 Customer Success Manager,Surecomp,Europe - Remotely.,2026-03-27,https://surecomp.com/careers/co/europe-remotely/B3.76D/customer-success-manager/all,Global Customer Success,Remote
 Enterprise Customer Success Manager,Surecomp,Europe - Remotely.,2026-03-30,https://surecomp.com/careers/co/europe-remotely/C3.767/enterprise-customer-success-manager/all,Global Customer Success,Remote
-"Gen AI Engineer (Backend, GenAI)",Surecomp,Kfar Saba,2026-04-19,https://surecomp.com/careers/co/kfar-saba-israel/70.76C/gen-ai-engineer-backend-genai/all,Global R&D,Hybrid
+"Gen AI Engineer (Backend, GenAI)",Surecomp,Kfar Saba,2026-04-19,https://surecomp.com/careers/co/kfar-saba-israel/70.76C/prompt-engineer-backend-genai/all,Global R&D,Hybrid
 Junior Full Stuck Engineer,Surecomp,Kfar Saba,2026-04-18,https://surecomp.com/careers/co/kfar-saba-israel/37.363/junior-full-stuck-engineer/all,Global R&D,Hybrid
 Junior Product Owner - RIVO AI Product & Platform,Surecomp,Kfar Saba,2026-04-19,https://surecomp.com/careers/co/kfar-saba-israel/4A.66C/junior-product-owner-rivo-ai-product-platform/all,Global Product Team,Hybrid
 Solution (Presale) Consultant,Surecomp,Europe - Remotely.,2026-04-18,https://surecomp.com/careers/co/europe-remotely/DE.F55/solution-presale-consultant/all,Global Business Growth,Remote
@@ -1254,7 +1254,7 @@ Sales Development Representative,Novidea,Netanya,2026-04-18,https://novidea.com/
 Account Executive US,Panaya,Miami,2026-03-20,https://www.panaya.com/careers/account-executive-us/6C.56B/,Sales,Remote
 "Customer Success Manager, Brazil",Panaya,Socorro,2026-03-31,https://www.panaya.com/careers/customer-success-manager-brazil/66.D55/,Customer Success,Remote
 "Customer Success Manager, Brazil",Panaya,Miami,2026-03-31,https://www.panaya.com/careers/customer-success-manager-brazil/66.D55/,Customer Success,Remote
-Sales Development Representative - German Speaker,Panaya,Hod Hasharon,2026-04-16,https://www.panaya.com/careers/sales-development-representative-german-speaker/13.767/,Marketing,Hybrid
+Sales Development Representative - German Speaker,Panaya,Hod Hasharon,2026-04-19,https://www.panaya.com/careers/sales-development-representative-german-speaker/13.767/?fbclid=IwZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQKNjYyODU2ODM3OQABHhWZhNCLhVQPgBdb2etx8K0CcsvhDAAzi0cz_RrHRB99t0Dp02FylT3rDPUS_aem_0yNKCWrfxQIM0WXJgsBySw,Marketing,Hybrid
 Business Development Representative (BDR),BrandShield,Herzliya,2026-04-14,https://www.brandshield.com/careers,Sales,On-site
 Cyber Security Customer Success Manager,BrandShield,Herzliya,2026-04-15,https://www.brandshield.com/company/careers/?comeet_cat=enforcement&comeet_pos=75.530&comeet_all=all&rd,Enforcement,On-site
 Junior Customer Success manager,BrandShield,Herzliya,2026-04-19,https://www.brandshield.com/company/careers/?comeet_cat=enforcement&comeet_pos=B2.12D&comeet_all=all&rd,Enforcement,On-site
