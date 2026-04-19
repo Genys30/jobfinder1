@@ -787,6 +787,9 @@ $q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFil
 [$city,$company,$date,$segment,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
 $reset.addEventListener('click',()=>{
   $q.value='';$city.value='';$company.value='';$date.value='';
+  if($segment)$segment.value='';
+  if($source)$source.value='';
+  if($worktype)$worktype.value='';
   applyFilters();
 });
 $more.addEventListener('click',()=>{visible+=PAGE;render();});
