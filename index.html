@@ -13,6 +13,7 @@
     --bg:#f5f1e8;--panel:#ffffff;--ink:#1a1a17;--ink-dim:#5c5849;
     --ink-faint:#9c9687;--rule:#d9d2c2;--accent:#c97f0c;--accent-2:#d63916;
     --li:#0a66c2;--li-pale:rgba(10,102,194,0.07);--li-border:rgba(10,102,194,0.2);
+  --cm:#00897b;--cm-pale:rgba(0,137,123,0.07);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--ink);font-family:'Fraunces',Georgia,serif;
@@ -110,6 +111,12 @@
   .li-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;
     font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--li);
     padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .cm-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--cm);
+    padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .job.cm-row:hover{background:linear-gradient(90deg,var(--cm-pale),transparent 70%);}
+  .job.cm-row:hover .title{color:var(--cm);}
+  .job.cm-row:hover .arrow{color:var(--cm);}
   .company-cell{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .company-cell .size{color:var(--ink-faint);margin-left:6px;}
@@ -152,7 +159,7 @@
   </div>
   <h1>Israeli tech <span class="accent">jobs,</span><br>searched seriously.</h1>
   <p class="byline">
-    Built by <a href="https://www.linkedin.com/in/jennysotnik/" target="_blank" rel="noopener">Jenny Sotnik Talisman</a> -
+    Built by <a href="https://www.linkedin.com/in/jennysotnik/" target="_blank" rel="noopener">Jenny Sotnik Talisman</a> —
     turning the messy public data of the Israeli tech scene into actual signal.<br>
     <em>"In a sea of noise, I build the lighthouse."</em>
   </p>
@@ -165,6 +172,11 @@
     <span id="liStatusText">LinkedIn: loading…</span>
   </div>
 
+  <span class="databar-sep">·</span>
+  <div class="datasrc">
+    <span class="src-dot" style="background:var(--cm)"></span>
+    <span id="cmStatusText">Comeet: loading…</span>
+  </div>
 </div>
 
 <!-- Filters -->
@@ -237,7 +249,8 @@ const SIZE_LABEL = {s:'small',m:'mid',l:'large',xl:'enterprise'};
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let TM_JOBS  = [];   // techmap
-let LI_JOBS  = [];   // linkedin (all files combined)
+let LI_JOBS  = [];   // linkedin
+let CM_JOBS  = [];   // comeet
 let FILTERED = [];
 let visible  = PAGE;
 const activeSrc = 'linkedin';
@@ -258,6 +271,7 @@ const $stamp    = document.getElementById('stamp');
 const $lastBuild= document.getElementById('lastBuild');
 const $export   = document.getElementById('export');
 const $liStatus = document.getElementById('liStatusText');
+const $cmStatus = document.getElementById('cmStatusText');
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
 function esc(s){
@@ -324,6 +338,25 @@ function normLinkedIn(row, filename){
     city:cleanCity(g('location',['city','place'])),
     url:g('url',['link','job url','apply']),
     updated: g('date',['posted','date posted']) || fnDate
+  };
+}
+
+
+// Comeet CSV columns: title, company, location, date, url, department, employment_type
+function normComeet(row, filename){
+  const g = k => (row[k]==null?'':String(row[k]).trim());
+  const title   = g('title').split('\n')[0].trim();
+  const company = g('company');
+  if(!title||!company) return null;
+  const fnDate  = (filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
+  return{
+    source:'comeet', fnArea:'comeet',
+    title, company,
+    category: g('department')||'comeet',
+    size:'', level: g('employment_type')||'',
+    city: g('location'),
+    url:  g('url'),
+    updated: g('date')||fnDate
   };
 }
 
@@ -403,13 +436,52 @@ async function loadLinkedIn(){
   });
   $liStatus.innerHTML='LinkedIn: <strong>'+LI_JOBS.length.toLocaleString()+' jobs</strong>';
 }
+// ─── LOAD COMEET ─────────────────────────────────────────────────────────────
+async function loadComeet(){
+  if($cmStatus) $cmStatus.innerHTML='Comeet: <span style="color:var(--ink-faint)">loading…</span>';
+
+  const filenames=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+    filenames.push('comeet_jobs_'+y+'-'+m+'-'+day+'.csv');
+  }
+
+  const allRows=(await Promise.all(filenames.map(async fname=>{
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return [];
+      const text=await r.text();
+      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normComeet(row,fname)).filter(Boolean);
+    }catch(e){return [];}
+  }))).flat();
+
+  if(allRows.length===0){
+    if($cmStatus) $cmStatus.innerHTML='Comeet: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+
+  const seen=new Set();
+  CM_JOBS=allRows.filter(r=>{
+    const k=r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  CM_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated),db=parseDate(b.updated);
+    if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
+  });
+  if($cmStatus) $cmStatus.innerHTML='Comeet: <strong>'+CM_JOBS.length.toLocaleString()+' jobs</strong>';
+}
+
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
-  if(activeSrc==='techmap') return TM_JOBS;
+  if(activeSrc==='techmap')  return TM_JOBS;
   if(activeSrc==='linkedin') return LI_JOBS;
-  // Merge, dedupe by URL
+  if(activeSrc==='comeet')   return CM_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -480,10 +552,11 @@ function render(){
     const szMarkup= szLabel?'<span class="size">· '+esc(szLabel)+'</span>':'';
     const lvBadge = r.level?'<span class="level-badge">'+esc(r.level)+'</span>':'';
     const liBadge = r.source==='linkedin'?'<span class="li-badge">LI</span>':'';
-    const rowCls  = r.source==='linkedin'?' li-row':'';
+    const cmBadge = r.source==='comeet'?'<span class="cm-badge">CM</span>':'';
+    const rowCls  = r.source==='linkedin'?' li-row':r.source==='comeet'?' cm-row':'';
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+lvBadge+liBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+lvBadge+liBadge+cmBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
@@ -519,9 +592,12 @@ $export.addEventListener('click',exportCSV);
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
 (async()=>{
-  // Load LinkedIn first
-  await loadLinkedIn().catch(e=>{
-    $liStatus.innerHTML='LinkedIn: <span style="color:var(--accent-2)">error: '+esc(String(e))+'</span>';
+  // Load LinkedIn + Comeet in parallel
+  await Promise.all([
+    loadLinkedIn(),
+    loadComeet()
+  ]).catch(e=>{
+    console.error('load error', e);
   });
   $lastBuild.textContent='live · '+new Date().toISOString().slice(0,10);
   populateDropdowns();
