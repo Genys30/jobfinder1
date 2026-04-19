@@ -75,18 +75,18 @@ def scan_techmap():
                     if k not in found['comeet']:
                         found['comeet'][k] = {'slug':slug,'uid':uid,'name':comp or slug}
                 # Others (single token)
-                for src in ('greenhouse','lever','ashby'):
+                for src in ('greenhouse','lever','smartr'):
                     m = patterns[src].search(url)
                     if m:
                         t = m.group(1).lower()
                         if t not in found[src]:
                             found[src][t] = {'token':t,'name':comp or t}
-                # Workable (subdomain or apply.workable.com)
-                m = patterns['workable'].search(url)
+                # Recruitee (subdomain or careers.recruitee.com)
+                m = patterns['recruitee'].search(url)
                 if m:
                     t = (m.group(1) or m.group(2) or '').lower().strip('/')
-                    if t and t not in found['workable']:
-                        found['workable'][t] = {'token':t,'name':comp or t}
+                    if t and t not in found['recruitee']:
+                        found['recruitee'][t] = {'token':t,'name':comp or t}
         except Exception as e:
             print(f"  warn: techmap/{fn} — {e}")
 
@@ -218,10 +218,10 @@ def run_lever(tm):
 # ══════════════════════════════════════════════════════════════════════════
 # ASHBY
 # ══════════════════════════════════════════════════════════════════════════
-def run_ashby(tm):
-    print("\n── Ashby ────────────────────────────────────────────────────────")
+def run_smartr(tm):
+    print("\n── SmartRecruiters ──────────────────────────────────────────────")
     seen = set(); all_t = []
-    for c in list(tm.values()) + load_extras('ashby_extra_companies.json'):
+    for c in list(tm.values()) + load_extras('smartr_extra_companies.json'):
         t = c['token'].lower()
         if t not in seen: seen.add(t); all_t.append(c)
     print(f"  Companies: {len(all_t)}")
@@ -230,31 +230,44 @@ def run_ashby(tm):
         token,name = c['token'],c.get('name',c['token'])
         print(f"  [{i}/{len(all_t)}] {name}")
         try:
-            r = requests.get(f'https://api.ashbyhq.com/posting-api/job-board/{token}', timeout=30, headers=HEADERS)
-            if not r.ok: print(f"    — {r.status_code}"); continue
+            # Fetch IL jobs + remote jobs separately
+            all_pos = []
+            for url in [
+                f'https://api.smartrecruiters.com/v1/companies/{token}/postings?country=il&limit=100',
+                f'https://api.smartrecruiters.com/v1/companies/{token}/postings?limit=100',
+            ]:
+                r = requests.get(url, timeout=30, headers=HEADERS)
+                if not r.ok: break
+                for job in r.json().get('content',[]):
+                    loc  = job.get('location',{})
+                    city = loc.get('city','')
+                    country = loc.get('country','')
+                    remote  = loc.get('remote',False)
+                    if not is_israel(city, country, remote): continue
+                    wt = 'Remote' if remote else ''
+                    dept = (job.get('department') or {}).get('label','')
+                    released = (job.get('releasedDate') or '')[:10]
+                    apply_url = job.get('ref') or f"https://jobs.smartrecruiters.com/{token}/{job.get('id','')}"
+                    all_pos.append({'title':job.get('name',''),'company':name,
+                        'location':city,'date':released,
+                        'url':apply_url,'department':dept,'workplace_type':wt})
+            # Dedupe within this company
+            seen_urls = set()
             pos = []
-            for job in r.json().get('jobPostings',[]):
-                if not job.get('isListed',True): continue
-                loc    = job.get('locationName','')
-                remote = job.get('locationIsRemote',False)
-                if not is_israel(loc, remote=remote):
-                    continue
-                wt = 'Remote' if remote else ('Hybrid' if 'hybrid' in loc.lower() else '')
-                pos.append({'title':job.get('title',''),'company':name,
-                    'location':loc,'date':job.get('publishedDate',''),
-                    'url':job.get('externalLink') or job.get('jobUrl',''),
-                    'department':job.get('departmentName',''),'workplace_type':wt})
+            for j in all_pos:
+                k = j['url'] or (j['title']+'|'+j['company'])
+                if k not in seen_urls: seen_urls.add(k); pos.append(j)
             print(f"    ✓ {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    ✗ {e}")
-    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'ashby_jobs_{TODAY}.csv')
+    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'smartr_jobs_{TODAY}.csv')
 
 # ══════════════════════════════════════════════════════════════════════════
 # WORKABLE
 # ══════════════════════════════════════════════════════════════════════════
-def run_workable(tm):
-    print("\n── Workable ─────────────────────────────────────────────────────")
+def run_recruitee(tm):
+    print("\n── Recruitee ────────────────────────────────────────────────────")
     seen = set(); all_t = []
-    for c in list(tm.values()) + load_extras('workable_extra_companies.json'):
+    for c in list(tm.values()) + load_extras('recruitee_extra_companies.json'):
         t = c['token'].lower()
         if t not in seen: seen.add(t); all_t.append(c)
     print(f"  Companies: {len(all_t)}")
@@ -263,27 +276,29 @@ def run_workable(tm):
         token,name = c['token'],c.get('name',c['token'])
         print(f"  [{i}/{len(all_t)}] {name}")
         try:
-            r = requests.get(f'https://apply.workable.com/api/v1/widget/accounts/{token}',
+            r = requests.get(f'https://careers.recruitee.com/api/c/{token}/offers',
                 timeout=30, headers=HEADERS)
             if not r.ok: print(f"    — {r.status_code}"); continue
             pos = []
-            for job in r.json().get('jobs',[]):
-                loc  = job.get('location',{})
-                city = loc.get('city','')
-                country = loc.get('country_code','')
-                remote  = loc.get('telecommuting',False)
-                loc_str = loc.get('location_str','') or f"{city}, {loc.get('country','')}"
-                if not is_israel(loc_str+' '+city, country, remote):
+            for job in r.json().get('offers',[]):
+                city    = job.get('city','')
+                country = job.get('country','')
+                remote  = job.get('remote',False)
+                loc_str = job.get('location','')
+                if not is_israel(loc_str+' '+city+' '+country, remote=remote):
                     continue
-                wt = 'Remote' if remote else ''
+                wt = 'Remote' if remote else ('Hybrid' if 'hybrid' in loc_str.lower() else '')
+                dept = ''
+                for tag in job.get('tags',[]):
+                    if tag.get('type') == 'department': dept = tag.get('name',''); break
                 pos.append({'title':job.get('title',''),'company':name,
                     'location':city or loc_str.split(',')[0].strip(),
                     'date':(job.get('created_at') or '')[:10],
-                    'url':job.get('url',''),'department':job.get('department',''),
-                    'workplace_type':wt})
+                    'url':job.get('url','') or f"https://careers.recruitee.com/c/{token}",
+                    'department':dept,'workplace_type':wt})
             print(f"    ✓ {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    ✗ {e}")
-    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'workable_jobs_{TODAY}.csv')
+    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'recruitee_jobs_{TODAY}.csv')
 
 # ── Main ────────────────────────────────────────────────────────────────────
 def main():
@@ -293,8 +308,8 @@ def main():
     run_comeet(tm['comeet'])
     run_greenhouse(tm['greenhouse'])
     run_lever(tm['lever'])
-    run_ashby(tm['ashby'])
-    run_workable(tm['workable'])
+    run_smartr(tm['smartr'])
+    run_recruitee(tm['recruitee'])
     print("\n=== All done ===")
 
 if __name__ == '__main__':

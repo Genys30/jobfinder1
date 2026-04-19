@@ -16,8 +16,8 @@
   --cm:#00897b;--cm-pale:rgba(0,137,123,0.07);
   --gh:#2e7d32;--gh-pale:rgba(46,125,50,0.07);
   --lv:#c2410c;--lv-pale:rgba(194,65,12,0.07);
-  --ab:#7c3aed;--ab-pale:rgba(124,58,237,0.07);
-  --wk:#0369a1;--wk-pale:rgba(3,105,161,0.07);
+  --sr:#b71c1c;--sr-pale:rgba(183,28,28,0.07);
+  --re:#00695c;--re-pale:rgba(0,105,92,0.07);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--ink);font-family:'Fraunces',Georgia,serif;
@@ -128,14 +128,14 @@
   .job.gh-row:hover .title{color:var(--gh);}
   .job.gh-row:hover .arrow{color:var(--gh);}
   .lv-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--lv);padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
-  .ab-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--ab);padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
-  .wk-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--wk);padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .sr-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--sr);padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
+  .re-badge{display:inline-block;margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--re);padding:2px 7px;border-radius:2px;vertical-align:middle;transform:translateY(-2px);}
   .job.lv-row:hover{background:linear-gradient(90deg,var(--lv-pale),transparent 70%);}
   .job.lv-row:hover .title{color:var(--lv);}  .job.lv-row:hover .arrow{color:var(--lv);}
-  .job.ab-row:hover{background:linear-gradient(90deg,var(--ab-pale),transparent 70%);}
-  .job.ab-row:hover .title{color:var(--ab);}  .job.ab-row:hover .arrow{color:var(--ab);}
-  .job.wk-row:hover{background:linear-gradient(90deg,var(--wk-pale),transparent 70%);}
-  .job.wk-row:hover .title{color:var(--wk);}  .job.wk-row:hover .arrow{color:var(--wk);}
+  .job.sr-row:hover{background:linear-gradient(90deg,var(--sr-pale),transparent 70%);}
+  .job.sr-row:hover .title{color:var(--sr);}  .job.sr-row:hover .arrow{color:var(--sr);}
+  .job.re-row:hover{background:linear-gradient(90deg,var(--re-pale),transparent 70%);}
+  .job.re-row:hover .title{color:var(--re);}  .job.re-row:hover .arrow{color:var(--re);}
   .company-cell{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .company-cell .size{color:var(--ink-faint);margin-left:6px;}
@@ -204,9 +204,9 @@
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--lv)"></span><span id="lvStatusText">Lever: loading…</span></div>
   <span class="databar-sep">·</span>
-  <div class="datasrc"><span class="src-dot" style="background:var(--ab)"></span><span id="abStatusText">Ashby: loading…</span></div>
+  <div class="datasrc"><span class="src-dot" style="background:var(--sr)"></span><span id="srStatusText">SmartRecruiters: loading…</span></div>
   <span class="databar-sep">·</span>
-  <div class="datasrc"><span class="src-dot" style="background:var(--wk)"></span><span id="wkStatusText">Workable: loading…</span></div>
+  <div class="datasrc"><span class="src-dot" style="background:var(--re)"></span><span id="reStatusText">Recruitee: loading…</span></div>
 </div>
 
 <!-- Filters -->
@@ -246,8 +246,8 @@
       <option value="comeet">Comeet</option>
       <option value="greenhouse">Greenhouse</option>
       <option value="lv">Lever</option>
-      <option value="ab">Ashby</option>
-      <option value="wk">Workable</option>
+      <option value="sr">SmartRecruiters</option>
+      <option value="re">Recruitee</option>
     </select>
   </div>
   <div class="field">
@@ -304,8 +304,8 @@ let LI_JOBS  = [];   // linkedin
 let CM_JOBS  = [];   // comeet
 let GH_JOBS  = [];   // greenhouse
 let LV_JOBS  = [];   // lever
-let AB_JOBS  = [];   // ashby
-let WK_JOBS  = [];   // workable
+let SR_JOBS  = [];   // smartrecruiters
+let RE_JOBS  = [];   // recruitee
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -331,8 +331,8 @@ const $worktype  = document.getElementById('worktype');
 const $cmStatus = document.getElementById('cmStatusText');
 const $ghStatus = document.getElementById('ghStatusText');
 const $lvStatus = document.getElementById('lvStatusText');
-const $abStatus = document.getElementById('abStatusText');
-const $wkStatus = document.getElementById('wkStatusText');
+const $srStatus = document.getElementById('srStatusText');
+const $reStatus = document.getElementById('reStatusText');
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
 function esc(s){
@@ -637,7 +637,7 @@ async function loadLever(){
     }catch(e){return [];}
   }))).flat();
   if(allRows.length===0){
-    if($lvStatus) $lvStatus.innerHTML='Lever: <span style="color:var(--ink-faint)">no file yet</span>';
+    if($lvStatus) $lvStatus.innerHTML='Lever: <span style="color:var(--ink-faint)">no file yet — run workflow</span>';
     return;
   }
   const seen=new Set();
@@ -652,7 +652,7 @@ async function loadLever(){
   if($lvStatus) $lvStatus.innerHTML='Lever: <strong>'+LV_JOBS.length.toLocaleString()+' jobs</strong>';
 }
 
-function normAshby(row, filename){
+function normSmartR(row, filename){
   const g=k=>(row[k]==null?'':String(row[k]).trim());
   const title=g('title').split('\n')[0].trim();
   const company=g('company');
@@ -660,16 +660,16 @@ function normAshby(row, filename){
   const fnDate=(filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
   const wt=g('workplace_type').toLowerCase();
   const workType=wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'';
-  return{source:'ab',fnArea:'ab',title,company,category:g('department')||'ab',
+  return{source:'sr',fnArea:'sr',title,company,category:g('department')||'smartrecruiters',
     size:'',level:'',city:g('location'),url:g('url'),updated:g('date')||fnDate,workType};
 }
-async function loadAshby(){
-  if($abStatus) $abStatus.innerHTML='Ashby: <span style="color:var(--ink-faint)">loading…</span>';
+async function loadSmartR(){
+  if($srStatus) $srStatus.innerHTML='SmartRecruiters: <span style="color:var(--ink-faint)">loading…</span>';
   const filenames=[];
   for(let i=0;i<7;i++){
     const d=new Date(); d.setDate(d.getDate()-i);
     const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-    filenames.push('ashby_jobs_'+y+'-'+m+'-'+day+'.csv');
+    filenames.push('smartr_jobs_'+y+'-'+m+'-'+day+'.csv');
   }
   const allRows=(await Promise.all(filenames.map(async fname=>{
     try{
@@ -678,26 +678,26 @@ async function loadAshby(){
       const text=await r.text();
       const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
         transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
-      return parsed.data.map(row=>normAshby(row,fname)).filter(Boolean);
+      return parsed.data.map(row=>normSmartR(row,fname)).filter(Boolean);
     }catch(e){return [];}
   }))).flat();
   if(allRows.length===0){
-    if($abStatus) $abStatus.innerHTML='Ashby: <span style="color:var(--ink-faint)">no file yet</span>';
+    if($srStatus) $srStatus.innerHTML='SmartRecruiters: <span style="color:var(--ink-faint)">no file yet — run workflow</span>';
     return;
   }
   const seen=new Set();
-  AB_JOBS=allRows.filter(r=>{
+  SR_JOBS=allRows.filter(r=>{
     const k=r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k))return false; seen.add(k); return true;
   });
-  AB_JOBS.sort((a,b)=>{
+  SR_JOBS.sort((a,b)=>{
     const da=parseDate(a.updated),db=parseDate(b.updated);
     if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
   });
-  if($abStatus) $abStatus.innerHTML='Ashby: <strong>'+AB_JOBS.length.toLocaleString()+' jobs</strong>';
+  if($srStatus) $srStatus.innerHTML='SmartRecruiters: <strong>'+SR_JOBS.length.toLocaleString()+' jobs</strong>';
 }
 
-function normWorkable(row, filename){
+function normRecruitee(row, filename){
   const g=k=>(row[k]==null?'':String(row[k]).trim());
   const title=g('title').split('\n')[0].trim();
   const company=g('company');
@@ -705,16 +705,16 @@ function normWorkable(row, filename){
   const fnDate=(filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
   const wt=g('workplace_type').toLowerCase();
   const workType=wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'';
-  return{source:'wk',fnArea:'wk',title,company,category:g('department')||'wk',
+  return{source:'re',fnArea:'re',title,company,category:g('department')||'recruitee',
     size:'',level:'',city:g('location'),url:g('url'),updated:g('date')||fnDate,workType};
 }
-async function loadWorkable(){
-  if($wkStatus) $wkStatus.innerHTML='Workable: <span style="color:var(--ink-faint)">loading…</span>';
+async function loadRecruitee(){
+  if($reStatus) $reStatus.innerHTML='Recruitee: <span style="color:var(--ink-faint)">loading…</span>';
   const filenames=[];
   for(let i=0;i<7;i++){
     const d=new Date(); d.setDate(d.getDate()-i);
     const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-    filenames.push('workable_jobs_'+y+'-'+m+'-'+day+'.csv');
+    filenames.push('recruitee_jobs_'+y+'-'+m+'-'+day+'.csv');
   }
   const allRows=(await Promise.all(filenames.map(async fname=>{
     try{
@@ -723,23 +723,23 @@ async function loadWorkable(){
       const text=await r.text();
       const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
         transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
-      return parsed.data.map(row=>normWorkable(row,fname)).filter(Boolean);
+      return parsed.data.map(row=>normRecruitee(row,fname)).filter(Boolean);
     }catch(e){return [];}
   }))).flat();
   if(allRows.length===0){
-    if($wkStatus) $wkStatus.innerHTML='Workable: <span style="color:var(--ink-faint)">no file yet</span>';
+    if($reStatus) $reStatus.innerHTML='Recruitee: <span style="color:var(--ink-faint)">no file yet — run workflow</span>';
     return;
   }
   const seen=new Set();
-  WK_JOBS=allRows.filter(r=>{
+  RE_JOBS=allRows.filter(r=>{
     const k=r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k))return false; seen.add(k); return true;
   });
-  WK_JOBS.sort((a,b)=>{
+  RE_JOBS.sort((a,b)=>{
     const da=parseDate(a.updated),db=parseDate(b.updated);
     if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
   });
-  if($wkStatus) $wkStatus.innerHTML='Workable: <strong>'+WK_JOBS.length.toLocaleString()+' jobs</strong>';
+  if($reStatus) $reStatus.innerHTML='Recruitee: <strong>'+RE_JOBS.length.toLocaleString()+' jobs</strong>';
 }
 
 // ─── POOL ────────────────────────────────────────────────────────────────────
@@ -749,10 +749,10 @@ function getPool(){
   if(activeSrc==='comeet')      return CM_JOBS;
   if(activeSrc==='greenhouse') return GH_JOBS;
   if(activeSrc==='lv') return LV_JOBS;
-  if(activeSrc==='ab') return AB_JOBS;
-  if(activeSrc==='wk') return WK_JOBS;
+  if(activeSrc==='sr') return SR_JOBS;
+  if(activeSrc==='re') return RE_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...SR_JOBS,...RE_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -827,12 +827,12 @@ function render(){
     const cmBadge = r.source==='comeet'?'<span class="cm-badge">CM</span>':'';
     const ghBadge = r.source==='greenhouse'?'<span class="gh-badge">GH</span>':'';
     const lvBadge = r.source==='lv'?'<span class="lv-badge">LV</span>':'';
-    const abBadge = r.source==='ab'?'<span class="ab-badge">AB</span>':'';
-    const wkBadge = r.source==='wk'?'<span class="wk-badge">WK</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row'})[r.source]||'';
+    const srBadge = r.source==='sr'?'<span class="sr-badge">SR</span>':'';
+    const reBadge = r.source==='re'?'<span class="re-badge">RE</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',sr:' sr-row',re:' re-row'})[r.source]||'';
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+srBadge+reBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
@@ -874,8 +874,8 @@ render();
     loadComeet(),
     loadGreenhouse(),
     loadLever(),
-    loadAshby(),
-    loadWorkable()
+    loadSmartR(),
+    loadRecruitee()
   ]).catch(e=>{
     console.error('load error', e);
   });

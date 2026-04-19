@@ -1,0 +1,10 @@
+[
+  {"token": "walkme",      "name": "WalkMe"},
+  {"token": "taboola",     "name": "Taboola"},
+  {"token": "outbrain",    "name": "Outbrain"},
+  {"token": "biocatch",    "name": "BioCatch"},
+  {"token": "iguazio",     "name": "Iguazio"},
+  {"token": "sisense",     "name": "Sisense"},
+  {"token": "cloudinary",  "name": "Cloudinary"},
+  {"token": "starhome",    "name": "Starhome-Mach"}
+]

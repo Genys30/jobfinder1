@@ -1,0 +1,11 @@
+[
+  {"token": "nice-systems",          "name": "NICE Systems"},
+  {"token": "amdocs",                "name": "Amdocs"},
+  {"token": "sapiens-international", "name": "Sapiens"},
+  {"token": "checkpoint",            "name": "Check Point"},
+  {"token": "cellebrite",            "name": "Cellebrite"},
+  {"token": "synamedia",             "name": "Synamedia"},
+  {"token": "radcom",                "name": "Radcom"},
+  {"token": "netsol-technologies",   "name": "NetSol"},
+  {"token": "commscope",             "name": "CommScope"}
+]
