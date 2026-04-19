@@ -59,7 +59,7 @@
   /* ─── Source pills ─── */
 
   /* ─── Filters ─── */
-  .filters{display:grid;grid-template-columns:1.5fr repeat(7,1fr) auto;gap:12px;
+  .filters{display:grid;grid-template-columns:1.5fr repeat(6,1fr) auto;gap:12px;
     padding:22px 48px;border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:10;
     backdrop-filter:blur(12px);background-color:rgba(245,241,232,.88);}
   .field{display:flex;flex-direction:column;gap:6px;min-width:0;}
@@ -212,10 +212,6 @@
     <select id="company"><option value="">All companies</option></select>
   </div>
   <div class="field">
-    <label for="category">Industry</label>
-    <select id="category"><option value="">All industries</option></select>
-  </div>
-  <div class="field">
     <label for="segment">Role type</label>
     <select id="segment">
       <option value="">All roles</option>
@@ -314,7 +310,6 @@ let activeSrc = 'all';
 const $q        = document.getElementById('q');
 const $city     = document.getElementById('city');
 const $company  = document.getElementById('company');
-const $category = document.getElementById('category');
 const $date     = document.getElementById('date');
 const $reset    = document.getElementById('reset');
 const $list     = document.getElementById('list');
@@ -676,7 +671,7 @@ function populateDropdowns(){
       .forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
     if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
   };
-  fill($city,'city'); fill($company,'company'); fill($category,'category'); 
+  fill($city,'city'); fill($company,'company'); 
 }
 
 
@@ -709,7 +704,6 @@ function applyFilters(){
   const q        = $q.value.trim().toLowerCase();
   const city     = $city.value;
   const company  = $company.value;
-  const category = $category.value;
   const segFilter = $segment  ? $segment.value  : '';
   const srcFilter= $source   ? $source.value   : '';
   const wtFilter = $worktype ? $worktype.value  : '';
@@ -720,7 +714,6 @@ function applyFilters(){
   FILTERED = pool.filter(r=>{
     if(city      && r.city!==city)           return false;
     if(company   && r.company!==company)     return false;
-    if(category  && r.category!==category)   return false;
     if(segFilter && classifySegment(r.title)!==segFilter) return false;
     if(srcFilter && r.source!==srcFilter)    return false;
     if(wtFilter  && (r.workType||'')!==wtFilter) return false;
@@ -789,9 +782,9 @@ function exportCSV(){
 // ─── EVENTS ──────────────────────────────────────────────────────────────────
 let qTimer;
 $q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFilters,120);});
-[$city,$company,$category, $date].forEach(el=>el.addEventListener('change',applyFilters));
+[$city,$company,$date,$segment,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
 $reset.addEventListener('click',()=>{
-  $q.value='';$city.value='';$company.value='';$category.value='';$date.value='';
+  $q.value='';$city.value='';$company.value='';$date.value='';
   applyFilters();
 });
 $more.addEventListener('click',()=>{visible+=PAGE;render();});
