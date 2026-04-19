@@ -153,6 +153,7 @@ def fetch_positions(uid: str, token: str, company_name: str) -> list:
                 'url':             pos.get('url_active_page') or pos.get('url_comeet_hosted_page', ''),
                 'department':      pos.get('department', ''),
                 'employment_type': pos.get('employment_type', ''),
+                'workplace_type':  pos.get('workplace_type', ''),
             })
         return jobs
     except Exception as e:
@@ -195,7 +196,7 @@ def main():
         ok += 1
 
     # Write CSV
-    fieldnames = ['title','company','location','date','url','department','employment_type']
+    fieldnames = ['title','company','location','date','url','department','employment_type','workplace_type']
     with open(output, 'w', newline='', encoding='utf-8-sig') as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
