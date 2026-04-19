@@ -1043,6 +1043,9 @@ async function loadTrendData(){
 }
 
 async function renderAnalytics(){
+  const panel = document.getElementById('analyticsPanel');
+  if(!panel || panel.style.display==='none') return;
+
   const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
@@ -1063,38 +1066,10 @@ async function renderAnalytics(){
   document.getElementById('anCardRole').onclick=()=>{   if(topRole) switchToJobs(()=>{ if($segment)$segment.value=topRole[0]; }); };
   document.getElementById('anCardRemote').onclick=()=>{ switchToJobs(()=>{ if($worktype)$worktype.value='remote'; }); };
 
-  const baseOpts = { responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false}, tooltip:{boxPadding:4}} };
-
-  // ── Trend line ──
-  destroyChart('trend');
-  const trendData = await loadTrendData();
-  const activeDays = trendData.filter(d=>d.count>0);
-  const ctxTrend = document.getElementById('chartTrend').getContext('2d');
-  CHART_INSTANCES['trend'] = new Chart(ctxTrend,{
-    type:'line',
-    data:{
-      labels: trendData.map(d=>d.label),
-      datasets:[{
-        data: trendData.map(d=>d.count),
-        borderColor:'#c97f0c', backgroundColor:'rgba(201,127,12,.1)',
-        fill:true, tension:.4, pointRadius:5,
-        pointBackgroundColor: trendData.map(d=>d.count>0?'#c97f0c':'transparent'),
-        pointBorderColor: trendData.map(d=>d.count>0?'#c97f0c':'transparent'),
-      }]
-    },
-    options:{...baseOpts,
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} LinkedIn jobs posted`}}},
-      scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},
-              x:{grid:{display:false}}}
-    }
-  });
-
   // ── Role donut ──
   destroyChart('role');
   const roleData = topN(byRole,10).filter(([k])=>k);
-  CHART_INSTANCES['role'] = new Chart(document.getElementById('chartRole').getContext('2d'),{
+  CHART_INSTANCES['role'] = new Chart(document.getElementById('chartRole'),{
     type:'doughnut',
     data:{labels:roleData.map(([k])=>ROLE_LABELS[k]||k), datasets:[{data:roleData.map(([,v])=>v),backgroundColor:PALETTE}]},
     options:{responsive:true,maintainAspectRatio:false,
@@ -1105,11 +1080,11 @@ async function renderAnalytics(){
   // ── Work type donut ──
   destroyChart('worktype');
   const wtMap={'remote':'Remote','hybrid':'Hybrid','onsite':'On-site','':'Unspecified'};
-  const byWt  = count(jobs, r=>r.workType||'');
-  const wtData= Object.entries(byWt).filter(([k,v])=>v>0);
-  CHART_INSTANCES['worktype'] = new Chart(document.getElementById('chartWorkType').getContext('2d'),{
+  const byWt=count(jobs,r=>r.workType||'');
+  const wtData=Object.entries(byWt).filter(([,v])=>v>0);
+  CHART_INSTANCES['worktype'] = new Chart(document.getElementById('chartWorkType'),{
     type:'doughnut',
-    data:{labels:wtData.map(([k])=>wtMap[k]||k), datasets:[{data:wtData.map(([,v])=>v),backgroundColor:['#2e7d32','#0a66c2','#c97f0c','#d9d2c2']}]},
+    data:{labels:wtData.map(([k])=>wtMap[k]||k),datasets:[{data:wtData.map(([,v])=>v),backgroundColor:['#2e7d32','#0a66c2','#c97f0c','#d9d2c2']}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
       onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($worktype)$worktype.value=wtData[els[0].index][0]; }); } }}
@@ -1118,45 +1093,66 @@ async function renderAnalytics(){
   // ── Source donut ──
   destroyChart('source');
   const srcLabels={'linkedin':'LinkedIn','comeet':'Comeet','greenhouse':'Greenhouse','lv':'Lever','techmap':'Techmap'};
-  const bySrc = count(jobs, r=>r.source);
-  const srcData= Object.entries(bySrc).filter(([,v])=>v>0);
-  CHART_INSTANCES['source'] = new Chart(document.getElementById('chartSource').getContext('2d'),{
+  const bySrc=count(jobs,r=>r.source);
+  const srcData=Object.entries(bySrc).filter(([,v])=>v>0);
+  CHART_INSTANCES['source'] = new Chart(document.getElementById('chartSource'),{
     type:'doughnut',
-    data:{labels:srcData.map(([k])=>srcLabels[k]||k), datasets:[{data:srcData.map(([,v])=>v),backgroundColor:['#0a66c2','#00897b','#2e7d32','#c2410c','#888']}]},
+    data:{labels:srcData.map(([k])=>srcLabels[k]||k),datasets:[{data:srcData.map(([,v])=>v),backgroundColor:['#0a66c2','#00897b','#2e7d32','#c2410c','#888']}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
       onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($source)$source.value=srcData[els[0].index][0]; }); } }}
   });
 
-  // ── Top companies horizontal bar ──
+  // ── Top 20 companies ──
   destroyChart('companies');
-  const byComp  = count(jobs, r=>r.company);
-  const compData= topN(byComp,20);
-  CHART_INSTANCES['companies'] = new Chart(document.getElementById('chartCompanies').getContext('2d'),{
+  const byComp=count(jobs,r=>r.company);
+  const compData=topN(byComp,20);
+  CHART_INSTANCES['companies'] = new Chart(document.getElementById('chartCompanies'),{
     type:'bar',
-    data:{labels:compData.map(([k])=>k), datasets:[{data:compData.map(([,v])=>v),backgroundColor:'#0a66c2',borderRadius:3}]},
-    options:{...baseOpts, indexAxis:'y',
-      scales:{x:{grid:{color:'rgba(0,0,0,.05)'}},y:{ticks:{font:{size:11}}}},
+    data:{labels:compData.map(([k])=>k),datasets:[{data:compData.map(([,v])=>v),backgroundColor:'#0a66c2',borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(0,0,0,.05)'}},y:{ticks:{font:{size:10}}}},
       onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ $company.value=compData[els[0].index][0]; }); } }}
   });
 
   // ── Sector × Role stacked bar ──
   destroyChart('heatmap');
-  // Use only sectors with >10 jobs for clean chart
-  const validSectors = topN(bySector,10).filter(([,v])=>v>10).map(([k])=>k);
-  const validRoles   = topN(byRole,6).filter(([k])=>k).map(([k])=>k);
-  const roleColors   = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c'];
-  const datasets = validRoles.map((role,i)=>({
-    label: ROLE_LABELS[role]||role,
-    data: validSectors.map(sec=>jobs.filter(r=>classifySector(r.company)===sec&&classifySegment(r.title)===role).length),
-    backgroundColor: roleColors[i], borderRadius:2, borderSkipped:false
+  const validSectors=topN(bySector,10).filter(([,v])=>v>10).map(([k])=>k);
+  const validRoles=topN(byRole,6).filter(([k])=>k).map(([k])=>k);
+  const roleColors=['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c'];
+  const datasets=validRoles.map((role,i)=>({
+    label:ROLE_LABELS[role]||role,
+    data:validSectors.map(sec=>jobs.filter(r=>classifySector(r.company)===sec&&classifySegment(r.title)===role).length),
+    backgroundColor:roleColors[i],borderRadius:2
   }));
-  CHART_INSTANCES['heatmap'] = new Chart(document.getElementById('chartHeatmap').getContext('2d'),{
+  CHART_INSTANCES['heatmap'] = new Chart(document.getElementById('chartHeatmap'),{
     type:'bar',
-    data:{labels:validSectors.map(k=>SECTOR_LABELS[k]||k), datasets},
+    data:{labels:validSectors.map(k=>SECTOR_LABELS[k]||k),datasets},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}},
       scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'}}}}
+  });
+
+  // ── Trend (async, loads after other charts) ──
+  document.getElementById('chartTrend').closest('.an-box').querySelector('.an-box-title').textContent='Daily hiring activity — loading…';
+  loadTrendData().then(trendData=>{
+    destroyChart('trend');
+    CHART_INSTANCES['trend'] = new Chart(document.getElementById('chartTrend'),{
+      type:'line',
+      data:{labels:trendData.map(d=>d.label),
+        datasets:[{data:trendData.map(d=>d.count),
+          borderColor:'#c97f0c',backgroundColor:'rgba(201,127,12,.1)',
+          fill:true,tension:.4,pointRadius:5,
+          pointBackgroundColor:trendData.map(d=>d.count>0?'#c97f0c':'transparent'),
+          pointBorderColor:trendData.map(d=>d.count>0?'#c97f0c':'transparent')}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} LinkedIn jobs`}}},
+        scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false}}}}
+    });
+    document.getElementById('chartTrend').closest('.an-box').querySelector('.an-box-title').textContent='Daily hiring activity — LinkedIn jobs posted per day (last 14 days)';
+  }).catch(()=>{
+    document.getElementById('chartTrend').closest('.an-box').querySelector('.an-box-title').textContent='Daily hiring activity — upload LinkedIn CSVs daily to build history';
   });
 }
 
@@ -1174,7 +1170,7 @@ document.getElementById('vbtnAnalytics').addEventListener('click',()=>{
   document.querySelector('main').style.display='none';
   document.querySelector('.status').style.display='none';
   document.getElementById('analyticsPanel').style.display='block';
-  renderAnalytics().catch(console.error);
+  requestAnimationFrame(()=>renderAnalytics().catch(console.error));
 });
 
 </script>
