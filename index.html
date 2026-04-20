@@ -1337,15 +1337,13 @@ async function renderAnalytics(){
 document.getElementById('vbtnJobs').addEventListener('click',()=>{
   document.getElementById('vbtnJobs').classList.add('active');
   document.getElementById('vbtnAnalytics').classList.remove('active');
-  document.querySelector('main').style.display='';
-  document.querySelector('.status').style.display='';
+  document.querySelector('.app-body').style.display='';
   document.getElementById('analyticsPanel').style.display='none';
 });
 document.getElementById('vbtnAnalytics').addEventListener('click',()=>{
   document.getElementById('vbtnAnalytics').classList.add('active');
   document.getElementById('vbtnJobs').classList.remove('active');
-  document.querySelector('main').style.display='none';
-  document.querySelector('.status').style.display='none';
+  document.querySelector('.app-body').style.display='none';
   document.getElementById('analyticsPanel').style.display='block';
   requestAnimationFrame(()=>renderAnalytics().catch(console.error));
 });
