@@ -381,8 +381,13 @@ function esc(s){
 // Parses M/D/YYYY (LinkedIn) and ISO dates
 function parseDate(s){
   if(!s) return null;
-  const mdy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s.trim());
+  s = s.trim();
+  // M/D/YYYY or MM/DD/YYYY
+  const mdy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
   if(mdy) return new Date(+mdy[3], +mdy[1]-1, +mdy[2]);
+  // YYYY-MM-DD
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if(iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
   const d = new Date(s);
   return isNaN(d) ? null : d;
 }
@@ -438,7 +443,8 @@ function normLinkedIn(row, filename){
     .filter(s => !/ago$/i.test(s))
     .filter(s => !/^\d+\s/i.test(s))           // remove lines starting with a number
     [0] || '';
-  if(!title || !company) return null;
+  const url = g('url',['link','job url','apply']);
+  if(!title || !company || !url) return null;  // skip partial rows
 
   const fnDate = (filename.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
 
@@ -451,7 +457,7 @@ function normLinkedIn(row, filename){
     source:'linkedin', fnArea:'linkedin',
     title, company, category:'linkedin', size:'', level:'',
     city:cleanCity(rawLoc),
-    url:g('url',['link','job url','apply']),
+    url,
     updated: g('date',['posted','date posted']) || fnDate,
     workType
   };
