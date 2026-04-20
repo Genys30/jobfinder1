@@ -94,7 +94,17 @@
   @media(max-width:1100px){
     
     .reset{grid-column:1/-1;}
-    .job{grid-template-columns:1fr;gap:4px;padding:18px 0;}
+    a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+  a.job:hover{background:rgba(201,127,12,.04);}
+  .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
+  .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .company-cell{font-size:13px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .city-cell{font-size:12px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .source-cell{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
+  .arrow{color:var(--rule);font-size:14px;}
+  main{padding:0 24px 64px;}
+  .loading,.empty{padding:48px 0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-faint);}
     .arrow{display:none;}
   }
   @media(max-width:700px){
