@@ -61,18 +61,11 @@
   /* ─── Source pills ─── */
 
   /* ─── Filters ─── */
-  .filters{display:grid;grid-template-columns:1.5fr repeat(8,1fr) auto;gap:12px;
-    padding:22px 48px;border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:10;
-    backdrop-filter:blur(12px);background-color:rgba(245,241,232,.88);}
-  .field{display:flex;flex-direction:column;gap:6px;min-width:0;}
-  .field label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--ink-faint);}
-  .field input,.field select{background:var(--panel);border:1px solid var(--rule);color:var(--ink);
-    padding:11px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;border-radius:2px;
-    outline:none;transition:border-color .15s,background .15s;width:100%;
-    appearance:none;-webkit-appearance:none;text-overflow:ellipsis;}
-  .field select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%235c5849' stroke-width='1.2' fill='none'/></svg>");
-    background-repeat:no-repeat;background-position:right 12px center;padding-right:28px;}
+  
+  
+  
+  .field input,
+  
   .field input:focus,.field select:focus{border-color:var(--accent);background:#fffdf7;}
   .field input::placeholder{color:var(--ink-faint);}
   .reset{align-self:end;background:transparent;color:var(--ink-dim);border:1px solid var(--rule);
@@ -81,10 +74,7 @@
   .reset:hover{color:var(--accent-2);border-color:var(--accent-2);}
 
   /* ─── Status bar ─── */
-  .status{padding:14px 48px;font-family:'JetBrains Mono',monospace;font-size:11px;
-    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);
-    border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;
-    align-items:center;gap:24px;}
+  
   .status .count strong{color:var(--accent);font-weight:700;}
   .progress{height:1px;background:var(--rule);flex:1;max-width:240px;overflow:hidden;position:relative;}
   .progress::after{content:'';position:absolute;inset:0;background:var(--accent);
@@ -166,6 +156,33 @@
   .vbtn:hover{color:var(--ink);}
   .vbtn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(201,127,12,.04);}
 
+
+  /* ─── App body + sidebar layout ─── */
+  .app-body{display:flex;align-items:flex-start;min-height:70vh;}
+  .sidebar{width:220px;flex-shrink:0;padding:24px 20px 32px;border-right:1px solid var(--rule);position:sticky;top:0;max-height:100vh;overflow-y:auto;}
+  .sidebar-inner{display:flex;flex-direction:column;gap:0;}
+  .filter-group{display:flex;flex-direction:column;gap:2px;margin-bottom:8px;}
+  .field{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-bottom:1px solid var(--rule);}
+  .field:last-child{border-bottom:none;}
+  .field label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);}
+  .field input,.field select{font-family:'Carlito','Calibri',sans-serif;font-size:13px;color:var(--ink);background:transparent;border:none;outline:none;padding:2px 0;cursor:pointer;width:100%;}
+  .field select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 2px center;padding-right:14px;}
+  .field input::placeholder{color:var(--ink-faint);}
+  .field input:focus,.field select:focus{color:var(--accent);}
+  /* Active filter highlight */
+  .field.active label{color:var(--accent);}
+  .field.active input,.field.active select{color:var(--accent);font-weight:600;}
+  .more-filters-btn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim);background:none;border:none;cursor:pointer;padding:10px 0;text-align:left;width:100%;}
+  .more-filters-btn:hover{color:var(--accent);}
+  .extra-filters{border-top:1px solid var(--rule);padding-top:4px;}
+  .reset{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;background:none;border:1px solid var(--rule);color:var(--ink-dim);padding:8px 0;cursor:pointer;width:100%;margin-top:16px;transition:all .15s;}
+  .reset:hover{border-color:var(--accent);color:var(--accent);}
+  /* Results count in sidebar */
+  .sidebar-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);padding:12px 0 4px;letter-spacing:.05em;}
+  /* Main content next to sidebar */
+  main{flex:1;min-width:0;padding:0 32px 64px;}
+  @media(max-width:768px){.app-body{flex-direction:column;}.sidebar{width:100%;max-height:none;position:static;border-right:none;border-bottom:1px solid var(--rule);}}
+
   /* ─── Analytics panel ─── */
   #analyticsPanel{padding:32px 48px 64px;display:none;}
   .an-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
@@ -182,14 +199,14 @@
   @media(max-width:900px){.an-cards{grid-template-columns:1fr 1fr;}.an-row,.an-row.equal{grid-template-columns:1fr;}}
 
   @media(max-width:1100px){
-    .filters{grid-template-columns:1fr 1fr 1fr;}
+    
     .reset{grid-column:1/-1;}
     .job{grid-template-columns:1fr;gap:4px;padding:18px 0;}
     .arrow{display:none;}
   }
   @media(max-width:700px){
     header,.filters,.status,main,footer,.databar,
-    .filters{grid-template-columns:1fr 1fr;}
+    
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -231,118 +248,127 @@
 </div>
 
 <!-- Filters -->
-<section class="filters">
-  <div class="field">
-    <label for="q">Position · free text</label>
-    <input id="q" type="text" placeholder="e.g. backend, product, devops…" autocomplete="off" />
-  </div>
-  <div class="field">
-    <label for="city">City</label>
-    <select id="city"><option value="">All cities</option></select>
-  </div>
-  <div class="field">
-    <label for="company">Company</label>
-    <select id="company"><option value="">All companies</option></select>
-  </div>
-  <div class="field">
-    <label for="segment">Role type</label>
-    <select id="segment">
-      <option value="">All roles</option>
-      <option value="rd">R&amp;D / Engineering</option>
-      <option value="product">Product</option>
-      <option value="data">Data &amp; Analytics</option>
-      <option value="design">Design</option>
-      <option value="sales">Sales</option>
-      <option value="marketing">Marketing</option>
-      <option value="operations">Operations</option>
-      <option value="support">Customer Success</option>
-      <option value="management">Management</option>
-      <option value="intern">Student / Intern</option>
-    </select>
-  </div>
-  <div class="field">
-    <label for="level">Level</label>
-    <select id="level">
-      <option value="">All levels</option>
-      <option value="entry">Entry / Junior</option>
-      <option value="mid">Mid</option>
-      <option value="senior">Senior</option>
-      <option value="advanced">Staff / Principal</option>
-      <option value="director">Director+</option>
-    </select>
-  </div>
-  <div class="field">
-    <label for="date">Posted</label>
-    <select id="date">
-      <option value="">Any time</option>
-      <option value="1">Today</option>
-      <option value="3">Last 3 days</option>
-      <option value="7">Last 7 days</option>
-      <option value="14">Last 14 days</option>
-      <option value="30">Last 30 days</option>
-    </select>
-  </div>
-  <div class="field">
-    <label for="sector">Sector</label>
-    <select id="sector">
-      <option value="">All sectors</option>
-      <option value="cyber">Cyber</option>
-      <option value="fintech">Fintech</option>
-      <option value="health">Health</option>
-      <option value="media">Media</option>
-      <option value="hardware">Hardware</option>
-      <option value="defence">Defence</option>
-      <option value="automotive">Automotive</option>
-      <option value="gaming">Gaming</option>
-      <option value="public">Public Sector</option>
-      <option value="industrial">Industrial</option>
-      <option value="retail">Retail</option>
-      <option value="agritech">Agritech</option>
-      <option value="foodtech">Foodtech</option>
-    </select>
-  </div>
-  <div class="field">
-    <label for="source">Source</label>
-    <select id="source">
-      <option value="">All sources</option>
-      <option value="linkedin">LinkedIn</option>
-      <option value="comeet">Comeet</option>
-      <option value="greenhouse">Greenhouse</option>
-      <option value="lv">Lever</option>
-      <option value="ab">Ashby</option>
-      <option value="wk">Workable</option>
-    </select>
-  </div>
-  <div class="field">
-    <label for="worktype">Work type</label>
-    <select id="worktype">
-      <option value="">All types</option>
-      <option value="remote">Remote</option>
-      <option value="hybrid">Hybrid</option>
-      <option value="onsite">On-site</option>
-    </select>
-  </div>
-  <button class="reset" id="reset">Reset</button>
-</section>
+<div class="app-body">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
 
-<div class="status">
-  <span class="count" id="count">Loading…</span>
-  <div class="progress" id="progress" style="--pct:0"></div>
-  <button id="export" class="export-btn" disabled>↓ Export CSV</button>
+      <!-- Default filters -->
+      <div class="filter-group">
+        <div class="field">
+          <label for="q">Position</label>
+          <input id="q" type="text" placeholder="e.g. backend, product…" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="city">City</label>
+          <select id="city"><option value="">All cities</option></select>
+        </div>
+        <div class="field">
+          <label for="segment">Role type</label>
+          <select id="segment">
+            <option value="">All roles</option>
+            <option value="rd">R&amp;D / Engineering</option>
+            <option value="product">Product</option>
+            <option value="data">Data &amp; Analytics</option>
+            <option value="design">Design</option>
+            <option value="sales">Sales</option>
+            <option value="marketing">Marketing</option>
+            <option value="operations">Operations</option>
+            <option value="support">Customer Success</option>
+            <option value="management">Management</option>
+            <option value="intern">Student / Intern</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="level">Level</label>
+          <select id="level">
+            <option value="">All levels</option>
+            <option value="entry">Entry / Junior</option>
+            <option value="mid">Mid</option>
+            <option value="senior">Senior</option>
+            <option value="advanced">Staff / Principal</option>
+            <option value="director">Director+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="date">Posted</label>
+          <select id="date">
+            <option value="">Any time</option>
+            <option value="1">Today</option>
+            <option value="3">Last 3 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="14">Last 14 days</option>
+            <option value="30">Last 30 days</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="worktype">Work type</label>
+          <select id="worktype">
+            <option value="">All types</option>
+            <option value="remote">Remote</option>
+            <option value="hybrid">Hybrid</option>
+            <option value="onsite">On-site</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- More filters toggle -->
+      <button class="more-filters-btn" id="moreFiltersBtn">
+        <span>+ More filters</span>
+      </button>
+
+      <!-- Extra filters (hidden by default) -->
+      <div class="filter-group extra-filters" id="extraFilters" style="display:none;">
+        <div class="field">
+          <label for="company">Company</label>
+          <select id="company"><option value="">All companies</option></select>
+        </div>
+        <div class="field">
+          <label for="sector">Sector</label>
+          <select id="sector">
+            <option value="">All sectors</option>
+            <option value="cyber">Cyber</option>
+            <option value="fintech">Fintech</option>
+            <option value="health">Health</option>
+            <option value="media">Media</option>
+            <option value="hardware">Hardware</option>
+            <option value="defence">Defence</option>
+            <option value="automotive">Automotive</option>
+            <option value="gaming">Gaming</option>
+            <option value="public">Public Sector</option>
+            <option value="industrial">Industrial</option>
+            <option value="retail">Retail</option>
+            <option value="agritech">Agritech</option>
+            <option value="foodtech">Foodtech</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="source">Source</label>
+          <select id="source">
+            <option value="">All sources</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="comeet">Comeet</option>
+            <option value="greenhouse">Greenhouse</option>
+            <option value="lv">Lever</option>
+            <option value="ab">Ashby</option>
+            <option value="wk">Workable</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="reset" id="reset">Reset</button>
+      <div class="sidebar-count" id="countBar"></div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main>
+    <div id="list"></div>
+    <div class="more-wrap" id="moreWrap" style="display:none;">
+      <button class="more" id="more">Load more</button>
+    </div>
+  </main>
 </div>
-
-
-<div class="view-toggle">
-  <button class="vbtn active" id="vbtnJobs">&#128269; Jobs</button>
-  <button class="vbtn" id="vbtnAnalytics">&#128202; Analytics</button>
-</div>
-
-<main>
-  <div id="list"></div>
-  <div class="more-wrap" id="moreWrap" style="display:none;">
-    <button class="more" id="more">Load more</button>
-  </div>
-</main>
 
 
 <div id="analyticsPanel">
@@ -441,7 +467,6 @@ const $company  = document.getElementById('company');
 const $date     = document.getElementById('date');
 const $reset    = document.getElementById('reset');
 const $list     = document.getElementById('list');
-const $count    = document.getElementById('count');
 const $progress = document.getElementById('progress');
 const $moreWrap = document.getElementById('moreWrap');
 const $more     = document.getElementById('more');
@@ -903,6 +928,18 @@ function classifyLevel(title) {
   return '';
 }
 
+
+// Highlight active filters
+function highlightFilters(){
+  [$q,$city,$segment,$level,$date,$worktype,$company,$sector,$source].forEach(el=>{
+    if(!el) return;
+    const field = el.closest('.field');
+    if(!field) return;
+    const active = el.value !== '' && el.value !== undefined;
+    field.classList.toggle('active', active);
+  });
+}
+
 // ─── SECTOR CLASSIFIER ───────────────────────────────────────────────────────
 // Known Israeli companies → sector (checked first, most reliable)
 const KNOWN_COMPANIES = {
@@ -982,6 +1019,7 @@ function classifySector(company) {
 
 // ─── FILTER ──────────────────────────────────────────────────────────────────
 function applyFilters(){
+  highlightFilters();
   const q        = $q.value.trim().toLowerCase();
   const city     = $city.value;
   const company  = $company.value;
@@ -1023,8 +1061,8 @@ function applyFilters(){
 // ─── RENDER ──────────────────────────────────────────────────────────────────
 function render(){
   const total = getPool().length;
-  $count.innerHTML = '<strong>'+FILTERED.length.toLocaleString()+'</strong> open role'
-    +(FILTERED.length===1?'':'s')+' · '+total.toLocaleString()+' indexed';
+  const $cb=document.getElementById('countBar');
+  if($cb) $cb.innerHTML='<strong>'+FILTERED.length.toLocaleString()+'</strong> open role'+(FILTERED.length===1?'':'s')+'<br>'+total.toLocaleString()+' total';
   $export.disabled = FILTERED.length===0;
   $export.textContent = FILTERED.length>0 ? '↓ Export '+FILTERED.length+' as CSV' : '↓ Export CSV';
 
@@ -1088,6 +1126,18 @@ $reset.addEventListener('click',()=>{
 });
 $more.addEventListener('click',()=>{visible+=PAGE;render();});
 $export.addEventListener('click',exportCSV);
+
+
+// More filters toggle
+const $moreFiltersBtn = document.getElementById('moreFiltersBtn');
+const $extraFilters   = document.getElementById('extraFilters');
+if($moreFiltersBtn && $extraFilters){
+  $moreFiltersBtn.addEventListener('click', ()=>{
+    const open = $extraFilters.style.display !== 'none';
+    $extraFilters.style.display = open ? 'none' : 'flex';
+    $moreFiltersBtn.innerHTML = open ? '<span>+ More filters</span>' : '<span>− Less filters</span>';
+  });
+}
 
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
