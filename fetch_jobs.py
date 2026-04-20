@@ -262,6 +262,127 @@ def run_workable(tm):
     write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'workable_jobs_{TODAY}.csv')
 
 
+# ── History snapshot ─────────────────────────────────────────────────────────
+def update_history():
+    import os, csv as _csv
+    HIST = 'history.csv'
+    FIELDS = ['date','total','cyber','fintech','health','media','hardware',
+              'defence','automotive','gaming','public','industrial','retail',
+              'agritech','foodtech','rd','product','data','design','sales',
+              'marketing','operations','support','management','intern',
+              'remote','hybrid','onsite',
+              'linkedin','comeet','greenhouse','lever','ashby','workable']
+
+    # Load all today's CSVs
+    rows = []
+    for src in ['comeet','greenhouse','lever','ashby','workable']:
+        fname = f'{src}_jobs_{TODAY}.csv'
+        if not os.path.exists(fname): continue
+        with open(fname, encoding='utf-8-sig') as f:
+            rows.extend(list(_csv.DictReader(f)))
+    # LinkedIn: pick latest file
+    import glob
+    li_files = sorted(glob.glob('linkedin_jobs_*.csv'))
+    if li_files:
+        with open(li_files[-1], encoding='utf-8-sig') as f:
+            li_rows = list(_csv.DictReader(f))
+    else:
+        li_rows = []
+
+    all_rows = rows + li_rows
+
+    def g(row, *keys):
+        for k in keys:
+            v = (row.get(k) or row.get(k.title()) or '').strip()
+            if v: return v
+        return ''
+
+    # Sector keywords (mirrors JS classifier, simplified)
+    SECTOR_KW = {
+        'cyber':      re.compile(r'cyber|security|firewall|malware|threat|siem|edr|xdr|zero.?trust|vulnerab|appsec', re.I),
+        'fintech':    re.compile(r'fintech|payment|bank|financial|credit|insur|trading|crypto|blockchain|lending|payroll|neobank', re.I),
+        'health':     re.compile(r'health|medical|medtech|biotech|pharma|genomic|clinical|patient|therap|diagnos|imaging|dental|cardio', re.I),
+        'media':      re.compile(r'media|adtech|advertis|broadcast|streaming|entertainment|influencer|social media', re.I),
+        'hardware':   re.compile(r'semiconductor|chip|silicon|processor|fpga|embedded|firmware|sensor|radar|lidar|photonic|robotic|circuit|wafer', re.I),
+        'defence':    re.compile(r'defense|defence|military|weapon|missile|uav|unmanned|aerospace|tactical|drone', re.I),
+        'automotive': re.compile(r'automotive|vehicle|fleet|electric vehicle|autonomous|adas|self.?driving|telematics|mobility|charging', re.I),
+        'gaming':     re.compile(r'gaming|casino|esport|lottery|mobile game|game studio|slot|poker|bingo|fantasy sport', re.I),
+        'public':     re.compile(r'government|municipal|govtech|ministry|smart city|public sector|civic tech|e.?gov|federal', re.I),
+        'industrial': re.compile(r'industrial|manufacturing|factory|production|supply chain|logistics|warehouse|scada|automation|industry 4|iot', re.I),
+        'retail':     re.compile(r'retail|e.?commerce|marketplace|fashion|apparel|consumer goods|grocery|dtc|point.?of.?sale', re.I),
+        'agritech':   re.compile(r'agro|agriculture|agritech|farm|crop|irrigation|precision farm|soil|fertilizer|livestock|harvest', re.I),
+        'foodtech':   re.compile(r'food|foodtech|nutrition|protein|plant.?based|cultivated meat|fermentation|beverage|culinary|alternative protein', re.I),
+    }
+    ROLE_KW = {
+        'intern':     re.compile(r'intern|internship|student|trainee|apprentice|co.?op|graduate program', re.I),
+        'management': re.compile(r'vp|vice president|cto|coo|cpo|ciso|cmo|cfo|ceo|head of|director|general manager|chief ', re.I),
+        'rd':         re.compile(r'engineer|developer|devops|sre|architect|backend|frontend|full.?stack|mobile|firmware|embedded|platform|security research|qa|tester|sdet|software', re.I),
+        'product':    re.compile(r'product manager|product owner|pm|product lead|program manager|project manager|scrum', re.I),
+        'data':       re.compile(r'data scientist|data engineer|data analyst|analytics engineer|ml engineer|machine learning|deep learning|ai engineer|bi engineer|business intelligence|llm|computer vision', re.I),
+        'design':     re.compile(r'designer|ux|ui|user experience|figma|product design|visual design|graphic', re.I),
+        'sales':      re.compile(r'account executive|account manager|sales engineer|business development|bd|sdr|bdr|pre.?sales|revenue|partnership', re.I),
+        'marketing':  re.compile(r'marketing|growth|content|seo|sem|brand|demand generation|campaign|copywriter|social media|pr|field marketing', re.I),
+        'support':    re.compile(r'customer success|customer support|technical support|implementation|solutions engineer|integration engineer|onboarding|professional services', re.I),
+        'operations': re.compile(r'hr|human resources|recruiter|talent acquisition|finance|accounting|legal|procurement|office manager|operations|ops|admin|it manager|supply chain', re.I),
+    }
+
+    def classify_sector(company):
+        c = company.lower()
+        for sec, rx in SECTOR_KW.items():
+            if rx.search(c): return sec
+        return ''
+
+    def classify_role(title):
+        for role, rx in ROLE_KW.items():
+            if rx.search(title): return role
+        return ''
+
+    counts = {f: 0 for f in FIELDS}
+    counts['date'] = TODAY
+
+    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0}
+    for src in ['comeet','greenhouse','lever','ashby','workable']:
+        fname = f'{src}_jobs_{TODAY}.csv'
+        if os.path.exists(fname):
+            with open(fname, encoding='utf-8-sig') as f:
+                src_counts[src] = sum(1 for _ in _csv.DictReader(f))
+
+    counts['total']    = len(all_rows)
+    counts['linkedin'] = src_counts['linkedin']
+    counts['comeet']   = src_counts['comeet']
+    counts['greenhouse']= src_counts['greenhouse']
+    counts['lever']    = src_counts['lever']
+    counts['ashby']    = src_counts['ashby']
+    counts['workable'] = src_counts['workable']
+
+    for row in all_rows:
+        title   = g(row,'title','job_title','position')
+        company = g(row,'company','company_name','employer')
+        wt      = g(row,'workplace_type','work_type','location').lower()
+        sec = classify_sector(company)
+        if sec: counts[sec] = counts.get(sec, 0) + 1
+        role = classify_role(title)
+        if role: counts[role] = counts.get(role, 0) + 1
+        if 'remote'  in wt: counts['remote']  += 1
+        elif 'hybrid' in wt: counts['hybrid']  += 1
+        elif wt: counts['onsite'] += 1
+
+    # Read existing history, skip today if already present
+    existing = []
+    if os.path.exists(HIST):
+        with open(HIST, encoding='utf-8-sig') as f:
+            existing = list(_csv.DictReader(f))
+        existing = [r for r in existing if r.get('date') != TODAY]
+
+    existing.append(counts)
+
+    with open(HIST, 'w', newline='', encoding='utf-8-sig') as f:
+        w = _csv.DictWriter(f, fieldnames=FIELDS, extrasaction='ignore')
+        w.writeheader()
+        w.writerows(existing)
+
+    print(f"  -> history.csv updated ({len(existing)} days)")
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     print(f"=== fetch_jobs.py  {TODAY} ===\n")
@@ -272,6 +393,8 @@ def main():
     run_lever(lever)
     run_ashby({})
     run_workable({})
+    print("\nUpdating history...")
+    update_history()
     print("\n=== All done ===")
 
 if __name__ == '__main__':
