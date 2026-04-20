@@ -1256,7 +1256,6 @@ async function renderAnalytics(){
     data:{labels:wtData.map(([k])=>wtMap[k]||k),datasets:[{data:wtData.map(([,v])=>v),backgroundColor:['#2e7d32','#0a66c2','#c97f0c','#d9d2c2']}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
       onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($worktype)$worktype.value=wtData[els[0].index][0]; }); } }}
-  }); } }}
   });
 
   // ── Top 20 companies ──
