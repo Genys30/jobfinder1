@@ -536,7 +536,7 @@ function normLinkedIn(row, filename){
   // Extract work type from location string e.g. "Tel Aviv (Hybrid)"
   const rawLoc = g('location',['city','place']);
   const wtMatch = rawLoc.match(/\((remote|hybrid|on-?site)\)/i);
-  const workType = wtMatch ? wtMatch[1].toLowerCase().replace('-','') : '';
+  const workType = wtMatch ? wtMatch[1].toLowerCase().replace('-','') : 'onsite';
 
   return {
     source:'linkedin', fnArea:'linkedin',
@@ -557,7 +557,7 @@ function normComeet(row, filename){
   if(!title||!company) return null;
   const fnDate  = (filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
   const wt = g('workplace_type').toLowerCase();
-  const workType = wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'';
+  const workType = wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'onsite';
   return{
     source:'comeet', fnArea:'comeet',
     title, company,
@@ -578,7 +578,7 @@ function normGreenhouse(row, filename){
   if(!title||!company) return null;
   const fnDate  = (filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
   const wt = g('workplace_type').toLowerCase();
-  const workType = wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'';
+  const workType = wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'onsite';
   return{
     source:'greenhouse', fnArea:'greenhouse',
     title, company,
@@ -771,7 +771,7 @@ function normLever(row, filename){
   if(!title||!company) return null;
   const fnDate=(filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
   const wt=g('workplace_type').toLowerCase();
-  const workType=wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'';
+  const workType=wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'onsite';
   return{source:'lv',fnArea:'lv',title,company,category:g('department')||'lv',
     size:'',level:'',city:g('location'),url:g('url'),updated:g('date')||fnDate,workType};
 }
@@ -1248,7 +1248,7 @@ async function renderAnalytics(){
 
   // ── Work type donut ──
   destroyChart('worktype');
-  const wtMap={remote:'Remote',hybrid:'Hybrid',onsite:'On-site','':'Unspecified'};
+  const wtMap={remote:'Remote',hybrid:'Hybrid',onsite:'On-site'};
   const byWt=count(jobs,r=>r.workType||'');
   const wtData=Object.entries(byWt).filter(([,v])=>v>0);
   CHART_INSTANCES['worktype']=new Chart(document.getElementById('chartWorkType'),{
