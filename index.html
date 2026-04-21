@@ -656,6 +656,7 @@ async function loadLinkedIn(){
     return;
   }
 
+    allRows.sort((a,b)=>{ const da=parseDate(a.updated),db=parseDate(b.updated); if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0; });
   const seen=new Set();
   LI_JOBS=allRows.filter(r=>{
     const k=r.url||(r.company+'|'+r.title+'|'+r.city);
