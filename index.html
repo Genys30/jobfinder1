@@ -114,7 +114,7 @@
   .an-box{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:20px 24px;}.an-box canvas{max-height:220px;}
   .an-box-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:16px;}
   .an-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);margin-top:10px;text-align:center;}
-  a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+  a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
   a.job:hover{background:rgba(201,127,12,.04);}
   .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
   .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -132,7 +132,7 @@
   @media(max-width:1100px){
     
     .reset{grid-column:1/-1;}
-    a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+    a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
   a.job:hover{background:rgba(201,127,12,.04);}
   .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
   .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -172,6 +172,34 @@
     /* View toggle */
     .vbtn{padding:10px 16px;font-size:10px;}
   }
+
+  /* CV Tracker */
+  .track-btn{display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border:1px solid var(--rule);border-radius:3px;
+    background:none;cursor:pointer;font-size:13px;color:var(--ink-faint);
+    transition:all .15s;flex-shrink:0;margin-left:2px;}
+  .track-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .track-btn.sent{background:var(--accent);border-color:var(--accent);color:#fff;}
+  #appsPanel{padding:32px 48px 64px;display:none;}
+  .apps-toolbar{display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+  .apps-title{font-family:'JetBrains Mono',monospace;font-size:13px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);}
+  .apps-empty{padding:48px 0;text-align:center;font-family:'JetBrains Mono',
+    monospace;font-size:12px;color:var(--ink-faint);}
+  .apps-table{width:100%;border-collapse:collapse;}
+  .apps-table th{font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.15em;text-transform:uppercase;color:var(--ink-faint);
+    text-align:left;padding:8px 12px;border-bottom:2px solid var(--rule);}
+  .apps-table td{font-size:13px;padding:12px;border-bottom:1px solid var(--rule);vertical-align:middle;}
+  .apps-table tr:hover td{background:rgba(201,127,12,.04);}
+  .apps-table td a{color:var(--ink);text-decoration:none;}
+  .apps-table td a:hover{color:var(--accent);}
+  .apps-del{background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:14px;padding:2px 6px;border-radius:3px;}
+  .apps-del:hover{color:var(--accent-2);}
+  .apps-sent-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
+  @media(max-width:768px){#appsPanel{padding:16px 12px 48px;}
+    .apps-table th:nth-child(n+4),.apps-table td:nth-child(n+4){display:none;}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -214,6 +242,7 @@
 <!-- Filters -->
 <div class="view-toggle">
   <button class="vbtn active" id="vbtnJobs">&#128269; Jobs</button>
+  <button class="vbtn" id="vbtnApps">&#128236; My Applications</button>
   <button class="vbtn" id="vbtnAnalytics">&#128202; Analytics</button>
 </div>
 <section class="filters">
@@ -395,6 +424,17 @@
     </div>
   </div>
 
+</div>
+
+<div id="appsPanel">
+  <div class="apps-toolbar">
+    <span class="apps-title">&#128236; My Applications</span>
+    <div style="display:flex;gap:8px;">
+      <button class="export" id="appsExport">&#8595; Export CSV</button>
+      <button class="reset" id="appsClear">Clear all</button>
+    </div>
+  </div>
+  <div id="appsList"></div>
 </div>
 
 <footer>
@@ -1084,7 +1124,8 @@ function render(){
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
-      +'<span class="arrow">↗</span></a>';
+      +'<span class="arrow">↗</span>'
+      +'<button class="track-btn"+(isTracked(r.url||r.title+r.company)?' sent':'')+'" data-id="'+esc(r.url||r.title+r.company)+'" onclick="event.preventDefault();event.stopPropagation();toggleTrack(this.getAttribute("data-id"))">&#128236;</button></a>';
   }).join('');
   $moreWrap.style.display = FILTERED.length>visible?'block':'none';
 }
@@ -1333,6 +1374,67 @@ document.getElementById('vbtnAnalytics').addEventListener('click',()=>{
   requestAnimationFrame(()=>renderAnalytics().catch(console.error));
 });
 
+
+// CV TRACKER
+const TRACK_KEY = 'jf_applications';
+function getApps(){ try{ return JSON.parse(localStorage.getItem(TRACK_KEY)||"[]"); }catch(e){ return []; } }
+function saveApps(arr){ localStorage.setItem(TRACK_KEY, JSON.stringify(arr)); }
+function isTracked(id){ return getApps().some(a=>a.id===id); }
+
+function toggleTrack(id){
+  const pool=[...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS];
+  const r=pool.find(j=>(j.url||j.title+j.company)===id);
+  let apps=getApps();
+  if(isTracked(id)){ apps=apps.filter(a=>a.id!==id); }
+  else{ apps.push({id,title:r?r.title:id,company:r?r.company:"",city:r?(r.city||""):"",source:r?(r.source||""):"",url:r?(r.url||""):"",sentDate:new Date().toISOString().slice(0,10)}); }
+  saveApps(apps);
+  document.querySelectorAll(".track-btn").forEach(btn=>{
+    if(btn.getAttribute("data-id")===id) btn.classList.toggle("sent",isTracked(id));
+  });
+  if(document.getElementById("appsPanel").style.display!=="none") renderApps();
+}
+
+function renderApps(){
+  const apps=getApps();
+  const el=document.getElementById("appsList");
+  if(!el) return;
+  if(!apps.length){ el.innerHTML='<div class="apps-empty">No applications tracked yet.<br>Click &#128236; on any job row to mark it as sent.</div>'; return; }
+  const sorted=[...apps].sort((a,b)=>b.sentDate.localeCompare(a.sentDate));
+  el.innerHTML='<table class="apps-table"><thead><tr><th>Sent</th><th>Position</th><th>Company</th><th>City</th><th>Source</th><th></th></tr></thead><tbody>'
+    +sorted.map(a=>'<tr><td class="apps-sent-date">'+esc(a.sentDate)+'</td>'
+      +'<td><a href="'+esc(a.url||"#")+'" target="_blank" rel="noopener">'+esc(a.title)+'</a></td>'
+      +'<td>'+esc(a.company)+'</td><td>'+esc(a.city)+'</td>'
+      +'<td style="font-family:monospace;font-size:11px;color:var(--ink-faint)">'+esc(a.source)+'</td>'
+      +'<td><button class="apps-del" onclick="deleteApp(this.dataset.id)" data-id="'+esc(a.id)+'">&#10005;</button></td></tr>').join("")
+    +'</tbody></table>';
+}
+
+function deleteApp(id){ saveApps(getApps().filter(a=>a.id!==id)); renderApps(); }
+
+function exportApps(){
+  const apps=getApps(); if(!apps.length) return;
+  const hdr=["sent_date","title","company","city","source","url"];
+  const rows=apps.map(a=>[a.sentDate,a.title,a.company,a.city,a.source,a.url].map(csvCell).join(","));
+  const blob=new Blob(["\uFEFF"+hdr.join(",")+"\n"+rows.join("\n")],{type:"text/csv;charset=utf-8"});
+  const lnk=document.createElement("a"); lnk.href=URL.createObjectURL(blob);
+  lnk.download="my-applications-"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(lnk); lnk.click(); document.body.removeChild(lnk);
+  setTimeout(()=>URL.revokeObjectURL(lnk.href),1000);
+}
+
+document.getElementById("appsExport").addEventListener("click", exportApps);
+document.getElementById("appsClear").addEventListener("click",()=>{ if(confirm("Clear all tracked applications?")){ saveApps([]); renderApps(); } });
+document.getElementById("vbtnApps").addEventListener("click",()=>{
+  ["vbtnApps","vbtnJobs","vbtnAnalytics"].forEach(id=>document.getElementById(id).classList.toggle("active",id==="vbtnApps"));
+  document.querySelector("main").style.display="none";
+  document.querySelector(".status").style.display="none";
+  document.getElementById("analyticsPanel").style.display="none";
+  document.getElementById("appsPanel").style.display="block";
+  renderApps();
+});
+document.getElementById("vbtnJobs").addEventListener("click",()=>{ document.getElementById("appsPanel").style.display="none"; document.getElementById("vbtnApps").classList.remove("active"); });
+document.getElementById("vbtnAnalytics").addEventListener("click",()=>{ document.getElementById("appsPanel").style.display="none"; document.getElementById("vbtnApps").classList.remove("active"); });
+// END CV TRACKER
 </script>
 </body>
 </html>
