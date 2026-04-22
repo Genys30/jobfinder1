@@ -1124,7 +1124,10 @@ function render(){
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
-      +'<span class="arrow">↗</span>'
+            +'<span class="arrow">➝</span>'
+      +'<button class="track-btn'+(isTracked(r.url||r.title+r.company)?' sent':'')
+      +'" data-id="'+esc(r.url||r.title+r.company)
+      +'" onclick="event.preventDefault();event.stopPropagation();toggleTrack(this.dataset.id)">&#128236;</button></a>';'
   }).join('');
   $moreWrap.style.display = FILTERED.length>visible?'block':'none';
 }
