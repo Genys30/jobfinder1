@@ -173,7 +173,7 @@
     .vbtn{padding:10px 16px;font-size:10px;}
   }
 
-  /* CV Tracker */
+  /* CV Tracker - Kanban */
   .track-btn{display:inline-flex;align-items:center;justify-content:center;
     width:26px;height:26px;border:1px solid var(--rule);border-radius:3px;
     background:none;cursor:pointer;font-size:13px;color:var(--ink-faint);
@@ -182,24 +182,51 @@
   .track-btn.sent{background:var(--accent);border-color:var(--accent);color:#fff;}
   #appsPanel{padding:32px 48px 64px;display:none;}
   .apps-toolbar{display:flex;align-items:center;justify-content:space-between;
-    margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+    margin-bottom:28px;flex-wrap:wrap;gap:12px;}
   .apps-title{font-family:'JetBrains Mono',monospace;font-size:13px;
     letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);}
-  .apps-empty{padding:48px 0;text-align:center;font-family:'JetBrains Mono',
-    monospace;font-size:12px;color:var(--ink-faint);}
-  .apps-table{width:100%;border-collapse:collapse;}
-  .apps-table th{font-family:'JetBrains Mono',monospace;font-size:10px;
-    letter-spacing:.15em;text-transform:uppercase;color:var(--ink-faint);
-    text-align:left;padding:8px 12px;border-bottom:2px solid var(--rule);}
-  .apps-table td{font-size:13px;padding:12px;border-bottom:1px solid var(--rule);vertical-align:middle;}
-  .apps-table tr:hover td{background:rgba(201,127,12,.04);}
-  .apps-table td a{color:var(--ink);text-decoration:none;}
-  .apps-table td a:hover{color:var(--accent);}
-  .apps-del{background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:14px;padding:2px 6px;border-radius:3px;}
-  .apps-del:hover{color:var(--accent-2);}
-  .apps-sent-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
-  @media(max-width:768px){#appsPanel{padding:16px 12px 48px;}
-    .apps-table th:nth-child(n+4),.apps-table td:nth-child(n+4){display:none;}}
+  .kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start;}
+  .kanban-col{background:rgba(0,0,0,.02);border:1px solid var(--rule);border-radius:6px;
+    padding:16px;min-height:200px;}
+  .kanban-col-header{display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--rule);}
+  .kanban-col-title{font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);}
+  .kanban-col-count{font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--ink-faint);background:var(--rule);padding:2px 7px;border-radius:10px;}
+  .kanban-col.col-applied .kanban-col-header{border-bottom-color:#0a66c2;}
+  .kanban-col.col-interview .kanban-col-header{border-bottom-color:#c97f0c;}
+  .kanban-col.col-offer .kanban-col-header{border-bottom-color:#2e7d32;}
+  .kanban-col.col-rejected .kanban-col-header{border-bottom-color:#9c9687;}
+  .kanban-card{background:#fff;border:1px solid var(--rule);border-radius:4px;
+    padding:14px;margin-bottom:10px;transition:box-shadow .15s,border-color .15s;}
+  .kanban-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08);border-color:var(--ink-faint);}
+  .kanban-card-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;
+    line-height:1.3;}
+  .kanban-card-title a{color:inherit;text-decoration:none;}
+  .kanban-card-title a:hover{color:var(--accent);}
+  .kanban-card-company{font-size:12px;color:var(--ink-dim);margin-bottom:8px;}
+  .kanban-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .kanban-card-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
+  .kanban-src{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;
+    text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;}
+  .kanban-src.li{background:#0a66c2;} .kanban-src.comeet{background:#00897b;}
+  .kanban-src.greenhouse{background:#2e7d32;} .kanban-src.lv{background:#c2410c;}
+  .kanban-card-actions{display:flex;gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);}
+  .kanban-move-btn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;
+    text-transform:uppercase;border:1px solid var(--rule);background:none;color:var(--ink-dim);
+    padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .15s;}
+  .kanban-move-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .kanban-del-btn{font-family:'JetBrains Mono',monospace;font-size:9px;border:1px solid var(--rule);
+    background:none;color:var(--ink-faint);padding:3px 7px;border-radius:3px;cursor:pointer;
+    margin-left:auto;transition:all .15s;}
+  .kanban-del-btn:hover{border-color:var(--accent-2);color:var(--accent-2);}
+  .kanban-empty{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);
+    text-align:center;padding:20px 0;letter-spacing:.05em;}
+  .apps-empty{padding:48px 0;text-align:center;font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--ink-faint);}
+  @media(max-width:900px){.kanban-board{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.kanban-board{grid-template-columns:1fr;} #appsPanel{padding:16px 12px 48px;}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -1388,7 +1415,7 @@ function toggleTrack(id){
   const r=pool.find(j=>(j.url||j.title+j.company)===id);
   let apps=getApps();
   if(isTracked(id)){ apps=apps.filter(a=>a.id!==id); }
-  else{ apps.push({id,title:r?r.title:id,company:r?r.company:"",city:r?(r.city||""):"",source:r?(r.source||""):"",url:r?(r.url||""):"",sentDate:new Date().toISOString().slice(0,10)}); }
+  else{ apps.push({id,title:r?r.title:id,company:r?r.company:"",city:r?(r.city||""):"",source:r?(r.source||""):"",url:r?(r.url||""):"",sentDate:new Date().toISOString().slice(0,10),status:"applied"}); }
   saveApps(apps);
   document.querySelectorAll(".track-btn").forEach(btn=>{
     if(btn.getAttribute("data-id")===id) btn.classList.toggle("sent",isTracked(id));
@@ -1397,18 +1424,61 @@ function toggleTrack(id){
 }
 
 function renderApps(){
-  const apps=getApps();
-  const el=document.getElementById("appsList");
+  const apps = getApps();
+  const el = document.getElementById('appsList');
   if(!el) return;
-  if(!apps.length){ el.innerHTML='<div class="apps-empty">No applications tracked yet.<br>Click &#128236; on any job row to mark it as sent.</div>'; return; }
-  const sorted=[...apps].sort((a,b)=>b.sentDate.localeCompare(a.sentDate));
-  el.innerHTML='<table class="apps-table"><thead><tr><th>Sent</th><th>Position</th><th>Company</th><th>City</th><th>Source</th><th></th></tr></thead><tbody>'
-    +sorted.map(a=>'<tr><td class="apps-sent-date">'+esc(a.sentDate)+'</td>'
-      +'<td><a href="'+esc(a.url||"#")+'" target="_blank" rel="noopener">'+esc(a.title)+'</a></td>'
-      +'<td>'+esc(a.company)+'</td><td>'+esc(a.city)+'</td>'
-      +'<td style="font-family:monospace;font-size:11px;color:var(--ink-faint)">'+esc(a.source)+'</td>'
-      +'<td><button class="apps-del" onclick="deleteApp(this.dataset.id)" data-id="'+esc(a.id)+'">&#10005;</button></td></tr>').join("")
-    +'</tbody></table>';
+  if(!apps.length){
+    el.innerHTML='<div class="apps-empty">No applications tracked yet.<br>Click &#128236; on any job row to mark it as sent.</div>';
+    return;
+  }
+  const COLS = [
+    {id:'applied',   label:'Applied',   cls:'col-applied'},
+    {id:'interview', label:'Interview', cls:'col-interview'},
+    {id:'offer',     label:'Offer',     cls:'col-offer'},
+    {id:'rejected',  label:'Rejected',  cls:'col-rejected'},
+  ];
+  const NEXT = {applied:'interview', interview:'offer', offer:null, rejected:null};
+  const PREV = {applied:null, interview:'applied', offer:'interview', rejected:null};
+  const srcCls = {linkedin:'li',comeet:'comeet',greenhouse:'greenhouse',lv:'lv'};
+
+  function cardHTML(a){
+    const next = NEXT[a.status||'applied'];
+    const prev = PREV[a.status||'applied'];
+    const sc = srcCls[a.source]||'';
+    return '<div class="kanban-card" data-id="'+esc(a.id)+'">'
+      +'<div class="kanban-card-title"><a href="'+esc(a.url||'#')+'" target="_blank" rel="noopener">'+esc(a.title)+'</a></div>'
+      +'<div class="kanban-card-company">'+esc(a.company)+(a.city?'  \u00b7  '+esc(a.city):'')+'</div>'
+      +'<div class="kanban-card-meta">'
+      +'<span class="kanban-card-date">'+esc(a.sentDate)+'</span>'
+      +(sc?'<span class="kanban-src '+sc+'">'+esc(a.source)+'</span>':'')
+      +'</div>'
+      +'<div class="kanban-card-actions">'
+      +(prev?'<button class="kanban-move-btn" onclick="moveCard(\''+esc(a.id)+'\',\''+prev+'\')">\u2190 '+COLS.find(c=>c.id===prev).label+'</button>':'')
+      +(next?'<button class="kanban-move-btn" onclick="moveCard(\''+esc(a.id)+'\',\''+next+'\')">\u2192 '+COLS.find(c=>c.id===next).label+'</button>':'')
+      +(a.status!=='rejected'?'<button class="kanban-move-btn" onclick="moveCard(\''+esc(a.id)+'\',\'rejected\')">Reject</button>':'')
+      +'<button class="kanban-del-btn" onclick="deleteApp(\''+esc(a.id)+'\')">\u00d7</button>'
+      +'</div>'
+      +'</div>';
+  }
+
+  const board = COLS.map(col=>{
+    const cards = apps.filter(a=>(a.status||'applied')===col.id);
+    return '<div class="kanban-col '+col.cls+'">'
+      +'<div class="kanban-col-header">'
+      +'<span class="kanban-col-title">'+col.label+'</span>'
+      +'<span class="kanban-col-count">'+cards.length+'</span>'
+      +'</div>'
+      +(cards.length ? cards.sort((a,b)=>b.sentDate.localeCompare(a.sentDate)).map(cardHTML).join('') : '<div class="kanban-empty">empty</div>')
+      +'</div>';
+  }).join('');
+  el.innerHTML = '<div class="kanban-board">'+board+'</div>';
+}
+
+
+function moveCard(id, status){
+  const apps = getApps();
+  const a = apps.find(x=>x.id===id);
+  if(a){ a.status = status; saveApps(apps); renderApps(); }
 }
 
 function deleteApp(id){ saveApps(getApps().filter(a=>a.id!==id)); renderApps(); }
