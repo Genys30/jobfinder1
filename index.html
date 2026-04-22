@@ -1406,124 +1406,143 @@ document.getElementById('vbtnAnalytics').addEventListener('click',()=>{
 
 // CV TRACKER
 const TRACK_KEY = 'jf_applications';
-function getApps(){ try{ return JSON.parse(localStorage.getItem(TRACK_KEY)||"[]"); }catch(e){ return []; } }
+
+function getApps(){
+  try{ return JSON.parse(localStorage.getItem(TRACK_KEY)||'[]'); }
+  catch(e){ return []; }
+}
 function saveApps(arr){ localStorage.setItem(TRACK_KEY, JSON.stringify(arr)); }
-function isTracked(id){ return getApps().some(a=>a.id===id); }
+function isTracked(id){ return getApps().some(function(a){ return a.id===id; }); }
 
 function toggleTrack(id){
-  const pool=[...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS];
-  const r=pool.find(j=>(j.url||j.title+j.company)===id);
-  let apps=getApps();
-  if(isTracked(id)){ apps=apps.filter(a=>a.id!==id); }
-  else{ apps.push({id,title:r?r.title:id,company:r?r.company:"",city:r?(r.city||""):"",source:r?(r.source||""):"",url:r?(r.url||""):"",sentDate:new Date().toISOString().slice(0,10),status:"applied"}); }
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS);
+  var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
+  var apps=getApps();
+  if(isTracked(id)){
+    apps=apps.filter(function(a){ return a.id!==id; });
+  } else {
+    apps.push({
+      id:id,
+      title:r?r.title:id,
+      company:r?r.company:'',
+      city:r?(r.city||''):'',
+      source:r?(r.source||''):'',
+      url:r?(r.url||''):'',
+      sentDate:new Date().toISOString().slice(0,10),
+      status:'applied'
+    });
+  }
   saveApps(apps);
-  document.querySelectorAll(".track-btn").forEach(btn=>{
-    if(btn.getAttribute("data-id")===id) btn.classList.toggle("sent",isTracked(id));
+  document.querySelectorAll('.track-btn').forEach(function(btn){
+    if(btn.getAttribute('data-id')===id) btn.classList.toggle('sent',isTracked(id));
   });
-  if(document.getElementById("appsPanel").style.display!=="none") renderApps();
+  if(document.getElementById('appsPanel').style.display!=='none') renderApps();
 }
 
 function renderApps(){
-  const apps = getApps();
-  const el = document.getElementById('appsList');
+  var apps=getApps();
+  var el=document.getElementById('appsList');
   if(!el) return;
   if(!apps.length){
-    el.innerHTML='<div class="apps-empty">No applications tracked yet.<br>Click \u29c9 on any job row to mark it as sent.</div>';
+    el.innerHTML='<div class="apps-empty">No applications tracked yet.<br>Click the envelope button on any job row to mark it as sent.</div>';
     return;
   }
-  const COLS = [
+  var COLS=[
     {id:'applied',   label:'Applied',   cls:'col-applied'},
     {id:'interview', label:'Interview', cls:'col-interview'},
     {id:'offer',     label:'Offer',     cls:'col-offer'},
-    {id:'rejected',  label:'Rejected',  cls:'col-rejected'},
+    {id:'rejected',  label:'Rejected',  cls:'col-rejected'}
   ];
-  const srcCls = {linkedin:'li',comeet:'comeet',greenhouse:'greenhouse',lv:'lv'};
+  var srcMap={linkedin:'li',comeet:'comeet',greenhouse:'greenhouse',lv:'lv'};
 
-  function cardHTML(a, idx){
-    const status = a.status||'applied';
-    const sc = srcCls[a.source]||'';
-    const colIdx = COLS.findIndex(c=>c.id===status);
-    const prevCol = colIdx > 0 ? COLS[colIdx-1] : null;
-    const nextCol = colIdx < COLS.length-2 ? COLS[colIdx+1] : null;
-    return '<div class="kanban-card" data-idx="'+idx+'">'
-      +'<div class="kanban-card-title"><a href="'+esc(a.url||'#')+'" target="_blank" rel="noopener">'+esc(a.title)+'</a></div>'
-      +'<div class="kanban-card-company">'+esc(a.company)+(a.city?' \u00b7 '+esc(a.city.split(',')[0]):'')+'</div>'
-      +'<div class="kanban-card-meta">'
-        +'<span class="kanban-card-date">'+esc(a.sentDate)+'</span>'
-        +(sc?'<span class="kanban-src '+sc+'">'+esc(a.source)+'</span>':'')
-      +'</div>'
-      +'<div class="kanban-card-actions">'
-        +(prevCol?'<button class="kanban-move-btn" data-idx="'+idx+'" data-status="'+prevCol.id+'">\u2190 '+prevCol.label+'</button>':'')
-        +(nextCol?'<button class="kanban-move-btn" data-idx="'+idx+'" data-status="'+nextCol.id+'">\u2192 '+nextCol.label+'</button>':'')
-        +(status!=='rejected'?'<button class="kanban-move-btn" data-idx="'+idx+'" data-status="rejected">Reject</button>':'')
-        +'<button class="kanban-del-btn" data-idx="'+idx+'">\u00d7</button>'
-      +'</div>'
-      +'</div>';
+  function card(a, idx){
+    var status=a.status||'applied';
+    var colIdx=COLS.findIndex(function(c){ return c.id===status; });
+    var sc=srcMap[a.source]||'';
+    var city=a.city?(a.city.split(',')[0]):'';
+    var html='<div class="kanban-card">';
+    html+='<div class="kanban-card-title"><a href="'+esc(a.url||'#')+'" target="_blank" rel="noopener">'+esc(a.title)+'</a></div>';
+    html+='<div class="kanban-card-company">'+esc(a.company)+(city?' \u00b7 '+esc(city):'')+'</div>';
+    html+='<div class="kanban-card-meta">';
+    html+='<span class="kanban-card-date">'+esc(a.sentDate)+'</span>';
+    if(sc) html+='<span class="kanban-src '+sc+'">'+esc(a.source)+'</span>';
+    html+='</div>';
+    html+='<div class="kanban-card-actions">';
+    if(colIdx>0) html+='<button class="kanban-move-btn" data-idx="'+idx+'" data-status="'+COLS[colIdx-1].id+'">\u2190 '+COLS[colIdx-1].label+'</button>';
+    if(colIdx<2)  html+='<button class="kanban-move-btn" data-idx="'+idx+'" data-status="'+COLS[colIdx+1].id+'">\u2192 '+COLS[colIdx+1].label+'</button>';
+    if(status!=='rejected') html+='<button class="kanban-move-btn" data-idx="'+idx+'" data-status="rejected">Reject</button>';
+    html+='<button class="kanban-del-btn" data-idx="'+idx+'">\u00d7</button>';
+    html+='</div></div>';
+    return html;
   }
 
-  const board = COLS.map(col=>{
-    const cards = apps.map((a,i)=>({a,i})).filter(({a})=>(a.status||'applied')===col.id);
-    return '<div class="kanban-col '+col.cls+'">'
-      +'<div class="kanban-col-header">'
-        +'<span class="kanban-col-title">'+col.label+'</span>'
-        +'<span class="kanban-col-count">'+cards.length+'</span>'
-      +'</div>'
-      +(cards.length
-        ? cards.sort((x,y)=>y.a.sentDate.localeCompare(x.a.sentDate)).map(({a,i})=>cardHTML(a,i)).join('')
-        : '<div class="kanban-empty">empty</div>')
-      +'</div>';
-  }).join('');
+  var board='<div class="kanban-board" id="kanbanBoard">';
+  COLS.forEach(function(col){
+    var items=[];
+    apps.forEach(function(a,i){ if((a.status||'applied')===col.id) items.push({a:a,i:i}); });
+    items.sort(function(x,y){ return y.a.sentDate.localeCompare(x.a.sentDate); });
+    board+='<div class="kanban-col '+col.cls+'">';
+    board+='<div class="kanban-col-header"><span class="kanban-col-title">'+col.label+'</span><span class="kanban-col-count">'+items.length+'</span></div>';
+    board+=items.length ? items.map(function(x){ return card(x.a,x.i); }).join('') : '<div class="kanban-empty">empty</div>';
+    board+='</div>';
+  });
+  board+='</div>';
+  el.innerHTML=board;
 
-  el.innerHTML = '<div class="kanban-board" id="kanbanBoard">'+board+'</div>';
-
-  // Event delegation - one listener handles all buttons
-  document.getElementById('kanbanBoard').addEventListener('click', function(e){
-    const moveBtn = e.target.closest('.kanban-move-btn');
-    const delBtn  = e.target.closest('.kanban-del-btn');
-    if(moveBtn){
-      const idx = parseInt(moveBtn.dataset.idx);
-      const status = moveBtn.dataset.status;
-      const apps = getApps();
-      if(apps[idx]){ apps[idx].status = status; saveApps(apps); renderApps(); }
-    } else if(delBtn){
-      const idx = parseInt(delBtn.dataset.idx);
-      const apps = getApps();
-      apps.splice(idx, 1);
+  var kb=document.getElementById('kanbanBoard');
+  if(kb) kb.addEventListener('click',function(e){
+    var mb=e.target.closest('.kanban-move-btn');
+    var db=e.target.closest('.kanban-del-btn');
+    if(mb){
+      var idx=parseInt(mb.dataset.idx);
+      var st=mb.dataset.status;
+      var apps=getApps();
+      if(apps[idx]){ apps[idx].status=st; saveApps(apps); renderApps(); }
+    } else if(db){
+      var idx=parseInt(db.dataset.idx);
+      var apps=getApps();
+      apps.splice(idx,1);
       saveApps(apps);
       renderApps();
     }
   });
 }
 
-
-function moveCard(id,status){ const apps=getApps(); const a=apps.find(x=>x.id===id); if(a){a.status=status;saveApps(apps);renderApps();} }
-}
-
-function deleteApp(id){ saveApps(getApps().filter(a=>a.id!==id)); renderApps(); }
-
 function exportApps(){
-  const apps=getApps(); if(!apps.length) return;
-  const hdr=["sent_date","title","company","city","source","url"];
-  const rows=apps.map(a=>[a.sentDate,a.title,a.company,a.city,a.source,a.url].map(csvCell).join(","));
-  const blob=new Blob(["\uFEFF"+hdr.join(",")+"\n"+rows.join("\n")],{type:"text/csv;charset=utf-8"});
-  const lnk=document.createElement("a"); lnk.href=URL.createObjectURL(blob);
-  lnk.download="my-applications-"+new Date().toISOString().slice(0,10)+".csv";
+  var apps=getApps();
+  if(!apps.length) return;
+  var hdr=['sent_date','title','company','city','source','url','status'];
+  var rows=apps.map(function(a){ return [a.sentDate,a.title,a.company,a.city,a.source,a.url,a.status||'applied'].map(csvCell).join(','); });
+  var blob=new Blob(['\uFEFF'+hdr.join(',')+'\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  var lnk=document.createElement('a');
+  lnk.href=URL.createObjectURL(blob);
+  lnk.download='my-applications-'+new Date().toISOString().slice(0,10)+'.csv';
   document.body.appendChild(lnk); lnk.click(); document.body.removeChild(lnk);
-  setTimeout(()=>URL.revokeObjectURL(lnk.href),1000);
+  setTimeout(function(){ URL.revokeObjectURL(lnk.href); },1000);
 }
 
-document.getElementById("appsExport").addEventListener("click", exportApps);
-document.getElementById("appsClear").addEventListener("click",()=>{ if(confirm("Clear all tracked applications?")){ saveApps([]); renderApps(); } });
-document.getElementById("vbtnApps").addEventListener("click",()=>{
-  ["vbtnApps","vbtnJobs","vbtnAnalytics"].forEach(id=>document.getElementById(id).classList.toggle("active",id==="vbtnApps"));
-  document.querySelector("main").style.display="none";
-  document.querySelector(".status").style.display="none";
-  document.getElementById("analyticsPanel").style.display="none";
-  document.getElementById("appsPanel").style.display="block";
+document.getElementById('appsExport').addEventListener('click',exportApps);
+document.getElementById('appsClear').addEventListener('click',function(){
+  if(confirm('Clear all tracked applications?')){ saveApps([]); renderApps(); }
+});
+document.getElementById('vbtnApps').addEventListener('click',function(){
+  ['vbtnApps','vbtnJobs','vbtnAnalytics'].forEach(function(id){
+    document.getElementById(id).classList.toggle('active',id==='vbtnApps');
+  });
+  document.querySelector('main').style.display='none';
+  document.querySelector('.status').style.display='none';
+  document.getElementById('analyticsPanel').style.display='none';
+  document.getElementById('appsPanel').style.display='block';
   renderApps();
 });
-document.getElementById("vbtnJobs").addEventListener("click",()=>{ document.getElementById("appsPanel").style.display="none"; document.getElementById("vbtnApps").classList.remove("active"); });
-document.getElementById("vbtnAnalytics").addEventListener("click",()=>{ document.getElementById("appsPanel").style.display="none"; document.getElementById("vbtnApps").classList.remove("active"); });
+document.getElementById('vbtnJobs').addEventListener('click',function(){
+  document.getElementById('appsPanel').style.display='none';
+  document.getElementById('vbtnApps').classList.remove('active');
+});
+document.getElementById('vbtnAnalytics').addEventListener('click',function(){
+  document.getElementById('appsPanel').style.display='none';
+  document.getElementById('vbtnApps').classList.remove('active');
+});
 // END CV TRACKER
 </script>
 </body>
