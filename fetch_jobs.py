@@ -39,6 +39,17 @@ def load_extras(fname):
     except FileNotFoundError:
         return []
 
+
+def dedup_jobs(jobs):
+    seen = set()
+    result = []
+    for j in jobs:
+        key = j.get('url') or (str(j.get('title','')).lower().strip() + '|' + str(j.get('company','')).lower().strip())
+        if key and key not in seen:
+            seen.add(key)
+            result.append(j)
+    return result
+
 def write_csv(rows, fields, fname):
     with open(fname, 'w', newline='', encoding='utf-8-sig') as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction='ignore')
@@ -126,7 +137,7 @@ def run_comeet(tm):
                     'department': p.get('department',''), 'workplace_type': wt})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'comeet_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'comeet_jobs_{TODAY}.csv')
 
 
 # ══ GREENHOUSE ════════════════════════════════════════════════════════════════
@@ -159,7 +170,7 @@ def run_greenhouse(tm):
                     'url': job.get('absolute_url',''), 'department': dept, 'workplace_type': wt})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'greenhouse_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'greenhouse_jobs_{TODAY}.csv')
 
 
 # ══ LEVER ════════════════════════════════════════════════════════════════════
@@ -190,7 +201,7 @@ def run_lever(tm):
                     'department': cats.get('team',''), 'workplace_type': wtype})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'lever_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'lever_jobs_{TODAY}.csv')
 
 
 # ══ ASHBY ════════════════════════════════════════════════════════════════════
@@ -223,7 +234,7 @@ def run_ashby(tm):
                     'department': job.get('departmentName',''), 'workplace_type': wt})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'ashby_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'ashby_jobs_{TODAY}.csv')
 
 
 # ══ WORKABLE ═════════════════════════════════════════════════════════════════
@@ -259,7 +270,7 @@ def run_workable(tm):
                     'workplace_type': wt})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(jobs, ['title','company','location','date','url','department','workplace_type'], f'workable_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'workable_jobs_{TODAY}.csv')
 
 
 # ── History snapshot ─────────────────────────────────────────────────────────
