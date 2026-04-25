@@ -18,6 +18,7 @@
   --lv:#c2410c;--lv-pale:rgba(194,65,12,0.07);
   --ab:#7c3aed;--ab-pale:rgba(124,58,237,0.07);
   --wk:#0369a1;--wk-pale:rgba(3,105,161,0.07);
+  --ta:#1a7f5a;--ta-pale:rgba(26,127,90,0.07);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--ink);font-family:'Carlito','Calibri','Gill Sans MT',sans-serif;
@@ -78,12 +79,16 @@
 
   /* ─── Source badges ─── */
   .li-badge,.cm-badge,.gh-badge,.lv-badge,.ab-badge,.wk-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);}
+  .ta-badge{display:inline-block;margin-left:6px;font-family:\'JetBrains Mono\',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ta);}
+  .ta-row:hover .title{color:var(--ta);}
   .li-badge{background:var(--li);}
   .cm-badge{background:var(--cm);}
   .gh-badge{background:var(--gh);}
   .lv-badge{background:var(--lv);}
   .ab-badge{background:var(--ab);}
   .wk-badge{background:var(--wk);}
+  .ta-badge{display:inline-block;margin-left:6px;font-family:\'JetBrains Mono\',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ta);}
+  .ta-row:hover .title{color:var(--ta);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -329,6 +334,7 @@
     <option value="lv">Lever</option>
     <option value="ab">Ashby</option>
     <option value="wk">Workable</option>
+      <option value="ta">Taasuka</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -494,7 +500,8 @@ let CM_JOBS  = [];   // comeet
 let GH_JOBS  = [];   // greenhouse
 let LV_JOBS  = [];   // lever
 let AB_JOBS  = [];   // ashby
-let WK_JOBS  = [];   // workable
+let WK_JOBS  = [];
+let TA_JOBS  = [];   // taasuka   // workable
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -518,6 +525,7 @@ const $segment   = document.getElementById('segment');
 const $count     = document.getElementById('countBar');
 const $abStatus  = document.getElementById('abStatusText');
 const $wkStatus  = document.getElementById('wkStatusText');
+const $taStatus  = document.getElementById('taStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -856,7 +864,8 @@ async function loadAshby(){
   AB_JOBS=rows;
   if($abStatus) $abStatus.innerHTML=rows.length?`Ashby: <strong>${rows.length} jobs</strong>`:`Ashby: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
 }
-async function loadWorkable(){
+async function loadWorkable(),
+    loadTaasuka(){
   const dates=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);}
   const rows=[];
   await Promise.all(dates.map(async dt=>{
@@ -867,6 +876,44 @@ async function loadWorkable(){
   }));
   WK_JOBS=rows;
   if($wkStatus) $wkStatus.innerHTML=rows.length?`Workable: <strong>${rows.length} jobs</strong>`:`Workable: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
+}
+
+function normTaasuka(row, fname){
+  const g = k => (row[k]==null?'':String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  return {source:'ta', fnArea:'ta',
+    title, company: g('company') || 'Taasuka',
+    location: g('location'), date: g('date') || fnDate,
+    url: g('url'), department: g('department'),
+    workType: 'onsite', updated: g('date') || fnDate};
+}
+
+async function loadTaasuka(){
+  const dates=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+  }
+  const rows=[];
+  await Promise.all(dates.map(async dt=>{
+    const fname=`taasuka_jobs_${dt}.csv`;
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return;
+      const text=await r.text();
+      Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase(),
+        complete:res=>res.data.forEach(row=>{
+          const n=normTaasuka(row,fname);
+          if(n.title) rows.push(n);
+        })});
+    }catch(e){}
+  }));
+  TA_JOBS=rows;
+  if($taStatus) $taStatus.innerHTML=rows.length
+    ? `Taasuka: <strong>${rows.length} jobs</strong>`
+    : `Taasuka: <span style="color:var(--ink-faint)">no file yet</span>`;
 }
 
 async function loadLever(){
@@ -912,8 +959,9 @@ function getPool(){
   if(activeSrc==='lv') return LV_JOBS;
   if(activeSrc==='ab') return AB_JOBS;
   if(activeSrc==='wk') return WK_JOBS;
+  if(activeSrc==='ta') return TA_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -1051,7 +1099,19 @@ const SECTOR_KW = {
   foodtech:   /\b(food(?! security)|foodtech|food.?tech|nutrition|protein(?! security)|plant.?based|cultivated meat|cell.*meat|fermentation(?! bio)|beverage|restaurant(?! tech)|culinary|food safety|alternative protein|meat.*alternative)\b/i,
 };
 
-function classifySector(company) {
+function classifySector(company, title, source) {
+  if (source === 'ta') {
+    const h = (title||'');
+    if (/cyber|סייבר|אבטחת מידע/i.test(h)) return 'cyber';
+    if (/בנק|ביטוח|רואה חשבון|כספים|פיננס/i.test(h)) return 'fintech';
+    if (/אחות|רופא|רפואה|פיזיותרפ|סיעוד|בריאות|health|medical/i.test(h)) return 'health';
+    if (/מורה|מחנך|חינוך|גננת|ילדים|בית ספר|education/i.test(h)) return 'public';
+    if (/software|מפתח|developer|backend|frontend|devops/i.test(h)) return 'rd';
+    if (/מכירות|sales|שיווק|marketing/i.test(h)) return 'sales';
+    if (/הנדסה|engineer|מהנדס|hardware|firmware/i.test(h)) return 'hardware';
+    if (/נהג|לוגיסטיקה|מחסן|שרשרת אספקה/i.test(h)) return 'industrial';
+    return 'public';
+  }
   const c = company.toLowerCase().trim();
   // Check known companies first
   for (const [name, sector] of Object.entries(KNOWN_COMPANIES)) {
@@ -1093,7 +1153,7 @@ function applyFilters(){
     if(company   && r.company!==company)     return false;
     if(segFilter && classifySegment(r.title)!==segFilter)   return false;
     if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
-    if(secFilter && classifySector(r.company)!==secFilter)   return false;
+    if(secFilter && classifySector(r.company,r.title,r.source)!==secFilter)   return false;
     if(srcFilter && r.source!==srcFilter)    return false;
     if(wtFilter  && (r.workType||'')!==wtFilter) return false;
     if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q))) return false;
@@ -1143,12 +1203,13 @@ function render(){
     const lvBadge = r.source==='lv'?'<span class="lv-badge">LV</span>':'';
     const abBadge = r.source==='ab'?'<span class="ab-badge">AB</span>':'';
     const wkBadge = r.source==='wk'?'<span class="wk-badge">WK</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row'})[r.source]||'';
+    const taBadge = r.source==='ta'?'<span class="ta-badge">TA</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',ta:' ta-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+taBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
@@ -1276,14 +1337,14 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
 
   // ── Metric cards ──
   document.getElementById('anTotal').textContent = jobs.length.toLocaleString();
-  const bySector = count(jobs, r=>classifySector(r.company));
+  const bySector = count(jobs, r=>classifySector(r.company,r.title,r.source));
   const byRole   = count(jobs, r=>classifySegment(r.title));
   const topSec   = topN(bySector,1)[0];
   const topRole  = topN(byRole,1)[0];
@@ -1364,7 +1425,7 @@ async function renderAnalytics(){
     data:{labels:validSectors.map(k=>SECTOR_LABELS[k]||k),
       datasets:validRoles.map((role,i)=>({
         label:ROLE_LABELS[role]||role,
-        data:validSectors.map(sec=>jobs.filter(r=>classifySector(r.company)===sec&&classifySegment(r.title)===role).length),
+        data:validSectors.map(sec=>jobs.filter(r=>classifySector(r.company,r.title,r.source)===sec&&classifySegment(r.title)===role).length),
         backgroundColor:roleColors[i],borderRadius:2
       }))},
     options:{responsive:true,maintainAspectRatio:false,
