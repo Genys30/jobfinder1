@@ -895,7 +895,7 @@ function normTaasuka(row, fname){
   const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
   return {source:'ta', fnArea:'ta',
     title, company: g('company') || 'Taasuka',
-    location: translateCity(g('location')), date: g('date') || fnDate,
+    city: translateCity(g('location')), location: translateCity(g('location')), date: g('date') || fnDate,
     url: g('url'), department: g('department'),
     workType: 'onsite', updated: g('date') || fnDate};
 }
