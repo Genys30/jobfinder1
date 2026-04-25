@@ -958,7 +958,9 @@ async function loadSponsored(){
   SP_JOBS=rows;
   if($spStatus) $spStatus.innerHTML=rows.length
     ? `Direct: <strong>${rows.length} jobs</strong>`
-    : `Sponsored: <span style="color:var(--ink-faint)">none</span>`;
+    : `Direct: <span style="color:var(--ink-faint)">none</span>`;
+  populateDropdowns();
+  applyFilters();
 }
 
 async function loadLever(){
