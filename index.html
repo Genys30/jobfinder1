@@ -911,8 +911,10 @@ async function loadTaasuka(){
         })});
     }catch(e){}
   }));
-  TA_JOBS=rows;
-  if($taStatus) $taStatus.innerHTML=rows.length
+  // Deduplicate by URL
+  const taSeenUrls=new Set();
+  TA_JOBS=rows.filter(r=>{ if(taSeenUrls.has(r.url)) return false; taSeenUrls.add(r.url); return true; });
+  if($taStatus) $taStatus.innerHTML=TA_JOBS.length
     ? `Taasuka: <strong>${rows.length} jobs</strong>`
     : `Taasuka: <span style="color:var(--ink-faint)">no file yet</span>`;
 }
