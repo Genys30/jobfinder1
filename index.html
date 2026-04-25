@@ -111,6 +111,16 @@
   .vbtn:hover{color:var(--ink);}
   .vbtn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(201,127,12,.04);}
 
+
+  /* ─── Searchable select dropdown ─── */
+  .sel-wrap{position:relative;display:inline-block;}
+  .sel-wrap select{padding-right:20px;}
+  .sel-search{display:none;position:absolute;top:100%;left:0;z-index:999;background:#fff;border:1px solid var(--rule);border-radius:3px;box-shadow:0 4px 12px rgba(0,0,0,.1);min-width:200px;}
+  .sel-search input{width:100%;padding:8px 10px;border:none;border-bottom:1px solid var(--rule);font-family:'Carlito',sans-serif;font-size:13px;outline:none;box-sizing:border-box;}
+  .sel-search ul{list-style:none;margin:0;padding:4px 0;max-height:200px;overflow-y:auto;}
+  .sel-search ul li{padding:6px 12px;font-size:13px;cursor:pointer;font-family:'Carlito',sans-serif;}
+  .sel-search ul li:hover,.sel-search ul li.active{background:rgba(201,127,12,.08);color:var(--accent);}
+
   /* ─── Analytics panel ─── */
   #analyticsPanel{padding:32px 48px 64px;display:none;}
   .an-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
@@ -1019,15 +1029,6 @@ function getPool(){
 function populateDropdowns(){
   const pool = getPool();
   const heLocale = (a,b)=>a.localeCompare(b,'he');
-  // Fill datalist (for searchable inputs)
-  const fillDatalist = (dlId, key) => {
-    const dl = document.getElementById(dlId);
-    if(!dl) return;
-    dl.innerHTML = '';
-    [...new Set(pool.map(r=>r[key]).filter(Boolean))].sort(heLocale)
-      .forEach(v=>{ const o=document.createElement('option'); o.value=v; dl.appendChild(o); });
-  };
-  // Fill select (for regular dropdowns)
   const fill = (sel, key) => {
     if(!sel) return;
     const cur = sel.value;
@@ -1036,8 +1037,7 @@ function populateDropdowns(){
       .forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
     if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
   };
-  fillDatalist('city-list','city');
-  fillDatalist('company-list','company');
+  fill($city,'city'); fill($company,'company');
 }
 
 
@@ -1263,8 +1263,8 @@ function applyFilters(){
 
   const pool = getPool();
   FILTERED = pool.filter(r=>{
-    if(city      && !(r.city||'').toLowerCase().includes(city.toLowerCase())) return false;
-    if(company   && !(r.company||'').toLowerCase().includes(company.toLowerCase())) return false;
+    if(city      && r.city!==city)           return false;
+    if(company   && r.company!==company)     return false;
     if(segFilter && classifySegment(r.title)!==segFilter)   return false;
     if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
     if(secFilter && classifySector(r.company,r.title,r.source)!==secFilter)   return false;
@@ -1351,10 +1351,9 @@ function exportCSV(){
 // ─── EVENTS ──────────────────────────────────────────────────────────────────
 let qTimer;
 $q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFilters,120);});
-[$date,$level,$segment,$sector,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
-[$city,$company].forEach(el=>{ if(el) el.addEventListener('input',()=>{ clearTimeout(qTimer); qTimer=setTimeout(applyFilters,150); }); });
+[$city,$company,$date,$level,$segment,$sector,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
 $reset.addEventListener('click',()=>{
-  $q.value='';if($city) $city.value=''; if($company) $company.value='';$date.value='';
+  $q.value='';$city.value='';$company.value='';$date.value='';
   if($level)$level.value='';
   if($segment)$segment.value='';
   if($sector)$sector.value='';
@@ -1366,8 +1365,77 @@ $more.addEventListener('click',()=>{visible+=PAGE;render();});
 $export.addEventListener('click',exportCSV);
 
 
+// ─── SEARCHABLE SELECT ───────────────────────────────────────────────────────
+function makeSearchable(selectEl) {
+  const wrap = document.createElement('div');
+  wrap.className = 'sel-wrap';
+  selectEl.parentNode.insertBefore(wrap, selectEl);
+  wrap.appendChild(selectEl);
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'sel-search';
+  dropdown.innerHTML = '<input placeholder="Search…" autocomplete="off"><ul></ul>';
+  wrap.appendChild(dropdown);
+
+  const input = dropdown.querySelector('input');
+  const ul    = dropdown.querySelector('ul');
+
+  function buildList(filter) {
+    ul.innerHTML = '';
+    const opts = [...selectEl.options].filter(o => o.value !== '');
+    const filtered = filter
+      ? opts.filter(o => o.textContent.toLowerCase().includes(filter.toLowerCase()))
+      : opts;
+    // Add "All" option
+    const allLi = document.createElement('li');
+    allLi.textContent = selectEl.options[0].textContent;
+    allLi.dataset.value = '';
+    ul.appendChild(allLi);
+    filtered.forEach(o => {
+      const li = document.createElement('li');
+      li.textContent = o.textContent;
+      li.dataset.value = o.value;
+      ul.appendChild(li);
+    });
+  }
+
+  // Open on select click
+  selectEl.addEventListener('mousedown', e => {
+    e.preventDefault();
+    selectEl.blur();
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    input.value = '';
+    buildList('');
+    input.focus();
+  });
+
+  // Filter list on input
+  input.addEventListener('input', () => buildList(input.value));
+
+  // Select item on click
+  ul.addEventListener('click', e => {
+    const li = e.target.closest('li');
+    if (!li) return;
+    selectEl.value = li.dataset.value;
+    dropdown.style.display = 'none';
+    selectEl.dispatchEvent(new Event('change'));
+  });
+
+  // Close on outside click
+  document.addEventListener('click', e => {
+    if (!wrap.contains(e.target)) dropdown.style.display = 'none';
+  });
+
+  // Keyboard navigation
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape') dropdown.style.display = 'none';
+  });
+}
+
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
+makeSearchable($city);
+makeSearchable($company);
 (async()=>{
   // Load LinkedIn + Comeet in parallel
   await Promise.all([
