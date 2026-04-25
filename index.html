@@ -895,7 +895,7 @@ function normTaasuka(row, fname){
   const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
   return {source:'ta', fnArea:'ta',
     title, company: g('company') || 'Taasuka',
-    location: g('location'), date: g('date') || fnDate,
+    location: translateCity(g('location')), date: g('date') || fnDate,
     url: g('url'), department: g('department'),
     workType: 'onsite', updated: g('date') || fnDate};
 }
@@ -1081,6 +1081,61 @@ function highlightFilters(){
     const active = el.value !== '' && el.value !== undefined;
     field.classList.toggle('active', active);
   });
+}
+
+
+// ─── HEBREW CITY TRANSLATION MAP ─────────────────────────────────────────────
+const HE_CITIES = {
+  'תל אביב':'Tel Aviv','תל-אביב':'Tel Aviv','תל אביב יפו':'Tel Aviv',
+  'תל אביב-יפו':'Tel Aviv','יפו':'Jaffa',
+  'ירושלים':'Jerusalem','חיפה':'Haifa','באר שבע':'Beer Sheva',
+  'ראשון לציון':'Rishon LeZion','פתח תקווה':'Petah Tikva',
+  'אשדוד':'Ashdod','נתניה':'Netanya','בני ברק':'Bnei Brak',
+  'חולון':'Holon','רמת גן':'Ramat Gan','בת ים':'Bat Yam',
+  'רחובות':'Rehovot','הרצליה':'Herzliya','כפר סבא':'Kfar Saba',
+  'רעננה':'Raanana','מודיעין':'Modi'in','מודיעין-מכבים-רעות':'Modi'in',
+  'לוד':'Lod','רמלה':'Ramla','נצרת':'Nazareth','עפולה':'Afula',
+  'אשקלון':'Ashkelon','טבריה':'Tiberias','צפת':'Safed',
+  'קריית גת':'Kiryat Gat','קריית שמונה':'Kiryat Shmona',
+  'קריית ביאליק':'Kiryat Bialik','קריית ים':'Kiryat Yam',
+  'קריית מוצקין':'Kiryat Motzkin','קריית אתא':'Kiryat Ata',
+  'הוד השרון':'Hod HaSharon','רהט':'Rahat','גבעתיים':'Givatayim',
+  'קריית אונו':'Kiryat Ono','אור יהודה':'Or Yehuda','אלעד':'Elad',
+  'בית שמש':'Beit Shemesh','מעלה אדומים':'Maale Adumim',
+  'ראש העין':'Rosh HaAyin','כפר יונה':'Kfar Yona',
+  'נס ציונה':'Nes Ziona','יהוד':'Yehud','סגולה':'Segula',
+  'גדרה':'Gedera','יבנה':'Yavne','זכרון יעקב':'Zikhron Yaakov',
+  'חדרה':'Hadera','טירת כרמל':'Tirat Carmel','עכו':'Akko',
+  'נהריה':'Nahariya','מגדל העמק':'Migdal HaEmek',
+  'נשר':'Nesher','דימונה':'Dimona','אילת':'Eilat',
+  'אום אל-פחם':'Umm al-Fahm','טמרה':'Tamra','שפרעם':'Shfaram',
+  'סכנין':'Sakhnin','כרמיאל':'Karmiel','מצפה רמון':'Mitzpe Ramon',
+  'באר יעקב':'Be'er Yaakov','יקנעם':'Yokneam','חריש':'Harish',
+  'צוקי ים':'Tzuk Yam','פרדס חנה':'Pardes Hanna',
+  'בנימינה':'Binyamina','זכרון יעקב':'Zikhron Yaakov',
+  'ראשון לציון':'Rishon LeZion','גן יבנה':'Gan Yavne',
+  'אבן יהודה':'Even Yehuda','כפר חסידים':'Kfar Hasidim',
+  'מבשרת ציון':'Mevaseret Zion','אבו גוש':'Abu Ghosh',
+  'גבעת שמואל':'Givat Shmuel','פתח תקוה':'Petah Tikva',
+  'בית דגן':'Beit Dagan','יהוד-מונוסון':'Yehud','קסריה':'Caesarea',
+  'נוף הגליל':'Nof HaGalil','שדרות':'Sderot','אופקים':'Ofakim',
+  'ערד':'Arad','יטבתה':'Yotvata','מצפה רמון':'Mitzpe Ramon',
+  'טירה':'Tira','קלנסווה':'Qalansawe','ג'לג'וליה':'Jaljulia',
+  'כפר קאסם':'Kafr Qasim','ג'ת':'Jat','בסמת טבעון':'Basmat Tab'un',
+  'אחיהוד':'Ahihud','שוהם':'Shoham','גן השומרון':'Gan HaShomron',
+  'מרכז':'Center','צפון':'North','דרום':'South','שרון':'Sharon',
+  'שפלה':'Shephelah','גוש דן':'Gush Dan',
+};
+
+function translateCity(city) {
+  if (!city) return city;
+  // Check exact match
+  if (HE_CITIES[city]) return HE_CITIES[city];
+  // Check partial match for compound cities
+  for (const [he, en] of Object.entries(HE_CITIES)) {
+    if (city.includes(he)) return en;
+  }
+  return city; // return as-is if no translation found
 }
 
 // ─── SECTOR CLASSIFIER ───────────────────────────────────────────────────────
