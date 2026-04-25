@@ -891,17 +891,15 @@ function normTaasuka(row, fname){
 }
 
 async function loadTaasuka(){
-  const dates=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
-  }
+  // Taasuka is a live feed — only load the most recent dated CSV
   const rows=[];
-  await Promise.all(dates.map(async dt=>{
+  for(let i=0;i<=6;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const dt=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const fname=`taasuka_jobs_${dt}.csv`;
     try{
       const r=await fetch(LI_RAW+fname);
-      if(!r.ok) return;
+      if(!r.ok) continue;
       const text=await r.text();
       Papa.parse(text,{header:true,skipEmptyLines:true,
         transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase(),
@@ -909,11 +907,10 @@ async function loadTaasuka(){
           const n=normTaasuka(row,fname);
           if(n.title) rows.push(n);
         })});
+      break; // stop after first found file
     }catch(e){}
-  }));
-  // Deduplicate by URL
-  const taSeenUrls=new Set();
-  TA_JOBS=rows.filter(r=>{ if(taSeenUrls.has(r.url)) return false; taSeenUrls.add(r.url); return true; });
+  }
+  TA_JOBS=rows;
   if($taStatus) $taStatus.innerHTML=TA_JOBS.length
     ? `Taasuka: <strong>${rows.length} jobs</strong>`
     : `Taasuka: <span style="color:var(--ink-faint)">no file yet</span>`;
