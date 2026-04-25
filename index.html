@@ -928,14 +928,17 @@ async function loadTaasuka(){
 
 function normSponsored(row, fname){
   const g = k => (row[k]==null?'':String(row[k]).trim());
+  const loc = g('location');
+  const wt  = (g('workplace_type')||'onsite').toLowerCase();
   return {source:'direct', fnArea:'direct',
     title:   g('title'),
     company: g('company'),
-    location:g('location'),
+    city:    loc,
+    location:loc,
     date:    g('date'),
     url:     g('url'),
     department: '',
-    workType: (g('workplace_type')||'onsite').toLowerCase(),
+    workType: wt,
     updated: g('date')};
 }
 
