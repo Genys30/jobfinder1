@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>jobfinder · Israeli tech jobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+  :root {
+    --bg:#f5f1e8;--panel:#ffffff;--ink:#1a1a17;--ink-dim:#5c5849;
+    --ink-faint:#9c9687;--rule:#d9d2c2;--accent:#c97f0c;--accent-2:#d63916;
+    --li:#0a66c2;--li-pale:rgba(10,102,194,0.07);--li-border:rgba(10,102,194,0.2);
+  --cm:#00897b;--cm-pale:rgba(0,137,123,0.07);
+  --gh:#2e7d32;--gh-pale:rgba(46,125,50,0.07);
+  --lv:#c2410c;--lv-pale:rgba(194,65,12,0.07);
+  --ab:#7c3aed;--ab-pale:rgba(124,58,237,0.07);
+  --wk:#0369a1;--wk-pale:rgba(3,105,161,0.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Carlito','Calibri','Gill Sans MT',sans-serif;
+    -webkit-font-smoothing:antialiased;min-height:100vh;
+    background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(201,127,12,.10),transparent 60%),
+                     radial-gradient(ellipse 60% 40% at 100% 100%,rgba(214,57,22,.05),transparent 60%);}
+
+  /* ─── Header ─── */
+  header{padding:40px 48px 28px;border-bottom:1px solid var(--rule);}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);
+    margin-right:8px;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;}
+  @keyframes pulse{50%{opacity:.35;}}
+  h1{font-size:clamp(44px,7vw,96px);font-weight:700;font-style:italic;letter-spacing:-.02em;line-height:.95;}
+  h1 .accent{color:var(--accent);font-style:normal;font-weight:500;}
+  .sub{margin-top:18px;max-width:640px;color:var(--ink-dim);font-size:16px;line-height:1.5;}
+  .sub a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--ink-faint);text-underline-offset:3px;}
+  .sub a:hover{text-decoration-color:var(--accent);}
+  .byline{margin-top:14px;max-width:640px;font-size:13.5px;color:var(--ink-dim);line-height:1.6;}
+  .byline em{font-style:italic;opacity:.75;}
+  .byline a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:1px;}
+  .byline a:hover{opacity:.8;}
+
+  /* ─── Data status bar ─── */
+  .databar{
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+    padding:12px 48px;border-bottom:1px solid var(--rule);
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    background:rgba(245,241,232,.5);
+  }
+  .datasrc{display:flex;align-items:center;gap:8px;}
+  .src-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .src-dot.tm{background:var(--accent);}
+  .src-dot.li{background:var(--li);}
+  .datasrc span{color:var(--ink-dim);letter-spacing:.06em;}
+  .datasrc strong{color:var(--ink);}
+  .datasrc .err{color:var(--accent-2);}
+  .databar-sep{color:var(--rule);}
+
+  /* ─── Source pills ─── */
+
+    /* ─── Filters ─── */
+  .filters{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;border-bottom:1px solid var(--rule);background:rgba(245,241,232,.6);align-items:center;}
+  .filters input,.filters select{font-family:'Carlito','Calibri',sans-serif;font-size:13px;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:3px;padding:5px 8px;outline:none;cursor:pointer;height:30px;}
+  .filters input{width:140px;}
+  .filters select{max-width:110px;}
+  #city,#company{max-width:120px;}
+  .filters input::placeholder{color:var(--ink-faint);}
+  .filters select{-webkit-appearance:none;appearance:none;padding-right:20px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-color:#fff;}
+  .filters select:focus,.filters input:focus{border-color:var(--accent);}
+  .reset{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;background:none;border:1px solid var(--rule);color:var(--ink-dim);padding:5px 12px;cursor:pointer;height:30px;border-radius:3px;transition:all .15s;}
+  .reset:hover{border-color:var(--accent);color:var(--accent);}
+  .status{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--rule);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);}
+  .export{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;background:none;border:1px solid var(--rule);color:var(--ink-dim);padding:5px 12px;cursor:pointer;transition:all .15s;border-radius:3px;}
+  .export:hover{border-color:var(--accent);color:var(--accent);}
+  main{padding:0 0 64px;}
+
+  /* ─── Source badges ─── */
+  .li-badge,.cm-badge,.gh-badge,.lv-badge,.ab-badge,.wk-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);}
+  .li-badge{background:var(--li);}
+  .cm-badge{background:var(--cm);}
+  .gh-badge{background:var(--gh);}
+  .lv-badge{background:var(--lv);}
+  .ab-badge{background:var(--ab);}
+  .wk-badge{background:var(--wk);}
+  .li-row:hover .title{color:var(--li);}
+  .cm-row:hover .title{color:var(--cm);}
+  .gh-row:hover .title{color:var(--gh);}
+  .lv-row:hover .title{color:var(--lv);}
+  .ab-row:hover .title{color:var(--ab);}
+  .wk-row:hover .title{color:var(--wk);}
+
+  .an-select{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;padding:4px 8px;border:1px solid var(--rule);background:#fff;color:var(--ink);border-radius:3px;cursor:pointer;}
+  .an-select:focus{border-color:var(--accent);outline:none;}
+  /* ─── View toggle ─── */
+  .view-toggle{display:flex;gap:0;border-bottom:1px solid var(--rule);background:rgba(245,241,232,.6);}
+  .vbtn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    padding:12px 32px;border:none;background:transparent;color:var(--ink-dim);cursor:pointer;
+    border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+  .vbtn:hover{color:var(--ink);}
+  .vbtn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(201,127,12,.04);}
+
+  /* ─── Analytics panel ─── */
+  #analyticsPanel{padding:32px 48px 64px;display:none;}
+  .an-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+  .an-card{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:20px 24px;cursor:pointer;transition:border-color .15s;}
+  .an-card:hover{border-color:var(--accent);}
+  .an-num{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--accent);line-height:1;}
+  .an-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-top:8px;}
+  .an-sublabel{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);margin-top:4px;}
+  .an-row{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;}
+  .an-row.equal{grid-template-columns:1fr 1fr;}
+  .an-box{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:20px 24px;}.an-box canvas{max-height:220px;}
+  .an-box-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:16px;}
+  .an-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);margin-top:10px;text-align:center;}
+  a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+  a.job:hover{background:rgba(201,127,12,.04);}
+  .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
+  .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .company-cell{font-size:13px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .city-cell{font-size:12px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .source-cell{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
+  .arrow{color:var(--rule);font-size:14px;}
+  main{padding:0 24px 64px;}
+  .loading,.empty{padding:48px 0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-faint);}
+  .more-wrap{display:none;}
+
+  @media(max-width:900px){.an-cards{grid-template-columns:1fr 1fr;}.an-row,.an-row.equal{grid-template-columns:1fr;}}
+
+  @media(max-width:1100px){
+    
+    .reset{grid-column:1/-1;}
+    a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+  a.job:hover{background:rgba(201,127,12,.04);}
+  .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
+  .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .company-cell{font-size:13px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .city-cell{font-size:12px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .source-cell{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
+  .arrow{color:var(--rule);font-size:14px;}
+  main{padding:0 24px 64px;}
+  .loading,.empty{padding:48px 0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-faint);}
+    .arrow{display:none;}
+  @media(max-width:768px){
+    header{padding:24px 16px 20px;}
+    h1{font-size:clamp(36px,12vw,64px);}
+    .databar{padding:10px 16px;gap:8px;flex-direction:column;align-items:flex-start;}
+    .databar-sep{display:none;}
+    .filters{padding:8px 12px;gap:6px;}
+    .filters input{width:100%;}
+    .filters select{max-width:none;flex:1;}
+    .status{padding:6px 12px;font-size:10px;flex-wrap:wrap;gap:4px;}
+    main{padding:0 12px 48px;}
+    footer{padding:16px 12px;font-size:10px;}
+    /* Job rows: stack into cards on mobile */
+    a.job{
+      display:flex;flex-direction:column;gap:4px;
+      padding:12px 0;border-bottom:1px solid var(--rule);
+    }
+    .job-date{font-size:10px;color:var(--ink-faint);}
+    .title{font-size:15px;font-weight:600;white-space:normal;overflow:visible;}
+    .company-cell{font-size:13px;color:var(--ink-dim);white-space:normal;}
+    .city-cell{font-size:12px;color:var(--ink-faint);}
+    .category,.source-cell,.arrow{display:none;}
+    /* Analytics */
+    .an-cards{grid-template-columns:1fr 1fr;}
+    .an-row,.an-row.equal{grid-template-columns:1fr;}
+    #analyticsPanel{padding:16px 12px 48px;}
+    /* View toggle */
+    .vbtn{padding:10px 16px;font-size:10px;}
+  }
+
+  /* CV Tracker - Kanban */
+  .track-btn{display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border:1px solid var(--rule);border-radius:3px;
+    background:none;cursor:pointer;font-size:13px;color:var(--ink-faint);
+    transition:all .15s;flex-shrink:0;margin-left:2px;}
+  .track-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .track-btn.sent{background:var(--accent);border-color:var(--accent);color:#fff;}
+  #appsPanel{padding:32px 48px 64px;display:none;}
+  .apps-toolbar{display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+  .apps-title{font-family:'JetBrains Mono',monospace;font-size:13px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);}
+  .kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start;}
+  .kanban-col{background:rgba(0,0,0,.02);border:1px solid var(--rule);border-radius:6px;
+    padding:16px;min-height:200px;}
+  .kanban-col-header{display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--rule);}
+  .kanban-col-title{font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);}
+  .kanban-col-count{font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--ink-faint);background:var(--rule);padding:2px 7px;border-radius:10px;}
+  .kanban-col.col-applied .kanban-col-header{border-bottom-color:#0a66c2;}
+  .kanban-col.col-interview .kanban-col-header{border-bottom-color:#c97f0c;}
+  .kanban-col.col-offer .kanban-col-header{border-bottom-color:#2e7d32;}
+  .kanban-col.col-rejected .kanban-col-header{border-bottom-color:#9c9687;}
+  .kanban-card{background:#fff;border:1px solid var(--rule);border-radius:4px;
+    padding:14px;margin-bottom:10px;transition:box-shadow .15s,border-color .15s;}
+  .kanban-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08);border-color:var(--ink-faint);}
+  .kanban-card-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;
+    line-height:1.3;}
+  .kanban-card-title a{color:inherit;text-decoration:none;}
+  .kanban-card-title a:hover{color:var(--accent);}
+  .kanban-card-company{font-size:12px;color:var(--ink-dim);margin-bottom:8px;}
+  .kanban-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .kanban-card-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
+  .kanban-src{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;
+    text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;}
+  .kanban-src.li{background:#0a66c2;} .kanban-src.comeet{background:#00897b;}
+  .kanban-src.greenhouse{background:#2e7d32;} .kanban-src.lv{background:#c2410c;}
+  .kanban-card-actions{display:flex;gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);}
+  .kanban-move-btn{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;
+    text-transform:uppercase;border:1px solid var(--rule);background:none;color:var(--ink-dim);
+    padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .15s;}
+  .kanban-move-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .kanban-del-btn{font-family:'JetBrains Mono',monospace;font-size:9px;border:1px solid var(--rule);
+    background:none;color:var(--ink-faint);padding:3px 7px;border-radius:3px;cursor:pointer;
+    margin-left:auto;transition:all .15s;}
+  .kanban-del-btn:hover{border-color:var(--accent-2);color:var(--accent-2);}
+  .kanban-empty{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);
+    text-align:center;padding:20px 0;letter-spacing:.05em;}
+  .apps-empty{padding:48px 0;text-align:center;font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--ink-faint);}
+  @media(max-width:900px){.kanban-board{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.kanban-board{grid-template-columns:1fr;} #appsPanel{padding:16px 12px 48px;}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">
+    <span><span class="dot"></span>jobfinder / israeli tech</span>
+    <span id="lastBuild">loading…</span>
+  </div>
+  <h1>Israeli tech <span class="accent">jobs,</span><br>searched seriously.</h1>
+  <p class="byline">
+    Built by <a href="https://www.linkedin.com/in/jennysotnik/" target="_blank" rel="noopener">Jenny Sotnik Talisman</a> —
+    turning the messy public data of the Israeli tech scene into actual signal.<br>
+    <em>"In a sea of noise, I build the lighthouse."</em>
+  </p>
+</header>
+
+<!-- Live data sources status -->
+<div class="databar">
+  <div class="datasrc">
+    <span class="src-dot li"></span>
+    <span id="liStatusText">LinkedIn: loading…</span>
+  </div>
+
+  <span class="databar-sep">·</span>
+  <div class="datasrc">
+    <span class="src-dot" style="background:var(--cm)"></span>
+    <span id="cmStatusText">Comeet: loading…</span>
+  </div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc">
+    <span class="src-dot" style="background:var(--gh)"></span>
+    <span id="ghStatusText">Greenhouse: loading…</span>
+  </div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--lv)"></span><span id="lvStatusText">Lever: loading…</span></div>
+</div>
+
+<!-- Filters -->
+<div class="view-toggle">
+  <button class="vbtn active" id="vbtnJobs">&#128269; Jobs</button>
+  <button class="vbtn" id="vbtnApps">&#128236; My Applications</button>
+  <button class="vbtn" id="vbtnAnalytics">&#128202; Analytics</button>
+</div>
+<section class="filters">
+  <input id="q" type="text" placeholder="Position…" autocomplete="off" />
+  <select id="city"><option value="">City</option></select>
+  <select id="company"><option value="">Company</option></select>
+  <select id="segment">
+    <option value="">Role</option>
+    <option value="rd">R&amp;D / Eng</option>
+    <option value="product">Product</option>
+    <option value="data">Data</option>
+    <option value="design">Design</option>
+    <option value="sales">Sales</option>
+    <option value="marketing">Marketing</option>
+    <option value="operations">Ops</option>
+    <option value="support">CS</option>
+    <option value="management">Mgmt</option>
+    <option value="intern">Intern</option>
+  </select>
+  <select id="level">
+    <option value="">Level</option>
+    <option value="entry">Junior</option>
+    <option value="mid">Mid</option>
+    <option value="senior">Senior</option>
+    <option value="advanced">Staff</option>
+    <option value="director">Director+</option>
+  </select>
+  <select id="date">
+    <option value="">Posted</option>
+    <option value="1">Today</option>
+    <option value="3">3 days</option>
+    <option value="7">7 days</option>
+    <option value="14">14 days</option>
+    <option value="30">30 days</option>
+  </select>
+  <select id="sector">
+    <option value="">Sector</option>
+    <option value="cyber">Cyber</option>
+    <option value="fintech">Fintech</option>
+    <option value="health">Health</option>
+    <option value="media">Media</option>
+    <option value="hardware">Hardware</option>
+    <option value="defence">Defence</option>
+    <option value="automotive">Auto</option>
+    <option value="gaming">Gaming</option>
+    <option value="public">Public</option>
+    <option value="industrial">Industrial</option>
+    <option value="retail">Retail</option>
+    <option value="agritech">Agritech</option>
+    <option value="foodtech">Foodtech</option>
+  </select>
+  <select id="source">
+    <option value="">Source</option>
+    <option value="linkedin">LinkedIn</option>
+    <option value="comeet">Comeet</option>
+    <option value="greenhouse">Greenhouse</option>
+    <option value="lv">Lever</option>
+    <option value="ab">Ashby</option>
+    <option value="wk">Workable</option>
+  </select>
+  <select id="worktype">
+    <option value="">Type</option>
+    <option value="remote">Remote</option>
+    <option value="hybrid">Hybrid</option>
+    <option value="onsite">On-site</option>
+  </select>
+  <button class="reset" id="reset">Reset</button>
+</section>
+
+<div class="status">
+  <span id="countBar"></span>
+  <button id="export" class="export">↓ Export CSV</button>
+</div>
+
+<main>
+  <div id="list"></div>
+  <div class="more-wrap" id="moreWrap" style="display:none;">
+    <button class="more" id="more">Load more</button>
+  </div>
+</main></div>
+
+
+<div id="analyticsPanel">
+
+  <!-- Metric cards -->
+  <div class="an-cards">
+    <div class="an-card" id="anCardTotal" style="cursor:default">
+      <div class="an-num" id="anTotal">—</div>
+      <div class="an-label">Total jobs indexed</div>
+    </div>
+    <div class="an-card" id="anCardSector">
+      <div class="an-num" id="anTopSector">—</div>
+      <div class="an-label">Top sector</div>
+      <div class="an-sublabel" id="anTopSectorN"></div>
+    </div>
+    <div class="an-card" id="anCardRole">
+      <div class="an-num" id="anTopRole">—</div>
+      <div class="an-label">Top role type</div>
+      <div class="an-sublabel" id="anTopRoleN"></div>
+    </div>
+    <div class="an-card" id="anCardRemote">
+      <div class="an-num" id="anRemote">—</div>
+      <div class="an-label">Remote positions</div>
+    </div>
+  </div>
+
+  <!-- Trend over time -->
+  <div class="an-box" style="margin-bottom:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="an-box-title" style="margin-bottom:0" id="trendTitle">Hiring trend over time</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="trendMetric" class="an-select">
+          <optgroup label="Role type">
+            <option value="rd" selected>R&amp;D / Engineering</option>
+            <option value="product">Product</option>
+            <option value="data">Data &amp; Analytics</option>
+            <option value="sales">Sales</option>
+            <option value="marketing">Marketing</option>
+            <option value="operations">Operations</option>
+            <option value="management">Management</option>
+          </optgroup>
+          <optgroup label="Sector">
+            <option value="cyber">Cyber</option>
+            <option value="fintech">Fintech</option>
+            <option value="health">Health</option>
+            <option value="media">Media</option>
+            <option value="hardware">Hardware</option>
+            <option value="defence">Defence</option>
+            <option value="gaming">Gaming</option>
+          </optgroup>
+          <optgroup label="Work type">
+            <option value="remote">Remote</option>
+            <option value="hybrid">Hybrid</option>
+          </optgroup>
+        </select>
+        <select id="trendDays" class="an-select">
+          <option value="14">14 days</option>
+          <option value="30">30 days</option>
+          <option value="60">60 days</option>
+          <option value="90">90 days</option>
+          <option value="999">All time</option>
+        </select>
+      </div>
+    </div>
+    <canvas id="chartTrend" height="140"></canvas>
+    <div class="an-note" id="trendNote">Loading history…</div>
+  </div>
+
+  <!-- Row: Role donut + Level donut + Work type donut -->
+  <div class="an-row" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:20px;">
+    <div class="an-box">
+      <div class="an-box-title">Role type</div>
+      <canvas id="chartRole" height="200"></canvas>
+      <div class="an-note">Click → filter</div>
+    </div>
+    <div class="an-box">
+      <div class="an-box-title">Level</div>
+      <canvas id="chartLevel" height="200"></canvas>
+      <div class="an-note">Click → filter</div>
+    </div>
+    <div class="an-box">
+      <div class="an-box-title">Work type</div>
+      <canvas id="chartWorkType" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Row: Top 20 companies + Source split -->
+  <div class="an-row" style="margin-bottom:20px;">
+    <div class="an-box">
+      <div class="an-box-title">Top 20 hiring companies</div>
+      <canvas id="chartCompanies" height="320"></canvas>
+      <div class="an-note">Click → filter by company</div>
+    </div>
+    <div class="an-box">
+      <div class="an-box-title">Source split</div>
+      <canvas id="chartSource" height="180"></canvas>
+      <div class="an-box-title" style="margin-top:20px;">Sector × Role breakdown</div>
+      <canvas id="chartHeatmap" height="220"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<div id="appsPanel" style="display:none">
+  <div class="apps-toolbar">
+    <span class="apps-title">&#128236; My Applications</span>
+    <div style="display:flex;gap:8px;">
+      <button class="export" id="appsExport">&#8595; Export CSV</button>
+      <button class="reset" id="appsClear">Clear all</button>
+    </div>
+  </div>
+  <div id="appsList"></div>
+</div>
+
+<footer>
+  <span>techmap · ODbL v1.0 · linkedin via github.com/Genys30/jobfinder</span>
+  <span id="stamp"></span>
+</footer>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+
+const TECHMAP_FNS = [
+  'admin','business','data-science','design','devops','finance','frontend',
+  'hardware','hr','legal','marketing','procurement-operations','product',
+  'project-management','qa','sales','security','software','support'
+];
+const TECHMAP_BASE = 'https://raw.githubusercontent.com/mluggy/techmap/main/jobs/';
+
+// Your repo — the code will auto-discover all linkedin_jobs_*.csv files
+const LI_REPO    = 'Genys30/jobfinder';
+const LI_RAW     = 'https://raw.githubusercontent.com/' + LI_REPO + '/main/';
+// Pattern: linkedin_jobs_YYYY-MM-DD.csv  OR  linkedin_jobs.csv
+
+const PAGE       = 50;
+const SIZE_LABEL = {s:'small',m:'mid',l:'large',xl:'enterprise'};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let TM_JOBS  = [];   // techmap
+let LI_JOBS  = [];   // linkedin
+let CM_JOBS  = [];   // comeet
+let GH_JOBS  = [];   // greenhouse
+let LV_JOBS  = [];   // lever
+let AB_JOBS  = [];   // ashby
+let WK_JOBS  = [];   // workable
+let FILTERED = [];
+let visible  = PAGE;
+let activeSrc = 'all';
+
+// ─── DOM ─────────────────────────────────────────────────────────────────────
+const $q        = document.getElementById('q');
+const $city     = document.getElementById('city');
+const $company  = document.getElementById('company');
+const $date     = document.getElementById('date');
+const $reset    = document.getElementById('reset');
+const $list     = document.getElementById('list');
+const $progress = document.getElementById('progress');
+const $moreWrap = document.getElementById('moreWrap');
+const $more     = document.getElementById('more');
+const $stamp    = document.getElementById('stamp');
+const $lastBuild= document.getElementById('lastBuild');
+const $export   = document.getElementById('export');
+const $liStatus  = document.getElementById('liStatusText');
+const $level     = document.getElementById('level');
+const $segment   = document.getElementById('segment');
+const $count     = document.getElementById('countBar');
+const $abStatus  = document.getElementById('abStatusText');
+const $wkStatus  = document.getElementById('wkStatusText');
+const $sector    = document.getElementById('sector');
+const $source    = document.getElementById('source');
+const $worktype  = document.getElementById('worktype');
+const $cmStatus = document.getElementById('cmStatusText');
+const $ghStatus = document.getElementById('ghStatusText');
+const $lvStatus = document.getElementById('lvStatusText');
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Parses M/D/YYYY (LinkedIn) and ISO dates
+function parseDate(s){
+  if(!s) return null;
+  s = s.trim();
+  // M/D/YYYY or MM/DD/YYYY
+  const mdy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+  if(mdy) return new Date(+mdy[3], +mdy[1]-1, +mdy[2]);
+  // YYYY-MM-DD
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if(iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function formatDate(s){
+  const d = parseDate(s);
+  if(!d) return '—';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+}
+
+// Strip country/district from LinkedIn location: keep only city
+function cleanCity(loc){
+  if(!loc) return '';
+  return loc.split(',')[0].replace(/\s*\(.*?\)$/,'').trim();
+}
+
+function csvCell(v){
+  const s = v==null?'':String(v);
+  return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+
+// ─── NORMALIZE ───────────────────────────────────────────────────────────────
+function normTechmap(row, fn){
+  const g = k => (row[k]==null?'':String(row[k]).trim());
+  return {
+    source:'techmap', fnArea:fn,
+    title:g('title'), company:g('company'), category:g('category'),
+    size:g('size').toLowerCase(), level:g('level'),
+    city:g('city'), url:g('url'), updated:g('date')||g('updated')
+  };
+}
+
+function normLinkedIn(row, filename){
+  // column names from LinkedIn CSV export: title, company, location, date, url
+  const keys = Object.keys(row);
+  const g = (primary, alts=[]) => {
+    const k = keys.find(k=>k.toLowerCase().trim()===primary)
+           || keys.find(k=>alts.some(a=>k.toLowerCase().includes(a)));
+    return k ? (row[k]==null?'':String(row[k]).trim()) : '';
+  };
+  const rawTitle = g('title', ['job title','position','role']);
+  const title    = rawTitle.split('\n')[0].trim();
+  // Clean company: strip LinkedIn noise like '2 connections · 3 hours ago · Within the past 24 hours'
+  const rawComp  = g('company', ['company_name','company name','employer']);
+  // Company name is always the first non-empty line — strip all LinkedIn noise after it
+  const company  = rawComp
+    .split(/[\n\r]+/)                          // split on newlines
+    .map(s => s.trim())
+    .filter(s => s.length > 0)                  // remove blank lines
+    .filter(s => !/^\d+\s+(connection|school|bar-ilan|alumnu|hour|minute|second|day)/i.test(s))
+    .filter(s => !/within the past/i.test(s))
+    .filter(s => !/ago$/i.test(s))
+    .filter(s => !/^\d+\s/i.test(s))           // remove lines starting with a number
+    [0] || '';
+  const url = g('url',['link','job url','apply','job_url']);
+  if(!title || !company || !url) return null;  // skip partial rows
+
+  const fnDate = (filename.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+
+  // Extract work type from location string e.g. "Tel Aviv (Hybrid)"
+  const rawLoc = g('location',['city','place']);
+  const wtMatch = rawLoc.match(/\((remote|hybrid|on-?site)\)/i);
+  const workType = wtMatch ? wtMatch[1].toLowerCase().replace('-','') : 'onsite';
+
+  return {
+    source:'linkedin', fnArea:'linkedin',
+    title, company, category:'linkedin', size:'', level:'',
+    city:cleanCity(rawLoc),
+    url,
+    updated: g('date',['posted','date posted']) || fnDate,
+    workType
+  };
+}
+
+
+// Comeet CSV columns: title, company, location, date, url, department, employment_type
+function normComeet(row, filename){
+  const g = k => (row[k]==null?'':String(row[k]).trim());
+  const title   = g('title').split('\n')[0].trim();
+  const company = g('company');
+  if(!title||!company) return null;
+  const fnDate  = (filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
+  const wt = g('workplace_type').toLowerCase();
+  const workType = wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'onsite';
+  return{
+    source:'comeet', fnArea:'comeet',
+    title, company,
+    category: g('department')||'comeet',
+    size:'', level: g('employment_type')||'',
+    city: g('location'),
+    url:  g('url'),
+    updated: g('date')||fnDate,
+    workType
+  };
+}
+
+// Greenhouse CSV columns: title, company, location, date, url, department, workplace_type
+function normGreenhouse(row, filename){
+  const g = k => (row[k]==null?'':String(row[k]).trim());
+  const title   = g('title').split('\n')[0].trim();
+  const company = g('company');
+  if(!title||!company) return null;
+  const fnDate  = (filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
+  const wt = g('workplace_type').toLowerCase();
+  const workType = wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'onsite';
+  return{
+    source:'greenhouse', fnArea:'greenhouse',
+    title, company,
+    category: g('department')||'greenhouse',
+    size:'', level:'',
+    city:  g('location'),
+    url:   g('url'),
+    updated: g('date')||fnDate,
+    workType
+  };
+}
+
+// ─── LOAD TECHMAP ─────────────────────────────────────────────────────────────
+async function loadTechmap(){
+  let done = 0;
+  const update = () => {
+    $progress.style.setProperty('--pct', done/TECHMAP_FNS.length);
+  };
+
+  const results = await Promise.all(TECHMAP_FNS.map(async fn => {
+    try {
+      const res = await fetch(TECHMAP_BASE + fn + '.csv');
+      if(!res.ok) throw 0;
+      const text = await res.text();
+      const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      done++; update();
+      return parsed.data.map(r=>normTechmap(r,fn));
+    } catch(e){ done++; update(); return []; }
+  }));
+
+  TM_JOBS = results.flat().filter(r=>r.title&&r.company);
+
+  // Dedupe
+  const seen = new Set();
+  TM_JOBS = TM_JOBS.filter(r=>{
+    const k = r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+  TM_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated), db=parseDate(b.updated);
+    if(da&&db) return db-da; if(db) return 1; if(da) return -1; return 0;
+  });
+  const now = new Date();
+  $lastBuild.textContent = 'live · '+new Date().toISOString().slice(0,10);
+  $stamp.textContent = 'last sync '+now.toLocaleTimeString();
+}
+
+// ─── LOAD LINKEDIN ───────────────────────────────────────────────────────────
+async function loadLinkedIn(){
+  $liStatus.innerHTML='LinkedIn: <span style="color:var(--ink-faint)">loading…</span>';
+
+  const filenames=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+    filenames.push('linkedin_jobs_'+y+'-'+m+'-'+day+'.csv');
+  }
+  filenames.push('linkedin_jobs.csv');
+
+  // Fetch ALL in parallel — 404s resolve instantly, only existing files take time
+  const allRows=(await Promise.all(filenames.map(async fname=>{
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return [];
+      const text=await r.text();
+      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^﻿/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normLinkedIn(row,fname)).filter(Boolean);
+    }catch(e){return [];}
+  }))).flat();
+
+  if(allRows.length===0){
+    $liStatus.innerHTML='LinkedIn: <span style="color:var(--accent-2)">no files found — upload linkedin_jobs_YYYY-MM-DD.csv to repo</span>';
+    return;
+  }
+
+    allRows.sort((a,b)=>{ const da=parseDate(a.updated),db=parseDate(b.updated); if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0; });
+  const seen=new Set();
+  LI_JOBS=allRows.filter(r=>{
+    const k=r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  LI_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated),db=parseDate(b.updated);
+    if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
+  });
+  $liStatus.innerHTML='LinkedIn: <strong>'+LI_JOBS.length.toLocaleString()+' jobs</strong>';
+}
+// ─── LOAD COMEET ─────────────────────────────────────────────────────────────
+async function loadComeet(){
+  if($cmStatus) $cmStatus.innerHTML='Comeet: <span style="color:var(--ink-faint)">loading…</span>';
+
+  const filenames=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+    filenames.push('comeet_jobs_'+y+'-'+m+'-'+day+'.csv');
+  }
+
+  const allRows=(await Promise.all(filenames.map(async fname=>{
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return [];
+      const text=await r.text();
+      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normComeet(row,fname)).filter(Boolean);
+    }catch(e){return [];}
+  }))).flat();
+
+  if(allRows.length===0){
+    if($cmStatus) $cmStatus.innerHTML='Comeet: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+
+  const seen=new Set();
+  CM_JOBS=allRows.filter(r=>{
+    const k=r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  CM_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated),db=parseDate(b.updated);
+    if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
+  });
+  if($cmStatus) $cmStatus.innerHTML='Comeet: <strong>'+CM_JOBS.length.toLocaleString()+' jobs</strong>';
+}
+// ─── LOAD GREENHOUSE ─────────────────────────────────────────────────────────
+async function loadGreenhouse(){
+  if($ghStatus) $ghStatus.innerHTML='Greenhouse: <span style="color:var(--ink-faint)">loading…</span>';
+  const filenames=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+    filenames.push('greenhouse_jobs_'+y+'-'+m+'-'+day+'.csv');
+  }
+  const allRows=(await Promise.all(filenames.map(async fname=>{
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return [];
+      const text=await r.text();
+      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normGreenhouse(row,fname)).filter(Boolean);
+    }catch(e){return [];}
+  }))).flat();
+
+  // Differentiate: file not found vs file found but empty
+  const anyFileFound = (await Promise.all(filenames.map(async fname=>{
+    try{ const r=await fetch(LI_RAW+fname); return r.ok; }catch(e){return false;}
+  }))).some(Boolean);
+
+  if(allRows.length===0){
+    if($ghStatus) $ghStatus.innerHTML = anyFileFound
+      ? 'Greenhouse: <span style="color:var(--ink-faint)">0 jobs today</span>'
+      : 'Greenhouse: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+  const seen=new Set();
+  GH_JOBS=allRows.filter(r=>{
+    const k=r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  GH_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated),db=parseDate(b.updated);
+    if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
+  });
+  if($ghStatus) $ghStatus.innerHTML='Greenhouse: <strong>'+GH_JOBS.length.toLocaleString()+' jobs</strong>';
+}
+
+
+function normAshby(row, fname){
+  const g = k => (row[k]||'').trim();
+  const date = fname.match(/(\d{4}-\d{2}-\d{2})/)?.[1]||'';
+  return {source:'ab',fnArea:'ab',title:g('title'),company:g('company'),
+    location:g('location'),date:g('date')||date,url:g('url'),
+    workType:(g('workplace_type')||'').toLowerCase()};
+}
+function normWorkable(row, fname){
+  const g = k => (row[k]||'').trim();
+  const date = fname.match(/(\d{4}-\d{2}-\d{2})/)?.[1]||'';
+  return {source:'wk',fnArea:'wk',title:g('title'),company:g('company'),
+    location:g('location'),date:g('date')||date,url:g('url'),
+    workType:(g('workplace_type')||'').toLowerCase()};
+}
+
+function normLever(row, filename){
+  const g=k=>(row[k]==null?'':String(row[k]).trim());
+  const title=g('title').split('\n')[0].trim();
+  const company=g('company');
+  if(!title||!company) return null;
+  const fnDate=(filename.match(/(\d{4}-\d{2}-\d{2})/)||[])[1]||'';
+  const wt=g('workplace_type').toLowerCase();
+  const workType=wt.includes('remote')?'remote':wt.includes('hybrid')?'hybrid':wt.includes('on-site')||wt.includes('onsite')?'onsite':'onsite';
+  return{source:'lv',fnArea:'lv',title,company,category:g('department')||'lv',
+    size:'',level:'',city:g('location'),url:g('url'),updated:g('date')||fnDate,workType};
+}
+
+async function loadAshby(){
+  const dates=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);}
+  const rows=[];
+  await Promise.all(dates.map(async dt=>{
+    const fname=`ashby_jobs_${dt}.csv`;
+    try{const r=await fetch(LI_RAW+fname);if(!r.ok)return;const t=await r.text();
+      Papa.parse(t,{header:true,skipEmptyLines:true,transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase(),
+        complete:res=>res.data.forEach(row=>rows.push(normAshby(row,fname)))});}catch(e){}
+  }));
+  AB_JOBS=rows;
+  if($abStatus) $abStatus.innerHTML=rows.length?`Ashby: <strong>${rows.length} jobs</strong>`:`Ashby: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
+}
+async function loadWorkable(){
+  const dates=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);}
+  const rows=[];
+  await Promise.all(dates.map(async dt=>{
+    const fname=`workable_jobs_${dt}.csv`;
+    try{const r=await fetch(LI_RAW+fname);if(!r.ok)return;const t=await r.text();
+      Papa.parse(t,{header:true,skipEmptyLines:true,transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase(),
+        complete:res=>res.data.forEach(row=>rows.push(normWorkable(row,fname)))});}catch(e){}
+  }));
+  WK_JOBS=rows;
+  if($wkStatus) $wkStatus.innerHTML=rows.length?`Workable: <strong>${rows.length} jobs</strong>`:`Workable: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
+}
+
+async function loadLever(){
+  if($lvStatus) $lvStatus.innerHTML='Lever: <span style="color:var(--ink-faint)">loading…</span>';
+  const filenames=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+    filenames.push('lever_jobs_'+y+'-'+m+'-'+day+'.csv');
+  }
+  const allRows=(await Promise.all(filenames.map(async fname=>{
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return [];
+      const text=await r.text();
+      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normLever(row,fname)).filter(Boolean);
+    }catch(e){return [];}
+  }))).flat();
+  if(allRows.length===0){
+    if($lvStatus) $lvStatus.innerHTML='Lever: <span style="color:var(--ink-faint)">no file yet — run workflow</span>';
+    return;
+  }
+  const seen=new Set();
+  LV_JOBS=allRows.filter(r=>{
+    const k=r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  LV_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated),db=parseDate(b.updated);
+    if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
+  });
+  if($lvStatus) $lvStatus.innerHTML='Lever: <strong>'+LV_JOBS.length.toLocaleString()+' jobs</strong>';
+}
+
+// ─── POOL ────────────────────────────────────────────────────────────────────
+function getPool(){
+  if(activeSrc==='techmap')  return TM_JOBS;
+  if(activeSrc==='linkedin') return LI_JOBS;
+  if(activeSrc==='comeet')      return CM_JOBS;
+  if(activeSrc==='greenhouse') return GH_JOBS;
+  if(activeSrc==='lv') return LV_JOBS;
+  if(activeSrc==='ab') return AB_JOBS;
+  if(activeSrc==='wk') return WK_JOBS;
+  const seen = new Set();
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS].filter(r=>{
+    const k = r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+}
+
+// ─── DROPDOWNS ───────────────────────────────────────────────────────────────
+function populateDropdowns(){
+  const pool = getPool();
+  const heLocale = (a,b)=>a.localeCompare(b,'he');
+  const fill = (sel, key) => {
+    const cur = sel.value;
+    while(sel.options.length>1) sel.remove(1);
+    [...new Set(pool.map(r=>r[key]).filter(Boolean))].sort(heLocale)
+      .forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+    if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
+  };
+  fill($city,'city'); fill($company,'company'); 
+}
+
+
+// ─── SEGMENT CLASSIFIER ──────────────────────────────────────────────────────
+const SEGMENTS = {
+  intern:     /\b(intern|internship|student|trainee|apprentice|co-op|coop|graduate program)\b/i,
+  management: /\b(vp|vice president|cto|coo|cpo|ciso|cmo|cfo|ceo|head of|director|general manager|gm\b|chief )\b/i,
+  rd:         /\b(engineer|developer|dev\b|devops|sre|architect|backend|front.?end|full.?stack|mobile|ios|android|firmware|embedded|infrastructure|platform|security research|reverse engineer|qa\b|quality assurance|tester|testing|sdet|software|r&d|research and develop)\b/i,
+  product:    /\b(product manager|product owner|pm\b|product lead|product director|vp product|program manager|project manager|scrum|agile coach)\b/i,
+  data:       /\b(data scientist|data engineer|data analyst|analytics engineer|ml engineer|machine learning|deep learning|ai engineer|artificial intelligence|bi engineer|business intelligence|data architect|data platform|nlp|computer vision|llm|model)\b/i,
+  design:     /\b(designer|ux|ui\b|user experience|user interface|figma|product design|visual design|graphic|illustrat)\b/i,
+  sales:      /\b(account executive|account manager|sales engineer|sales manager|business development|bd\b|sdr\b|bdr\b|pre.?sales|presales|revenue|partnership|channel|alliances|enterprise sales|deal)\b/i,
+  marketing:  /\b(marketing|growth|content|seo|sem|brand|demand generation|campaign|copywriter|social media|pr\b|public relations|communications|field marketing|product marketing)\b/i,
+  support:    /\b(customer success|customer support|technical support|implementation|solutions engineer|solution consultant|integration engineer|onboarding|professional services|client success|support engineer)\b/i,
+  operations: /\b(hr\b|human resources|recruiter|talent acquisition|people ops|finance|accounting|legal|counsel|procurement|office manager|operations|ops\b|admin|executive assistant|ea\b|it manager|information technology|supply chain|logistics|biz ops|revenue ops|sales ops)\b/i,
+};
+
+function classifySegment(title) {
+  // intern check always first
+  if (SEGMENTS.intern.test(title)) return 'intern';
+  for (const [seg, re] of Object.entries(SEGMENTS)) {
+    if (seg === 'intern') continue;
+    if (re.test(title)) return seg;
+  }
+  return '';
+}
+
+
+
+// ─── LEVEL CLASSIFIER ────────────────────────────────────────────────────────
+function classifyLevel(title) {
+  // Director+ (check first — "Senior Director" should be director)
+  if (/\b(director|\bvp\b|vice president|head of|\bchief\b|\bcto\b|\bceo\b|\bcoo\b|\bcpo\b|\bciso\b|\bcmo\b|\bcfo\b|general manager|\bgm\b|president(?! of the))\b/i.test(title)) return 'director';
+  // Advanced: Staff / Principal / Lead / Architect / L4–L5
+  if (/\b(staff|principal|distinguished|fellow|\blead\b(?!.*generation)|architect|\bl[45]\b|level [45]|\biv\b(?= |$))\b/i.test(title)) return 'advanced';
+  // Senior
+  if (/\b(senior|\bsr\.?\b|experienced|\bl[3]\b|level 3|\biii\b(?= |$))\b/i.test(title)) return 'senior';
+  // Mid
+  if (/\b(mid[- ]?level|mid[- ]?senior|intermediate|\bl2\b|level 2|\bii\b(?= |$))\b/i.test(title)) return 'mid';
+  // Entry / Junior
+  if (/\b(junior|\bjr\.?\b|entry[- ]?level|associate(?! (director|vp|manager|lead|dean))|new grad|graduate(?! (program manager|director))|fresher|trainee|\bl1\b|level 1|\bi\b(?= |$))\b/i.test(title)) return 'entry';
+  return '';
+}
+
+
+// Highlight active filters
+function highlightFilters(){
+  [$q,$city,$segment,$level,$date,$worktype,$company,$sector,$source].forEach(el=>{
+    if(!el) return;
+    const field = el.closest('.field');
+    if(!field) return;
+    const active = el.value !== '' && el.value !== undefined;
+    field.classList.toggle('active', active);
+  });
+}
+
+// ─── SECTOR CLASSIFIER ───────────────────────────────────────────────────────
+// Known Israeli companies → sector (checked first, most reliable)
+const KNOWN_COMPANIES = {
+  'check point':'cyber','checkpoint':'cyber','cyberark':'cyber','wiz':'cyber',
+  'palo alto':'cyber','sentinelone':'cyber','claroty':'cyber','tenable':'cyber',
+  'snyk':'cyber','pentera':'cyber','armis':'cyber','cyera':'cyber',
+  'aqua security':'cyber','aquasec':'cyber','hunters':'cyber',
+  'sweet security':'cyber','orca security':'cyber','axonius':'cyber',
+  'wing security':'cyber','island':'cyber','cato networks':'cyber','cato':'cyber',
+  'perimeter 81':'cyber','cheq':'cyber','transmit security':'cyber',
+  'xm cyber':'cyber','vulcan':'cyber','radiflow':'cyber','cyolo':'cyber',
+  'tufin':'cyber','forescout':'cyber','varonis':'cyber','illusive':'cyber',
+  'morphisec':'cyber','silverfort':'cyber','cymulate':'cyber','sygnia':'cyber',
+  'grip security':'cyber','seemplicity':'cyber','veriti':'cyber','zafran':'cyber',
+  'fireblocks':'cyber','chainalysis':'cyber','opus security':'cyber',
+  'payoneer':'fintech','tipalti':'fintech','rapyd':'fintech','lemonade':'fintech',
+  'riskified':'fintech','forter':'fintech','melio':'fintech','etoro':'fintech',
+  'plus500':'fintech','fundbox':'fintech','hippo':'fintech',
+  'next insurance':'fintech','personetics':'fintech','sunbit':'fintech',
+  'credorax':'fintech','bluesnap':'fintech','simplex':'fintech','nuvei':'fintech',
+  'pagaya':'fintech','capitolis':'fintech','behalf':'fintech','lendbuzz':'fintech',
+  'orca bio':'health','zebra medical':'health','nanox':'health','brainsway':'health',
+  'earlysense':'health','itamar medical':'health','medigus':'health',
+  'todos medical':'health','nucleai':'health','ibex medical':'health',
+  'mdclone':'health','kahun':'health','aidoc':'health','tyto care':'health',
+  'datos health':'health','orcamp':'health',
+  'taboola':'media','outbrain':'media','kaltura':'media','perion':'media',
+  'ironsource':'media','wix':'media','sizmek':'media','undertone':'media',
+  'minute media':'media','minutemedia':'media',
+  'intel':'hardware','nvidia':'hardware','mobileye':'hardware','mellanox':'hardware',
+  'ceva':'hardware','tower semiconductor':'hardware','hailo':'hardware',
+  'valens':'hardware','sifive':'hardware','arbe':'hardware','innoviz':'hardware',
+  'elbit systems':'defence','rafael':'defence','iai':'defence',
+  'israel aerospace':'defence','controp':'defence','mer systems':'defence',
+  'elta systems':'defence','aeronautics':'defence','uvision':'defence','xtend':'defence',
+  'optibus':'automotive','via':'automotive','electreon':'automotive',
+  'ituran':'automotive','nexar':'automotive','autofleet':'automotive',
+  'karamba':'automotive','foretellix':'automotive','cipia':'automotive',
+  'playtika':'gaming','moon active':'gaming','papaya gaming':'gaming',
+  'plarium':'gaming','bagelcode':'gaming','jelly button':'gaming',
+  'dynamic yield':'retail','yotpo':'retail','global-e':'retail','global e':'retail',
+  'syte':'retail','finaloop':'retail','feedvisor':'retail',
+  'netafim':'agritech','taranis':'agritech','phytech':'agritech',
+  'cropx':'agritech','weedout':'agritech','prospera':'agritech',
+  'aleph farms':'foodtech','supermeat':'foodtech','future meat':'foodtech',
+  'redefine meat':'foodtech','remilk':'foodtech','imagindairy':'foodtech',
+}
+
+const SECTOR_KW = {
+  cyber:      /\b(cyber|cybersec|security(?!.*food|.*health|.*home)|firewall|malware|threat(?! intel)|siem|soar|edr\b|xdr\b|endpoint|zero.?trust|vulnerabilit|phish|penetrat|forensic|iam\b|encryption|ransomware|ciso|soc\b|deception|cspm|ciem|cnapp|appsec|devsecops)\b/i,
+  fintech:    /\b(fintech|payment|pay(?!pal)|bank(?!ing app)|financial(?! health)|credit(?! score firm)|insur(?!anc.*health)|invest(?!igation)|trading(?! card)|forex|crypto|blockchain|defi|wallet|lending|loan|mortgage|payroll|invoice|regtech|remittanc|treasury|neobank|open.?banking)\b/i,
+  health:     /\b(health(?! insurance tech)|medical|med(?:ical|tech|device)|bio(?:tech|pharma|med|informatic)|pharma|genomic|genetic|clinical|patient|therap|diagnos|imaging|surgic|oncol|cancer|drug(?! testing company)|digital health|telemedicin|wellness(?! app)|dental|cardio|neuro|radiol|patholog|specimen|laboratory|hospital)\b/i,
+  media:      /\b(media|adtech|ad.?tech|advertis|publisher|broadcast|streaming|video(?! security)|audio|entertainment|influencer|creator(?! tool)|content(?! security)|news(?!letter)|magazine|social(?! security))\b/i,
+  hardware:   /\b(semiconductor|chip(?! security)|silicon|processor|fpga|asic|embedded(?! security)|firmware|pcb\b|electronic|sensor(?! security)|radar|lidar|antenna|rf\b|optical|laser|photonic|robotic(?! security)|circuit|wafer|fab\b|foundry)\b/i,
+  defence:    /\b(defense|defence|military|army|navy|air force|weapon|missile|uav\b|unmanned|aerial(?! vehicle security)|aerospace|tactical|ballistic|idf\b|combat|surveillance(?! cyber)|countermeasure|drone(?! delivery)|ammunition)\b/i,
+  automotive: /\b(automotive|vehicle(?! security)|fleet(?! security)|\bev\b|electric vehicle|autonomous(?! security)|adas\b|self.?driving|telematics|v2x\b|connected car|smart(?! security).*car|mobility(?! pay)|charging(?! ev security))\b/i,
+  gaming:     /\b(gaming|casino|esport|lottery|mobile game|game studio|game developer|slot|poker|bingo|fantasy sport|metaverse(?! security))\b/i,
+  public:     /\b(government|municipal|govtech|gov.?tech|ministry|utilities|smart city|public sector|civic tech|e.?gov|federal|national(?! security))\b/i,
+  industrial: /\b(industrial(?! security)|manufacturing|factory|plant(?! based)|production(?! studio)|supply chain|logistics(?! tech)|warehouse|scada|plc\b|automation(?! marketing)|process control|iot(?! security)|industry 4|smart factory|predictive maintenance)\b/i,
+  retail:     /\b(retail|e.?commerce|ecommerce|marketplace|fashion|apparel|consumer goods|fmcg|grocery|supermarket|last.?mile|direct.?to.?consumer|dtc\b|brand(?! safety)|loyalty(?! security)|point.?of.?sale|pos\b)\b/i,
+  agritech:   /\b(agro|agritech|agriculture|agritech|farm(?!ed meat)|crop|irrigation|precision farm|soil(?! security)|fertilizer|livestock|dairy(?! tech)|plant(?! base).*tech|field(?! security)|harvest)\b/i,
+  foodtech:   /\b(food(?! security)|foodtech|food.?tech|nutrition|protein(?! security)|plant.?based|cultivated meat|cell.*meat|fermentation(?! bio)|beverage|restaurant(?! tech)|culinary|food safety|alternative protein|meat.*alternative)\b/i,
+};
+
+function classifySector(company) {
+  const c = company.toLowerCase().trim();
+  // Check known companies first
+  for (const [name, sector] of Object.entries(KNOWN_COMPANIES)) {
+    if (c.includes(name)) return sector;
+  }
+  // Keyword fallback
+  for (const [sector, re] of Object.entries(SECTOR_KW)) {
+    if (re.test(c)) return sector;
+  }
+  return '';
+}
+
+// ─── FILTER ──────────────────────────────────────────────────────────────────
+function applyFilters(){
+  const q        = $q.value.trim().toLowerCase();
+  const city     = $city.value;
+  const company  = $company.value;
+  const segFilter  = $segment  ? $segment.value  : '';
+  const lvlFilter  = $level    ? $level.value    : '';
+  const secFilter  = $sector   ? $sector.value   : '';
+  const srcFilter= $source   ? $source.value   : '';
+  const wtFilter = $worktype ? $worktype.value  : '';
+  const days     = $date.value ? parseInt($date.value) : null;
+  const cutoff = (()=>{
+    if(!days) return null;
+    const d = new Date();
+    if(days===1){
+      // "Today" = since midnight local time
+      d.setHours(0,0,0,0);
+      return d.getTime();
+    }
+    // Other ranges = rolling N days back from now
+    return Date.now() - days*86400000;
+  })();
+
+  const pool = getPool();
+  FILTERED = pool.filter(r=>{
+    if(city      && r.city!==city)           return false;
+    if(company   && r.company!==company)     return false;
+    if(segFilter && classifySegment(r.title)!==segFilter)   return false;
+    if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
+    if(secFilter && classifySector(r.company)!==secFilter)   return false;
+    if(srcFilter && r.source!==srcFilter)    return false;
+    if(wtFilter  && (r.workType||'')!==wtFilter) return false;
+    if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q))) return false;
+    if(cutoff){
+      const d = parseDate(r.updated);
+      if(r.source==='techmap' && (!d||d.getTime()<cutoff)) return false;
+      if(r.source!=='techmap' && d && d.getTime()<cutoff)  return false;
+    }
+    return true;
+  });
+  // Sort by date descending — most recent first
+  FILTERED.sort((a,b)=>{
+    const da = parseDate(a.updated);
+    const db = parseDate(b.updated);
+    if(!da && !db) return 0;
+    if(!da) return 1;   // no date → bottom
+    if(!db) return -1;
+    return db - da;     // newest first
+  });
+  visible = PAGE;
+  render();
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render(){
+  const total = getPool().length;
+  $count.innerHTML = '<strong>'+FILTERED.length.toLocaleString()+'</strong> open role'+(FILTERED.length===1?'':'s')+' · '+total.toLocaleString()+' indexed';
+  $export.disabled = FILTERED.length===0;
+  $export.textContent = FILTERED.length>0 ? '↓ Export '+FILTERED.length+' as CSV' : '↓ Export CSV';
+
+  if(total===0){ $list.innerHTML='<div class="loading">Fetching jobs…</div>'; return; }
+  if(FILTERED.length===0){
+    $list.innerHTML='<div class="empty">No roles match your filters.</div>';
+    $moreWrap.style.display='none'; return;
+  }
+
+  const slice = FILTERED.slice(0,visible);
+  $list.innerHTML = slice.map(r=>{
+    const href   = r.url||'#';
+    const target = r.url?'target="_blank" rel="noopener"':'';
+    const szLabel = SIZE_LABEL[r.size]||r.size;
+    const szMarkup= szLabel?'<span class="size">· '+esc(szLabel)+'</span>':'';
+    const levelBadge = r.level?'<span class="level-badge">'+esc(r.level)+'</span>':'';
+    const liBadge = r.source==='linkedin'?'<span class="li-badge">LI</span>':'';
+    const cmBadge = r.source==='comeet'?'<span class="cm-badge">CM</span>':'';
+    const ghBadge = r.source==='greenhouse'?'<span class="gh-badge">GH</span>':'';
+    const lvBadge = r.source==='lv'?'<span class="lv-badge">LV</span>':'';
+    const abBadge = r.source==='ab'?'<span class="ab-badge">AB</span>':'';
+    const wkBadge = r.source==='wk'?'<span class="wk-badge">WK</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row'})[r.source]||'';
+    const jobId   = r.url||(r.title+r.company);
+    const tracked = isTracked(jobId);
+    return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
+      +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
+      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+'</span>'
+      +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
+      +'<span class="category">'+esc(r.category||'—')+'</span>'
+      +'<span class="city">'+esc(r.city||'—')+'</span>'
+      +'<span class="arrow">➝</span>'
+      +'<button class="track-btn'+(tracked?' sent':'')+'" data-id="'+esc(jobId)+'" onclick="event.preventDefault();event.stopPropagation();toggleTrack(this.dataset.id)" title="Mark as sent">&#128236;</button>'
+      +'</a>';
+  }).join('');
+  $moreWrap.style.display = FILTERED.length>visible?'block':'none';
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────────
+function exportCSV(){
+  if(!FILTERED.length) return;
+  const hdr = ['updated','company','title','level','category','size','city','url','source'];
+  const rows = FILTERED.map(r=>[r.updated,r.company,r.title,r.level,r.category,r.size,r.city,r.url,r.source].map(csvCell).join(','));
+  const blob = new Blob(['\uFEFF'+hdr.join(',')+'\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'jobfinder-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+// ─── EVENTS ──────────────────────────────────────────────────────────────────
+let qTimer;
+$q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFilters,120);});
+[$city,$company,$date,$level,$segment,$sector,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
+$reset.addEventListener('click',()=>{
+  $q.value='';$city.value='';$company.value='';$date.value='';
+  if($level)$level.value='';
+  if($segment)$segment.value='';
+  if($sector)$sector.value='';
+  if($source)$source.value='';
+  if($worktype)$worktype.value='';
+  applyFilters();
+});
+$more.addEventListener('click',()=>{visible+=PAGE;render();});
+$export.addEventListener('click',exportCSV);
+
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+render();
+(async()=>{
+  // Load LinkedIn + Comeet in parallel
+  await Promise.all([
+    loadLinkedIn(),
+    loadComeet(),
+    loadGreenhouse(),
+    loadLever()
+  ]).catch(e=>{
+    console.error('load error', e);
+  });
+  $lastBuild.textContent='live · '+new Date().toISOString().slice(0,10);
+  populateDropdowns();
+  applyFilters();
+
+  // Load techmap in background
+  loadTechmap().then(()=>{
+    populateDropdowns();
+    applyFilters();
+  }).catch(e=>console.error('techmap',e));
+})();
+
+
+// ─── ANALYTICS ───────────────────────────────────────────────────────────────
+const CHART_INSTANCES = {};
+const PALETTE = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c','#b71c1c','#e65100','#01579b','#4a148c','#558b2f','#6d4c41'];
+const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern'};
+const SECTOR_LABELS = {cyber:'Cyber',fintech:'Fintech',health:'Health',media:'Media',hardware:'Hardware',defence:'Defence',automotive:'Auto',gaming:'Gaming',public:'Public',industrial:'Industrial',retail:'Retail',agritech:'Agritech',foodtech:'Foodtech'};
+
+function destroyChart(id){ if(CHART_INSTANCES[id]){ CHART_INSTANCES[id].destroy(); delete CHART_INSTANCES[id]; } }
+function count(arr,fn){ const m={}; arr.forEach(r=>{ const k=fn(r); if(k){ m[k]=(m[k]||0)+1; } }); return m; }
+function topN(obj,n){ return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n); }
+
+function switchToJobs(filterFn){
+  document.getElementById('vbtnJobs').click();
+  filterFn();
+  applyFilters();
+}
+
+// ── History CSV loader ───────────────────────────────────────────────────────
+let HISTORY_DATA = null;
+
+async function loadHistoryCSV(){
+  if(HISTORY_DATA) return HISTORY_DATA;
+  try{
+    const r = await fetch(LI_RAW + 'history.csv');
+    if(!r.ok) return [];
+    const text = await r.text();
+    const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,
+      transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+    HISTORY_DATA = parsed.data;
+    return HISTORY_DATA;
+  }catch(e){ return []; }
+}
+
+function renderTrendChart(histData, metric, days){
+  const subset = days<999 ? histData.slice(-days) : histData;
+  const labels  = subset.map(r=>{ const d=r.date||'?'; return d.slice(5); }); // MM-DD
+  const values  = subset.map(r=>parseInt(r[metric]||0,10));
+  const metricSelect = document.getElementById('trendMetric');
+  const label = metricSelect ? metricSelect.options[metricSelect.selectedIndex].text : metric;
+  document.getElementById('trendTitle').textContent = label + ' over time';
+  const hasData = values.some(v=>v>0);
+  document.getElementById('trendNote').textContent = hasData
+    ? `${subset.length} days of data — grows automatically each night`
+    : 'No history yet — history.csv builds after first nightly run';
+  destroyChart('trend');
+  if(!hasData) return;
+  CHART_INSTANCES['trend'] = new Chart(document.getElementById('chartTrend'),{
+    type:'line',
+    data:{labels, datasets:[{
+      data:values, borderColor:'#c97f0c', backgroundColor:'rgba(201,127,12,.1)',
+      fill:true, tension:.4, pointRadius:subset.length>30?2:4,
+      pointBackgroundColor:'#c97f0c', pointBorderColor:'#c97f0c'
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} ${label}`}}},
+      scales:{y:{beginAtZero:false,grid:{color:'rgba(0,0,0,.05)'}},
+              x:{grid:{display:false},ticks:{maxTicksLimit:14}}}}
+  });
+}
+
+async function renderAnalytics(){
+  const panel = document.getElementById('analyticsPanel');
+  if(!panel || panel.style.display==='none') return;
+
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS];
+  const seen=new Set();
+  const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
+  if(!jobs.length) return;
+
+  // ── Metric cards ──
+  document.getElementById('anTotal').textContent = jobs.length.toLocaleString();
+  const bySector = count(jobs, r=>classifySector(r.company));
+  const byRole   = count(jobs, r=>classifySegment(r.title));
+  const topSec   = topN(bySector,1)[0];
+  const topRole  = topN(byRole,1)[0];
+  if(topSec){ document.getElementById('anTopSector').textContent=SECTOR_LABELS[topSec[0]]||topSec[0]; document.getElementById('anTopSectorN').textContent=topSec[1]+' jobs'; }
+  if(topRole){ document.getElementById('anTopRole').textContent=ROLE_LABELS[topRole[0]]||topRole[0]; document.getElementById('anTopRoleN').textContent=topRole[1]+' jobs'; }
+  const remCount=jobs.filter(r=>(r.workType||'').includes('remote')).length;
+  document.getElementById('anRemote').textContent=Math.round(remCount/jobs.length*100)+'%';
+  document.getElementById('anCardSector').onclick=()=>{ if(topSec) switchToJobs(()=>{ if($sector)$sector.value=topSec[0]; }); };
+  document.getElementById('anCardRole').onclick=()=>{ if(topRole) switchToJobs(()=>{ if($segment)$segment.value=topRole[0]; }); };
+  document.getElementById('anCardRemote').onclick=()=>{ switchToJobs(()=>{ if($worktype)$worktype.value='remote'; }); };
+
+  // ── Role donut ──
+  destroyChart('role');
+  const roleData=topN(byRole,10).filter(([k])=>k);
+  CHART_INSTANCES['role']=new Chart(document.getElementById('chartRole'),{
+    type:'doughnut',
+    data:{labels:roleData.map(([k])=>ROLE_LABELS[k]||k),datasets:[{data:roleData.map(([,v])=>v),backgroundColor:PALETTE}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($segment)$segment.value=roleData[els[0].index][0]; }); } }}
+  });
+
+  // ── Level donut ──
+  destroyChart('level');
+  const LEVEL_LABELS={entry:'Junior',mid:'Mid',senior:'Senior',advanced:'Staff',director:'Director+'};
+  const byLevel=count(jobs,r=>classifyLevel(r.title));
+  const levelData=topN(byLevel,6).filter(([k])=>k);
+  CHART_INSTANCES['level']=new Chart(document.getElementById('chartLevel'),{
+    type:'doughnut',
+    data:{labels:levelData.map(([k])=>LEVEL_LABELS[k]||k),datasets:[{data:levelData.map(([,v])=>v),backgroundColor:['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#888']}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($level)$level.value=levelData[els[0].index][0]; }); } }}
+  });
+
+  // ── Work type donut ──
+  destroyChart('worktype');
+  const wtMap={remote:'Remote',hybrid:'Hybrid',onsite:'On-site'};
+  const byWt=count(jobs,r=>r.workType||'');
+  const wtData=Object.entries(byWt).filter(([,v])=>v>0);
+  CHART_INSTANCES['worktype']=new Chart(document.getElementById('chartWorkType'),{
+    type:'doughnut',
+    data:{labels:wtData.map(([k])=>wtMap[k]||k),datasets:[{data:wtData.map(([,v])=>v),backgroundColor:['#2e7d32','#0a66c2','#c97f0c','#d9d2c2']}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($worktype)$worktype.value=wtData[els[0].index][0]; }); } }}
+  });
+
+  // ── Top 20 companies ──
+  destroyChart('companies');
+  const byComp=count(jobs,r=>r.company);
+  const compData=topN(byComp,20);
+  CHART_INSTANCES['companies']=new Chart(document.getElementById('chartCompanies'),{
+    type:'bar',
+    data:{labels:compData.map(([k])=>k),datasets:[{data:compData.map(([,v])=>v),backgroundColor:'#0a66c2',borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(0,0,0,.05)'}},y:{ticks:{font:{size:10}}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ $company.value=compData[els[0].index][0]; }); } }}
+  });
+
+  // ── Source donut ──
+  destroyChart('source');
+  const srcLabels={linkedin:'LinkedIn',comeet:'Comeet',greenhouse:'Greenhouse',lv:'Lever',ab:'Ashby',wk:'Workable',techmap:'Techmap'};
+  const bySrc=count(jobs,r=>r.source);
+  const srcData=Object.entries(bySrc).filter(([,v])=>v>0);
+  CHART_INSTANCES['source']=new Chart(document.getElementById('chartSource'),{
+    type:'doughnut',
+    data:{labels:srcData.map(([k])=>srcLabels[k]||k),datasets:[{data:srcData.map(([,v])=>v),backgroundColor:['#0a66c2','#00897b','#2e7d32','#c2410c','#7c3aed','#0369a1','#888']}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
+      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($source)$source.value=srcData[els[0].index][0]; }); } }}
+  });
+
+  // ── Sector × Role stacked bar ──
+  destroyChart('heatmap');
+  const validSectors=topN(bySector,8).filter(([,v])=>v>10).map(([k])=>k);
+  const validRoles=topN(byRole,6).filter(([k])=>k).map(([k])=>k);
+  const roleColors=['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c'];
+  CHART_INSTANCES['heatmap']=new Chart(document.getElementById('chartHeatmap'),{
+    type:'bar',
+    data:{labels:validSectors.map(k=>SECTOR_LABELS[k]||k),
+      datasets:validRoles.map((role,i)=>({
+        label:ROLE_LABELS[role]||role,
+        data:validSectors.map(sec=>jobs.filter(r=>classifySector(r.company)===sec&&classifySegment(r.title)===role).length),
+        backgroundColor:roleColors[i],borderRadius:2
+      }))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
+      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'}}}}
+  });
+
+  // ── Trend (async, loads after sync charts) ──
+  loadHistoryCSV().then(histData=>{
+    const metric=document.getElementById('trendMetric')?.value||'total';
+    const days=parseInt(document.getElementById('trendDays')?.value||14,10);
+    renderTrendChart(histData,metric,days);
+    document.getElementById('trendMetric')?.addEventListener('change',()=>{
+      renderTrendChart(histData,document.getElementById('trendMetric').value,parseInt(document.getElementById('trendDays').value,10));
+    });
+    document.getElementById('trendDays')?.addEventListener('change',()=>{
+      renderTrendChart(histData,document.getElementById('trendMetric').value,parseInt(document.getElementById('trendDays').value,10));
+    });
+  });
+}
+
+// ─── VIEW TOGGLE ─────────────────────────────────────────────────────────────
+document.getElementById('vbtnJobs').addEventListener('click',()=>{
+  document.getElementById('vbtnJobs').classList.add('active');
+  document.getElementById('vbtnAnalytics').classList.remove('active');
+  document.querySelector('main').style.display='';
+  document.querySelector('.status').style.display='';
+  document.getElementById('analyticsPanel').style.display='none';
+});
+document.getElementById('vbtnAnalytics').addEventListener('click',()=>{
+  document.getElementById('vbtnAnalytics').classList.add('active');
+  document.getElementById('vbtnJobs').classList.remove('active');
+  document.querySelector('main').style.display='none';
+  document.querySelector('.status').style.display='none';
+  document.getElementById('analyticsPanel').style.display='block';
+  requestAnimationFrame(()=>renderAnalytics().catch(console.error));
+});
+
+
+// CV TRACKER
+const TRACK_KEY = 'jf_applications';
+
+function getApps(){
+  try{ return JSON.parse(localStorage.getItem(TRACK_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function saveApps(arr){ localStorage.setItem(TRACK_KEY, JSON.stringify(arr)); }
+function isTracked(id){ return getApps().some(function(a){ return a.id===id; }); }
+
+function toggleTrack(id){
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS);
+  var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
+  var apps=getApps();
+  if(isTracked(id)){
+    apps=apps.filter(function(a){ return a.id!==id; });
+  } else {
+    apps.push({
+      id:id,
+      title:r?r.title:id,
+      company:r?r.company:'',
+      city:r?(r.city||''):'',
+      source:r?(r.source||''):'',
+      url:r?(r.url||''):'',
+      sentDate:new Date().toISOString().slice(0,10),
+      status:'applied'
+    });
+  }
+  saveApps(apps);
+  document.querySelectorAll('.track-btn').forEach(function(btn){
+    if(btn.getAttribute('data-id')===id) btn.classList.toggle('sent',isTracked(id));
+  });
+  if(document.getElementById('appsPanel').style.display!=='none') renderApps();
+}
+
+function renderApps(){
+  var apps=getApps();
+  var el=document.getElementById('appsList');
+  if(!el) return;
+  if(!apps.length){
+    el.innerHTML='<div class="apps-empty">No applications tracked yet.<br>Click the envelope button on any job row to mark it as sent.</div>';
+    return;
+  }
+  var COLS=[
+    {id:'applied',   label:'Applied',   cls:'col-applied'},
+    {id:'interview', label:'Interview', cls:'col-interview'},
+    {id:'offer',     label:'Offer',     cls:'col-offer'},
+    {id:'rejected',  label:'Rejected',  cls:'col-rejected'}
+  ];
+  var srcMap={linkedin:'li',comeet:'comeet',greenhouse:'greenhouse',lv:'lv'};
+
+  function card(a, idx){
+    var status=a.status||'applied';
+    var colIdx=COLS.findIndex(function(c){ return c.id===status; });
+    var sc=srcMap[a.source]||'';
+    var city=a.city?(a.city.split(',')[0]):'';
+    var html='<div class="kanban-card">';
+    html+='<div class="kanban-card-title"><a href="'+esc(a.url||'#')+'" target="_blank" rel="noopener">'+esc(a.title)+'</a></div>';
+    html+='<div class="kanban-card-company">'+esc(a.company)+(city?' \u00b7 '+esc(city):'')+'</div>';
+    html+='<div class="kanban-card-meta">';
+    html+='<span class="kanban-card-date">'+esc(a.sentDate)+'</span>';
+    if(sc) html+='<span class="kanban-src '+sc+'">'+esc(a.source)+'</span>';
+    html+='</div>';
+    html+='<div class="kanban-card-actions">';
+    if(colIdx>0) html+='<button class="kanban-move-btn" data-idx="'+idx+'" data-status="'+COLS[colIdx-1].id+'">\u2190 '+COLS[colIdx-1].label+'</button>';
+    if(colIdx<2)  html+='<button class="kanban-move-btn" data-idx="'+idx+'" data-status="'+COLS[colIdx+1].id+'">\u2192 '+COLS[colIdx+1].label+'</button>';
+    if(status!=='rejected') html+='<button class="kanban-move-btn" data-idx="'+idx+'" data-status="rejected">Reject</button>';
+    html+='<button class="kanban-del-btn" data-idx="'+idx+'">\u00d7</button>';
+    html+='</div></div>';
+    return html;
+  }
+
+  var board='<div class="kanban-board" id="kanbanBoard">';
+  COLS.forEach(function(col){
+    var items=[];
+    apps.forEach(function(a,i){ if((a.status||'applied')===col.id) items.push({a:a,i:i}); });
+    items.sort(function(x,y){ return y.a.sentDate.localeCompare(x.a.sentDate); });
+    board+='<div class="kanban-col '+col.cls+'">';
+    board+='<div class="kanban-col-header"><span class="kanban-col-title">'+col.label+'</span><span class="kanban-col-count">'+items.length+'</span></div>';
+    board+=items.length ? items.map(function(x){ return card(x.a,x.i); }).join('') : '<div class="kanban-empty">empty</div>';
+    board+='</div>';
+  });
+  board+='</div>';
+  el.innerHTML=board;
+
+  var kb=document.getElementById('kanbanBoard');
+  if(kb) kb.addEventListener('click',function(e){
+    var mb=e.target.closest('.kanban-move-btn');
+    var db=e.target.closest('.kanban-del-btn');
+    if(mb){
+      var idx=parseInt(mb.dataset.idx);
+      var st=mb.dataset.status;
+      var apps=getApps();
+      if(apps[idx]){ apps[idx].status=st; saveApps(apps); renderApps(); }
+    } else if(db){
+      var idx=parseInt(db.dataset.idx);
+      var apps=getApps();
+      apps.splice(idx,1);
+      saveApps(apps);
+      renderApps();
+    }
+  });
+}
+
+function exportApps(){
+  var apps=getApps();
+  if(!apps.length) return;
+  var hdr=['sent_date','title','company','city','source','url','status'];
+  var rows=apps.map(function(a){ return [a.sentDate,a.title,a.company,a.city,a.source,a.url,a.status||'applied'].map(csvCell).join(','); });
+  var blob=new Blob(['\uFEFF'+hdr.join(',')+'\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  var lnk=document.createElement('a');
+  lnk.href=URL.createObjectURL(blob);
+  lnk.download='my-applications-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(lnk); lnk.click(); document.body.removeChild(lnk);
+  setTimeout(function(){ URL.revokeObjectURL(lnk.href); },1000);
+}
+
+document.getElementById('appsExport').addEventListener('click',exportApps);
+document.getElementById('appsClear').addEventListener('click',function(){
+  if(confirm('Clear all tracked applications?')){ saveApps([]); renderApps(); }
+});
+document.getElementById('vbtnApps').addEventListener('click',function(){
+  ['vbtnApps','vbtnJobs','vbtnAnalytics'].forEach(function(id){
+    document.getElementById(id).classList.toggle('active',id==='vbtnApps');
+  });
+  document.querySelector('main').style.display='none';
+  document.querySelector('.status').style.display='none';
+  document.getElementById('analyticsPanel').style.display='none';
+  document.getElementById('appsPanel').style.display='block';
+  renderApps();
+});
+document.getElementById('vbtnJobs').addEventListener('click',function(){
+  document.getElementById('appsPanel').style.display='none';
+  document.getElementById('vbtnApps').classList.remove('active');
+});
+document.getElementById('vbtnAnalytics').addEventListener('click',function(){
+  document.getElementById('appsPanel').style.display='none';
+  document.getElementById('vbtnApps').classList.remove('active');
+});
+// END CV TRACKER
+</script>
+</body>
+</html>
