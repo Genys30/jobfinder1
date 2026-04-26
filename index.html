@@ -85,8 +85,6 @@
   .li-badge,.cm-badge,.gh-badge,.lv-badge,.ab-badge,.wk-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);}
   .sp-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--sp);}
   .sp-row:hover .title{color:var(--sp);}
-  .ta-badge{display:inline-block;margin-left:6px;font-family:\'JetBrains Mono\',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ta);}
-  .ta-row:hover .title{color:var(--ta);}
   .li-badge{background:var(--li);}
   .cm-badge{background:var(--cm);}
   .gh-badge{background:var(--gh);}
@@ -95,8 +93,6 @@
   .wk-badge{background:var(--wk);}
   .sp-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--sp);}
   .sp-row:hover .title{color:var(--sp);}
-  .ta-badge{display:inline-block;margin-left:6px;font-family:\'JetBrains Mono\',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ta);}
-  .ta-row:hover .title{color:var(--ta);}
   .mt-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--mt);}
   .mt-row:hover .title{color:var(--mt);}
   .ac-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ac);}
@@ -298,8 +294,6 @@
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--lv)"></span><span id="lvStatusText">Lever: loading…</span></div>
   <span class="databar-sep">·</span>
-  <div class="datasrc"><span class="src-dot" style="background:var(--ta)"></span><span id="taStatusText">Taasuka: loading…</span></div>
-  <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--sp)"></span><span id="spStatusText">Direct: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--mt)"></span><span id="mtStatusText">Mitam: loading…</span></div>
@@ -372,7 +366,6 @@
     <option value="lv">Lever</option>
     <option value="ab">Ashby</option>
     <option value="wk">Workable</option>
-      <option value="ta">Taasuka</option>
       <option value="direct">Direct</option>
       <option value="mt">Mitam 🏛️</option>
       <option value="ac">Academic 🎓</option>
@@ -543,7 +536,6 @@ let GH_JOBS  = [];   // greenhouse
 let LV_JOBS  = [];   // lever
 let AB_JOBS  = [];   // ashby
 let WK_JOBS  = [];
-let TA_JOBS  = [];   // taasuka
 let SP_JOBS  = [];   // sponsored   // workable
 let MT_JOBS  = [];   // mitam NGO
 let AC_JOBS  = [];   // academic (Weizmann etc)
@@ -935,43 +927,6 @@ async function loadWorkable(){
   if($wkStatus) $wkStatus.innerHTML=rows.length?`Workable: <strong>${rows.length} jobs</strong>`:`Workable: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
 }
 
-function normTaasuka(row, fname){
-  const g = k => (row[k]==null?'':String(row[k]).trim());
-  const title = g('title').split('\n')[0].trim();
-  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
-  return {source:'ta', fnArea:'ta',
-    title, company: g('company') || 'Taasuka',
-    city: g('location'), location: g('location'), date: g('date') || fnDate,
-    url: g('url'), department: g('department'),
-    workType: 'onsite', updated: g('date') || fnDate};
-}
-
-async function loadTaasuka(){
-  // Taasuka is a live feed — only load the most recent dated CSV
-  const rows=[];
-  for(let i=0;i<=6;i++){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    const dt=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const fname=`taasuka_jobs_${dt}.csv`;
-    try{
-      const r=await fetch(LI_RAW+fname);
-      if(!r.ok) continue;
-      const text=await r.text();
-      Papa.parse(text,{header:true,skipEmptyLines:true,
-        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase(),
-        complete:res=>res.data.forEach(row=>{
-          const n=normTaasuka(row,fname);
-          if(n.title) rows.push(n);
-        })});
-      break; // stop after first found file
-    }catch(e){}
-  }
-  TA_JOBS=rows;
-  if($taStatus) $taStatus.innerHTML=TA_JOBS.length
-    ? `Taasuka: <strong>${rows.length} jobs</strong>`
-    : `Taasuka: <span style="color:var(--ink-faint)">no file yet</span>`;
-}
-
 function normSponsored(row, fname){
   const g = k => (row[k]==null?'':String(row[k]).trim());
   const loc = g('location');
@@ -1218,13 +1173,12 @@ function getPool(){
   if(activeSrc==='lv') return LV_JOBS;
   if(activeSrc==='ab') return AB_JOBS;
   if(activeSrc==='wk') return WK_JOBS;
-  if(activeSrc==='ta') return TA_JOBS;
   if(activeSrc==='direct') return SP_JOBS;
   if(activeSrc==='mt') return MT_JOBS;
   if(activeSrc==='ac') return AC_JOBS;
   if(activeSrc==='huji') return HJ_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -1414,18 +1368,7 @@ const SECTOR_KW = {
 };
 
 function classifySector(company, title, source) {
-  if (source === 'ta') {
-    const h = (title||'');
-    if (/cyber|סייבר|אבטחת מידע/i.test(h)) return 'cyber';
-    if (/בנק|ביטוח|רואה חשבון|כספים|פיננס/i.test(h)) return 'fintech';
-    if (/אחות|רופא|רפואה|פיזיותרפ|סיעוד|בריאות|health|medical/i.test(h)) return 'health';
-    if (/מורה|מחנך|חינוך|גננת|ילדים|בית ספר|education/i.test(h)) return 'public';
-    if (/software|מפתח|developer|backend|frontend|devops/i.test(h)) return 'rd';
-    if (/מכירות|sales|שיווק|marketing/i.test(h)) return 'sales';
-    if (/הנדסה|engineer|מהנדס|hardware|firmware/i.test(h)) return 'hardware';
-    if (/נהג|לוגיסטיקה|מחסן|שרשרת אספקה/i.test(h)) return 'industrial';
-    return 'public';
-  }
+
   const c = company.toLowerCase().trim();
   // Check known companies first
   for (const [name, sector] of Object.entries(KNOWN_COMPANIES)) {
@@ -1518,12 +1461,11 @@ function render(){
     const lvBadge = r.source==='lv'?'<span class="lv-badge">LV</span>':'';
     const abBadge = r.source==='ab'?'<span class="ab-badge">AB</span>':'';
     const wkBadge = r.source==='wk'?'<span class="wk-badge">WK</span>':'';
-    const taBadge = r.source==='ta'?'<span class="ta-badge">TA</span>':'';
     const spBadge = r.source==='direct'?'<span class="sp-badge">★</span>':'';
     const mtBadge = r.source==='mt'?'<span class="mt-badge">MT</span>':'';
     const acBadge = r.source==='ac'?'<span class="ac-badge">🎓</span>':'';
     const hjBadge = r.source==='huji'?'<span class="hj-badge">HUJI</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',ta:' ta-row',direct:' sp-row',mt:' mt-row',ac:' ac-row',huji:' hj-row'})[r.source]||'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row',huji:' hj-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
@@ -1650,7 +1592,6 @@ render();
     loadLever(),
     loadAshby(),
     loadWorkable(),
-    loadTaasuka(),
     loadSponsored(),
     loadMitam(),
     loadAcademic(),
@@ -1735,7 +1676,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
