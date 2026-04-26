@@ -273,6 +273,57 @@ def run_workable(tm):
     write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'workable_jobs_{TODAY}.csv')
 
 
+# ══ WEIZMANN (Academic) ═══════════════════════════════════════════════════════
+def run_weizmann():
+    print("\n-- Weizmann Institute (אקדמי) ---------------------------------------")
+    try:
+        r = requests.get(
+            "https://www.weizmann.ac.il/career/jobs",
+            headers={**HEADERS, "Accept-Language": "he-IL,he;q=0.9,en;q=0.8"},
+            timeout=30)
+        if not r.ok:
+            print(f"  - {r.status_code}")
+            return
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(r.text, "html.parser")
+        jobs = []
+        seen = set()
+        for link in soup.select("a[href*='/career/jobs/']"):
+            href = link.get("href", "")
+            last = href.rstrip("/").split("?")[0].split("/")[-1]
+            if not last.isdigit() and not (last and last != "jobs"):
+                continue
+            if not last or last == "jobs":
+                continue
+            url = "https://www.weizmann.ac.il" + href if href.startswith("/") else href
+            if url in seen:
+                continue
+            seen.add(url)
+            title_el = link.select_one("h2") or link.select_one("h3")
+            title = (title_el.get_text(strip=True) if title_el else link.get_text(strip=True)).strip()
+            if not title:
+                continue
+            department = ""
+            workplace_type = ""
+            for dt in link.select("dt"):
+                dd = dt.find_next_sibling("dd")
+                if not dd: continue
+                label = dt.get_text(strip=True)
+                value = dd.get_text(strip=True)
+                if "קטגוריה" in label: department = value
+                elif "היקף" in label: workplace_type = value
+            jobs.append({
+                "title": title, "company": "מכון ויצמן למדע",
+                "location": "רחובות", "date": TODAY, "url": url,
+                "department": department, "workplace_type": workplace_type,
+            })
+        print(f"  + {len(jobs)}")
+        write_csv(jobs, ["title","company","location","date","url","department","workplace_type"],
+            f"weizmann_jobs_{TODAY}.csv")
+    except Exception as e:
+        print(f"  x {e}")
+
+
 # ══ MITAM (NGO / third sector) ═══════════════════════════════════════════════
 def run_mitam():
     print("\n-- Mitam (מגזר שלישי) -----------------------------------------------")
@@ -453,6 +504,7 @@ def main():
     run_ashby({})
     run_workable({})
     run_mitam()
+    run_weizmann()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
