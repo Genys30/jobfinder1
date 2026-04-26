@@ -14,6 +14,7 @@
     --ink-faint:#9c9687;--rule:#d9d2c2;--accent:#c97f0c;--accent-2:#d63916;
     --li:#0a66c2;--li-pale:rgba(10,102,194,0.07);--li-border:rgba(10,102,194,0.2);
   --cm:#00897b;--cm-pale:rgba(0,137,123,0.07);
+  --mt:#7b3fa0;--mt-pale:rgba(123,63,160,0.07);
   --gh:#2e7d32;--gh-pale:rgba(46,125,50,0.07);
   --lv:#c2410c;--lv-pale:rgba(194,65,12,0.07);
   --ab:#7c3aed;--ab-pale:rgba(124,58,237,0.07);
@@ -94,6 +95,8 @@
   .sp-row:hover .title{color:var(--sp);}
   .ta-badge{display:inline-block;margin-left:6px;font-family:\'JetBrains Mono\',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ta);}
   .ta-row:hover .title{color:var(--ta);}
+  .mt-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--mt);}
+  .mt-row:hover .title{color:var(--mt);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -110,6 +113,16 @@
     border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
   .vbtn:hover{color:var(--ink);}
   .vbtn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(201,127,12,.04);}
+
+
+  /* ─── Searchable select dropdown ─── */
+  .sel-wrap{position:relative;display:inline-block;}
+  .sel-wrap select{padding-right:20px;}
+  .sel-search{display:none;position:absolute;top:100%;left:0;z-index:999;background:#fff;border:1px solid var(--rule);border-radius:3px;box-shadow:0 4px 12px rgba(0,0,0,.1);min-width:200px;}
+  .sel-search input{width:100%;padding:8px 10px;border:none;border-bottom:1px solid var(--rule);font-family:'Carlito',sans-serif;font-size:13px;outline:none;box-sizing:border-box;}
+  .sel-search ul{list-style:none;margin:0;padding:4px 0;max-height:200px;overflow-y:auto;}
+  .sel-search ul li{padding:6px 12px;font-size:13px;cursor:pointer;font-family:'Carlito',sans-serif;}
+  .sel-search ul li:hover,.sel-search ul li.active{background:rgba(201,127,12,.08);color:var(--accent);}
 
   /* ─── Analytics panel ─── */
   #analyticsPanel{padding:32px 48px 64px;display:none;}
@@ -278,6 +291,8 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--ta)"></span><span id="taStatusText">Taasuka: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--sp)"></span><span id="spStatusText">Direct: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--mt)"></span><span id="mtStatusText">Mitam: loading…</span></div>
 </div>
 
 <!-- Filters -->
@@ -345,6 +360,7 @@
     <option value="wk">Workable</option>
       <option value="ta">Taasuka</option>
       <option value="direct">Direct</option>
+      <option value="mt">Mitam 🏛️</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -513,6 +529,7 @@ let AB_JOBS  = [];   // ashby
 let WK_JOBS  = [];
 let TA_JOBS  = [];   // taasuka
 let SP_JOBS  = [];   // sponsored   // workable
+let MT_JOBS  = [];   // mitam NGO
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -538,6 +555,7 @@ const $abStatus  = document.getElementById('abStatusText');
 const $wkStatus  = document.getElementById('wkStatusText');
 const $taStatus  = document.getElementById('taStatusText');
 const $spStatus  = document.getElementById('spStatusText');
+const $mtStatus  = document.getElementById('mtStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -895,13 +913,12 @@ function normTaasuka(row, fname){
   const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
   return {source:'ta', fnArea:'ta',
     title, company: g('company') || 'Taasuka',
-    location: g('location'), date: g('date') || fnDate,
+    city: g('location'), location: g('location'), date: g('date') || fnDate,
     url: g('url'), department: g('department'),
     workType: 'onsite', updated: g('date') || fnDate};
 }
 
-async function loadTaasuka(),
-    loadSponsored(){
+async function loadTaasuka(){
   // Taasuka is a live feed — only load the most recent dated CSV
   const rows=[];
   for(let i=0;i<=6;i++){
@@ -929,14 +946,17 @@ async function loadTaasuka(),
 
 function normSponsored(row, fname){
   const g = k => (row[k]==null?'':String(row[k]).trim());
+  const loc = g('location');
+  const wt  = (g('workplace_type')||'onsite').toLowerCase();
   return {source:'direct', fnArea:'direct',
     title:   g('title'),
     company: g('company'),
-    location:g('location'),
+    city:    loc,
+    location:loc,
     date:    g('date'),
     url:     g('url'),
     department: '',
-    workType: (g('workplace_type')||'onsite').toLowerCase(),
+    workType: wt,
     updated: g('date')};
 }
 
@@ -956,7 +976,9 @@ async function loadSponsored(){
   SP_JOBS=rows;
   if($spStatus) $spStatus.innerHTML=rows.length
     ? `Direct: <strong>${rows.length} jobs</strong>`
-    : `Sponsored: <span style="color:var(--ink-faint)">none</span>`;
+    : `Direct: <span style="color:var(--ink-faint)">none</span>`;
+  populateDropdowns();
+  applyFilters();
 }
 
 async function loadLever(){
@@ -993,6 +1015,64 @@ async function loadLever(){
   if($lvStatus) $lvStatus.innerHTML='Lever: <strong>'+LV_JOBS.length.toLocaleString()+' jobs</strong>';
 }
 
+// ─── LOAD MITAM (NGO jobs) ───────────────────────────────────────────────────
+function normMitam(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title   = g('title').split('\n')[0].trim();
+  const company = g('company');
+  if (!title) return null;
+  const fnDate  = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  const wt = g('workplace_type').toLowerCase();
+  const workType = wt.includes('מהבית') || wt.includes('remote') ? 'remote'
+                 : wt.includes('היברידי') || wt.includes('hybrid') ? 'hybrid'
+                 : 'onsite';
+  return {
+    source: 'mt', fnArea: 'mt',
+    title, company: company || 'עמותה',
+    category: g('department') || 'mt',
+    size: '', level: '',
+    city: g('location'),
+    url:  g('url'),
+    updated: g('date') || fnDate,
+    workType
+  };
+}
+
+async function loadMitam() {
+  if ($mtStatus) $mtStatus.innerHTML = 'Mitam: <span style="color:var(--ink-faint)">loading…</span>';
+  const filenames = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    filenames.push(`mitam_jobs_${y}-${m}-${day}.csv`);
+  }
+  const allRows = (await Promise.all(filenames.map(async fname => {
+    try {
+      const r = await fetch(LI_RAW + fname);
+      if (!r.ok) return [];
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
+        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
+      return parsed.data.map(row => normMitam(row, fname)).filter(Boolean);
+    } catch(e) { return []; }
+  }))).flat();
+
+  if (allRows.length === 0) {
+    if ($mtStatus) $mtStatus.innerHTML = 'Mitam: <span style="color:var(--ink-faint)">no file yet — run workflow</span>';
+    return;
+  }
+  const seen = new Set();
+  MT_JOBS = allRows.filter(r => {
+    const k = r.url || (r.company + '|' + r.title);
+    if (seen.has(k)) return false; seen.add(k); return true;
+  });
+  MT_JOBS.sort((a, b) => {
+    const da = parseDate(a.updated), db = parseDate(b.updated);
+    if (da && db) return db - da; if (db) return 1; if (da) return -1; return 0;
+  });
+  if ($mtStatus) $mtStatus.innerHTML = `Mitam: <strong>${MT_JOBS.length.toLocaleString()} jobs</strong>`;
+}
+
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
   if(activeSrc==='techmap')  return TM_JOBS;
@@ -1004,8 +1084,9 @@ function getPool(){
   if(activeSrc==='wk') return WK_JOBS;
   if(activeSrc==='ta') return TA_JOBS;
   if(activeSrc==='direct') return SP_JOBS;
+  if(activeSrc==='mt') return MT_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS,...MT_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -1016,13 +1097,14 @@ function populateDropdowns(){
   const pool = getPool();
   const heLocale = (a,b)=>a.localeCompare(b,'he');
   const fill = (sel, key) => {
+    if(!sel) return;
     const cur = sel.value;
     while(sel.options.length>1) sel.remove(1);
     [...new Set(pool.map(r=>r[key]).filter(Boolean))].sort(heLocale)
       .forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
     if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
   };
-  fill($city,'city'); fill($company,'company'); 
+  fill($city,'city'); fill($company,'company');
 }
 
 
@@ -1077,6 +1159,61 @@ function highlightFilters(){
     const active = el.value !== '' && el.value !== undefined;
     field.classList.toggle('active', active);
   });
+}
+
+
+// ─── HEBREW CITY TRANSLATION MAP ─────────────────────────────────────────────
+const HE_CITIES = {
+  'תל אביב':'Tel Aviv','תל-אביב':'Tel Aviv','תל אביב יפו':'Tel Aviv',
+  'תל אביב-יפו':'Tel Aviv','יפו':'Jaffa',
+  'ירושלים':'Jerusalem','חיפה':'Haifa','באר שבע':'Beer Sheva',
+  'ראשון לציון':'Rishon LeZion','פתח תקווה':'Petah Tikva',
+  'אשדוד':'Ashdod','נתניה':'Netanya','בני ברק':'Bnei Brak',
+  'חולון':'Holon','רמת גן':'Ramat Gan','בת ים':'Bat Yam',
+  'רחובות':'Rehovot','הרצליה':'Herzliya','כפר סבא':'Kfar Saba',
+  'רעננה':'Raanana','מודיעין':'Modiin','מודיעין-מכבים-רעות':'Modiin',
+  'לוד':'Lod','רמלה':'Ramla','נצרת':'Nazareth','עפולה':'Afula',
+  'אשקלון':'Ashkelon','טבריה':'Tiberias','צפת':'Safed',
+  'קריית גת':'Kiryat Gat','קריית שמונה':'Kiryat Shmona',
+  'קריית ביאליק':'Kiryat Bialik','קריית ים':'Kiryat Yam',
+  'קריית מוצקין':'Kiryat Motzkin','קריית אתא':'Kiryat Ata',
+  'הוד השרון':'Hod HaSharon','רהט':'Rahat',
+  'קריית אונו':'Kiryat Ono','אור יהודה':'Or Yehuda','אלעד':'Elad',
+  'בית שמש':'Beit Shemesh','מעלה אדומים':'Maale Adumim',
+  'ראש העין':'Rosh HaAyin','כפר יונה':'Kfar Yona',
+  'נס ציונה':'Nes Ziona','יהוד':'Yehud','סגולה':'Segula',
+  'גדרה':'Gedera','יבנה':'Yavne','זכרון יעקב':'Zikhron Yaakov',
+  'חדרה':'Hadera','טירת כרמל':'Tirat Carmel','עכו':'Akko',
+  'נהריה':'Nahariya','מגדל העמק':'Migdal HaEmek',
+  'נשר':'Nesher','דימונה':'Dimona','אילת':'Eilat',
+  'אום אל-פחם':'Umm al-Fahm','טמרה':'Tamra','שפרעם':'Shfaram',
+  'סכנין':'Sakhnin','כרמיאל':'Karmiel','מצפה רמון':'Mitzpe Ramon',
+  'באר יעקב':'Beer Yaakov','יקנעם':'Yokneam','חריש':'Harish',
+  'צוקי ים':'Tzuk Yam','פרדס חנה':'Pardes Hanna',
+  'בנימינה':'Binyamina','זכרון יעקב':'Zikhron Yaakov',
+  'ראשון לציון':'Rishon LeZion',
+  'אבן יהודה':'Even Yehuda','כפר חסידים':'Kfar Hasidim',
+  'מבשרת ציון':'Mevaseret Zion','אבו גוש':"Abu Ghosh",
+  'גבעת שמואל':'Givat Shmuel','פתח תקוה':'Petah Tikva',
+  'בית דגן':'Beit Dagan','יהוד-מונוסון':'Yehud','קסריה':'Caesarea',
+  'נוף הגליל':'Nof HaGalil','שדרות':'Sderot','אופקים':'Ofakim',
+  'ערד':'Arad','יטבתה':'Yotvata','מצפה רמון':'Mitzpe Ramon',
+  'טירה':'Tira','קלנסווה':'Qalansawe',
+  'כפר קאסם':'Kafr Qasim','בסמת טבעון':'Basmat Tabun',
+  'אחיהוד':'Ahihud','שוהם':'Shoham',
+  'מרכז':'Center','צפון':'North','דרום':'South','שרון':'Sharon',
+  'שפלה':'Shephelah',
+};
+
+function translateCity(city) {
+  if (!city) return city;
+  // Check exact match
+  if (HE_CITIES[city]) return HE_CITIES[city];
+  // Check partial match for compound cities
+  for (const [he, en] of Object.entries(HE_CITIES)) {
+    if (city.includes(he)) return en;
+  }
+  return city; // return as-is if no translation found
 }
 
 // ─── SECTOR CLASSIFIER ───────────────────────────────────────────────────────
@@ -1249,12 +1386,13 @@ function render(){
     const wkBadge = r.source==='wk'?'<span class="wk-badge">WK</span>':'';
     const taBadge = r.source==='ta'?'<span class="ta-badge">TA</span>':'';
     const spBadge = r.source==='direct'?'<span class="sp-badge">★</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',ta:' ta-row',direct:' sp-row'})[r.source]||'';
+    const mtBadge = r.source==='mt'?'<span class="mt-badge">MT</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',ta:' ta-row',direct:' sp-row',mt:' mt-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+taBadge+spBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+taBadge+spBadge+mtBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
@@ -1295,6 +1433,73 @@ $more.addEventListener('click',()=>{visible+=PAGE;render();});
 $export.addEventListener('click',exportCSV);
 
 
+// ─── SEARCHABLE SELECT ───────────────────────────────────────────────────────
+function makeSearchable(selectEl) {
+  const wrap = document.createElement('div');
+  wrap.className = 'sel-wrap';
+  selectEl.parentNode.insertBefore(wrap, selectEl);
+  wrap.appendChild(selectEl);
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'sel-search';
+  dropdown.innerHTML = '<input placeholder="Search…" autocomplete="off"><ul></ul>';
+  wrap.appendChild(dropdown);
+
+  const input = dropdown.querySelector('input');
+  const ul    = dropdown.querySelector('ul');
+
+  function buildList(filter) {
+    ul.innerHTML = '';
+    const opts = [...selectEl.options].filter(o => o.value !== '');
+    const filtered = filter
+      ? opts.filter(o => o.textContent.toLowerCase().includes(filter.toLowerCase()))
+      : opts;
+    // Add "All" option
+    const allLi = document.createElement('li');
+    allLi.textContent = selectEl.options[0].textContent;
+    allLi.dataset.value = '';
+    ul.appendChild(allLi);
+    filtered.forEach(o => {
+      const li = document.createElement('li');
+      li.textContent = o.textContent;
+      li.dataset.value = o.value;
+      ul.appendChild(li);
+    });
+  }
+
+  // Open on select click
+  selectEl.addEventListener('mousedown', e => {
+    e.preventDefault();
+    selectEl.blur();
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    input.value = '';
+    buildList('');
+    input.focus();
+  });
+
+  // Filter list on input
+  input.addEventListener('input', () => buildList(input.value));
+
+  // Select item on click
+  ul.addEventListener('click', e => {
+    const li = e.target.closest('li');
+    if (!li) return;
+    selectEl.value = li.dataset.value;
+    dropdown.style.display = 'none';
+    selectEl.dispatchEvent(new Event('change'));
+  });
+
+  // Close on outside click
+  document.addEventListener('click', e => {
+    if (!wrap.contains(e.target)) dropdown.style.display = 'none';
+  });
+
+  // Keyboard navigation
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape') dropdown.style.display = 'none';
+  });
+}
+
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
 (async()=>{
@@ -1307,12 +1512,15 @@ render();
     loadAshby(),
     loadWorkable(),
     loadTaasuka(),
-    loadSponsored()
+    loadSponsored(),
+    loadMitam()
   ]).catch(e=>{
     console.error('load error', e);
   });
   $lastBuild.textContent='live · '+new Date().toISOString().slice(0,10);
   populateDropdowns();
+  makeSearchable($city);
+  makeSearchable($company);
   applyFilters();
 
   // Load techmap in background
@@ -1386,7 +1594,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS,...MT_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
