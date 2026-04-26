@@ -151,6 +151,9 @@
   .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .city-cell{font-size:12px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .deadline{font-size:10px;color:#c0392b;font-family:"JetBrains Mono",monospace;white-space:nowrap;padding:1px 5px;border:1px solid #c0392b;border-radius:3px;margin-right:6px;}
+  .role-tag{font-size:10px;color:#555;background:#f0f0f0;padding:1px 6px;border-radius:3px;white-space:nowrap;margin-right:4px;font-family:"JetBrains Mono",monospace;}
+  .level-tag{font-size:10px;color:#fff;padding:1px 6px;border-radius:3px;white-space:nowrap;margin-right:4px;font-family:"JetBrains Mono",monospace;}
+  .level-director{background:#7d3c98;} .level-advanced{background:#1a5276;} .level-senior{background:#1e8449;} .level-mid{background:#b7950b;color:#333;} .level-entry{background:#797d7f;}
   .source-cell{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
   .arrow{color:var(--rule);font-size:14px;}
   main{padding:0 24px 64px;}
@@ -1245,16 +1248,16 @@ function populateDropdowns(){
 
 // ─── SEGMENT CLASSIFIER ──────────────────────────────────────────────────────
 const SEGMENTS = {
-  intern:     /\b(intern|internship|student|trainee|apprentice|co-op|coop|graduate program)\b/i,
-  management: /\b(vp|vice president|cto|coo|cpo|ciso|cmo|cfo|ceo|head of|director|general manager|gm\b|chief )\b/i,
-  rd:         /\b(engineer|developer|dev\b|devops|sre|architect|backend|front.?end|full.?stack|mobile|ios|android|firmware|embedded|infrastructure|platform|security research|reverse engineer|qa\b|quality assurance|tester|testing|sdet|software|r&d|research and develop)\b/i,
-  product:    /\b(product manager|product owner|pm\b|product lead|product director|vp product|program manager|project manager|scrum|agile coach)\b/i,
-  data:       /\b(data scientist|data engineer|data analyst|analytics engineer|ml engineer|machine learning|deep learning|ai engineer|artificial intelligence|bi engineer|business intelligence|data architect|data platform|nlp|computer vision|llm|model)\b/i,
-  design:     /\b(designer|ux|ui\b|user experience|user interface|figma|product design|visual design|graphic|illustrat)\b/i,
-  sales:      /\b(account executive|account manager|sales engineer|sales manager|business development|bd\b|sdr\b|bdr\b|pre.?sales|presales|revenue|partnership|channel|alliances|enterprise sales|deal)\b/i,
-  marketing:  /\b(marketing|growth|content|seo|sem|brand|demand generation|campaign|copywriter|social media|pr\b|public relations|communications|field marketing|product marketing)\b/i,
-  support:    /\b(customer success|customer support|technical support|implementation|solutions engineer|solution consultant|integration engineer|onboarding|professional services|client success|support engineer)\b/i,
-  operations: /\b(hr\b|human resources|recruiter|talent acquisition|people ops|finance|accounting|legal|counsel|procurement|office manager|operations|ops\b|admin|executive assistant|ea\b|it manager|information technology|supply chain|logistics|biz ops|revenue ops|sales ops)\b/i,
+  intern:     /\b(intern|internship|student|trainee|apprentice|co-op|coop|graduate program|סטודנט|מתמחה|מתנדב)\b/i,
+  management: /\b(vp|vice president|cto|coo|cpo|ciso|cmo|cfo|ceo|head of|director|general manager|gm\b|chief |ראש אגף|ראש תחום|מנהל.?ת אגף|מנהל.?ת מערך|מנכ"ל|סמנכ"ל|ראש צוות|מנהל.?ת מחלקה|מנהל.?ת המרכז|מנהל.?ת מערך)\b/i,
+  rd:         /\b(engineer|developer|dev\b|devops|sre|architect|backend|front.?end|full.?stack|mobile|ios|android|firmware|embedded|infrastructure|platform|security research|reverse engineer|qa\b|quality assurance|tester|testing|sdet|software|r&d|research and develop|מהנדס|מהנדסת|מפתח|מפתחת|איש.?אשת סיסטם|תומך.?ת מחשוב|תומך.?ת IT|מנהל.?ת מעבדה|מהנדס.?ת מעבדה|ביואינפורמטיק|לבורנט|טכנאי|טכנאית|מומחה.?ית מולטימדיה|אחראי.?ת ניהול זהויות|מנהח"ש|כלכלנ|מיישמ)\b/i,
+  product:    /\b(product manager|product owner|pm\b|product lead|product director|vp product|program manager|project manager|scrum|agile coach|מנהל.?ת פרויקט|מנהל.?ת תוכנית|מנהל.?ת תכנון)\b/i,
+  data:       /\b(data scientist|data engineer|data analyst|analytics engineer|ml engineer|machine learning|deep learning|ai engineer|artificial intelligence|bi engineer|business intelligence|data architect|data platform|nlp|computer vision|llm|model|datawarehouse|data warehouse|מפתח.?ת AI|מפתח.?ת DATAWAREHOUSE|BI)\b/i,
+  design:     /\b(designer|ux|ui\b|user experience|user interface|figma|product design|visual design|graphic|illustrat|אדריכל|מעצב)\b/i,
+  sales:      /\b(account executive|account manager|sales engineer|sales manager|business development|bd\b|sdr\b|bdr\b|pre.?sales|presales|revenue|partnership|channel|alliances|enterprise sales|deal|רכז.?ת קשרי תעשיה|רכז.?ת שיווק|פיתוח עסקי)\b/i,
+  marketing:  /\b(marketing|growth|content|seo|sem|brand|demand generation|campaign|copywriter|social media|pr\b|public relations|communications|field marketing|product marketing|שיווק|קמפיין|תקשורת)\b/i,
+  support:    /\b(customer success|customer support|technical support|implementation|solutions engineer|solution consultant|integration engineer|onboarding|professional services|client success|support engineer|יועץ.?ת חינוכי|ייעוץ)\b/i,
+  operations: /\b(hr\b|human resources|recruiter|talent acquisition|people ops|finance|accounting|legal|counsel|procurement|office manager|operations|ops\b|admin|executive assistant|ea\b|it manager|information technology|supply chain|logistics|biz ops|revenue ops|sales ops|רכז.?ת|ראש לשכה|מנהל.?ת לשכה|משאבי אנוש|גיוס|כספ|חשבות|ביקורת פנים|בטיחות|ספרי|ספרנ|אחזקה|שינוע)\b/i,
 };
 
 function classifySegment(title) {
@@ -1272,15 +1275,15 @@ function classifySegment(title) {
 // ─── LEVEL CLASSIFIER ────────────────────────────────────────────────────────
 function classifyLevel(title) {
   // Director+ (check first — "Senior Director" should be director)
-  if (/\b(director|\bvp\b|vice president|head of|\bchief\b|\bcto\b|\bceo\b|\bcoo\b|\bcpo\b|\bciso\b|\bcmo\b|\bcfo\b|general manager|\bgm\b|president(?! of the))\b/i.test(title)) return 'director';
+  if (/\b(director|\bvp\b|vice president|head of|\bchief\b|\bcto\b|\bceo\b|\bcoo\b|\bcpo\b|\bciso\b|\bcmo\b|\bcfo\b|general manager|\bgm\b|president(?! of the)|ראש אגף|סמנכ"ל|מנכ"ל|ראש תחום|מנהל.?ת אגף|מנהל.?ת מערך|מנהל.?ת מחלקה)\b/i.test(title)) return 'director';
   // Advanced: Staff / Principal / Lead / Architect / L4–L5
   if (/\b(staff|principal|distinguished|fellow|\blead\b(?!.*generation)|architect|\bl[45]\b|level [45]|\biv\b(?= |$))\b/i.test(title)) return 'advanced';
   // Senior
-  if (/\b(senior|\bsr\.?\b|experienced|\bl[3]\b|level 3|\biii\b(?= |$))\b/i.test(title)) return 'senior';
+  if (/\b(senior|\bsr\.?\b|experienced|\bl[3]\b|level 3|\biii\b(?= |$)|בכיר|בכירה|ראשי|ראשית|אחראי.?ת)\b/i.test(title)) return 'senior';
   // Mid
-  if (/\b(mid[- ]?level|mid[- ]?senior|intermediate|\bl2\b|level 2|\bii\b(?= |$))\b/i.test(title)) return 'mid';
+  if (/\b(mid[- ]?level|mid[- ]?senior|intermediate|\bl2\b|level 2|\bii\b(?= |$)|מוסמך|מומחה|מומחית|מהנדס.?ת ראשי|רכז.?ת|מנהל.?ת מעבדה|מיישמ)\b/i.test(title)) return 'mid';
   // Entry / Junior
-  if (/\b(junior|\bjr\.?\b|entry[- ]?level|associate(?! (director|vp|manager|lead|dean))|new grad|graduate(?! (program manager|director))|fresher|trainee|\bl1\b|level 1|\bi\b(?= |$))\b/i.test(title)) return 'entry';
+  if (/\b(junior|\bjr\.?\b|entry[- ]?level|associate(?! (director|vp|manager|lead|dean))|new grad|graduate(?! (program manager|director))|fresher|trainee|\bl1\b|level 1|\bi\b(?= |$)|סטודנט|מתמחה|לבורנט)\b/i.test(title)) return 'entry';
   return '';
 }
 
@@ -1535,6 +1538,8 @@ function render(){
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
       +(r.deadline?'<span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
+      +(classifySegment(r.title)?'<span class="role-tag">'+esc(classifySegment(r.title))+'</span>':'')
+      +(classifyLevel(r.title)?'<span class="level-tag level-'+classifyLevel(r.title)+'">'+esc(classifyLevel(r.title))+'</span>':'')
       +'<span class="arrow">➝</span>'
       +'<button class="track-btn'+(tracked?' sent':'')+'" data-id="'+esc(jobId)+'" onclick="event.preventDefault();event.stopPropagation();toggleTrack(this.dataset.id)" title="Mark as sent">&#128236;</button>'
       +'</a>';
