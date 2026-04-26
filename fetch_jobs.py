@@ -372,6 +372,80 @@ def run_mitam():
         print(f"  x {e}")
 
 
+# ══ HUJI CAREER (student/junior jobs) ════════════════════════════════════════
+def run_huji():
+    print("\n-- HUJI Career (מרכז קריירה) ----------------------------------------")
+    import re as _re
+    from bs4 import BeautifulSoup as _BS
+    BASE_H   = "https://hujicareer.co.il"
+    JOBS_URL = BASE_H + "/jobs/"
+    REMOTE_KW = _re.compile(r'מהבית|remote', _re.I)
+    HYBRID_KW = _re.compile(r'היברידי|hybrid', _re.I)
+    LOC_KW = ["ירושלים","תל אביב","רמת גן","הרצליה","מהבית","חיפה",
+              "באר שבע","רחובות","פתח תקווה","ראשון לציון","נתניה"]
+
+    def fetch(url):
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=20)
+            if r.status_code == 404: return None
+            r.raise_for_status()
+            return _BS(r.text, "html.parser")
+        except Exception as e:
+            print(f"  [warn] {e}"); return None
+
+    def parse(soup):
+        jobs = []
+        cards = (soup.select("article") or soup.select(".elementor-post"))
+        for card in cards:
+            title_el = card.select_one("h4") or card.select_one("h3") or card.select_one("h2")
+            title = title_el.get_text(strip=True) if title_el else ""
+            if not title: continue
+            link_el = card.select_one("a[href*='/jobs/']")
+            url = ""
+            if link_el:
+                href = link_el.get("href","")
+                if href and href.rstrip("/") != BASE_H + "/jobs":
+                    url = href if href.startswith("http") else BASE_H + href
+            if not url: continue
+            text = card.get_text(" ", strip=True)
+            img = card.select_one("img[alt]")
+            company = img.get("alt","").strip() if img else ""
+            pub_date = ""
+            m = _re.search(r'(\d{2}/\d{2}/\d{4})', text)
+            if m:
+                p = m.group(1).split("/")
+                pub_date = f"{p[2]}-{p[1]}-{p[0]}"
+            location = next((kw for kw in LOC_KW if kw in text), "")
+            wt = ("hybrid" if HYBRID_KW.search(title+" "+text[:100])
+                  else "remote" if REMOTE_KW.search(title+" "+location)
+                  else "onsite")
+            jobs.append({"title": title, "company": company or "HUJI Career",
+                "location": location, "date": pub_date or TODAY, "url": url,
+                "department": "", "workplace_type": wt,
+                "level": "junior", "source": "huji"})
+        return jobs
+
+    all_jobs = []; seen = set()
+    for page in range(1, 20):
+        url = JOBS_URL if page == 1 else BASE_H + f"/jobs/page/{page}/"
+        soup = fetch(url)
+        if not soup: break
+        jobs = parse(soup)
+        if not jobs: break
+        new = 0
+        for j in jobs:
+            if j["url"] not in seen:
+                seen.add(j["url"]); all_jobs.append(j); new += 1
+        print(f"  Page {page}: +{new} (total {len(all_jobs)})")
+        if not soup.select_one("a.next.page-numbers, .nav-next a"): break
+        import time; time.sleep(0.5)
+
+    print(f"  + {len(all_jobs)}")
+    write_csv(all_jobs,
+        ["title","company","location","date","url","department","workplace_type","level","source"],
+        f"huji_jobs_{TODAY}.csv")
+
+
 # ── History snapshot ─────────────────────────────────────────────────────────
 def update_history():
     import os, csv as _csv
@@ -505,6 +579,7 @@ def main():
     run_workable({})
     run_mitam()
     run_weizmann()
+    run_huji()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")

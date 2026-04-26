@@ -16,6 +16,7 @@
   --cm:#00897b;--cm-pale:rgba(0,137,123,0.07);
   --mt:#7b3fa0;--mt-pale:rgba(123,63,160,0.07);
   --ac:#1a6b3a;--ac-pale:rgba(26,107,58,0.07);
+  --hj:#1a3a6b;--hj-pale:rgba(26,58,107,0.07);
   --gh:#2e7d32;--gh-pale:rgba(46,125,50,0.07);
   --lv:#c2410c;--lv-pale:rgba(194,65,12,0.07);
   --ab:#7c3aed;--ab-pale:rgba(124,58,237,0.07);
@@ -100,6 +101,8 @@
   .mt-row:hover .title{color:var(--mt);}
   .ac-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ac);}
   .ac-row:hover .title{color:var(--ac);}
+  .hj-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--hj);}
+  .hj-row:hover .title{color:var(--hj);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -298,6 +301,8 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--mt)"></span><span id="mtStatusText">Mitam: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--ac)"></span><span id="acStatusText">Academic: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--hj)"></span><span id="hjStatusText">HUJI Career: loading…</span></div>
 </div>
 
 <!-- Filters -->
@@ -367,6 +372,7 @@
       <option value="direct">Direct</option>
       <option value="mt">Mitam 🏛️</option>
       <option value="ac">Academic 🎓</option>
+      <option value="huji">HUJI Career</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -537,6 +543,7 @@ let TA_JOBS  = [];   // taasuka
 let SP_JOBS  = [];   // sponsored   // workable
 let MT_JOBS  = [];   // mitam NGO
 let AC_JOBS  = [];   // academic (Weizmann etc)
+let HJ_JOBS  = [];   // HUJI Career
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -564,6 +571,7 @@ const $taStatus  = document.getElementById('taStatusText');
 const $spStatus  = document.getElementById('spStatusText');
 const $mtStatus  = document.getElementById('mtStatusText');
 const $acStatus  = document.getElementById('acStatusText');
+const $hjStatus  = document.getElementById('hjStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -1133,6 +1141,57 @@ async function loadAcademic() {
   if ($acStatus) $acStatus.innerHTML = `Academic: <strong>${AC_JOBS.length.toLocaleString()} jobs</strong>`;
 }
 
+// ─── LOAD HUJI CAREER ────────────────────────────────────────────────────────
+function normHuji(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  if (!title) return null;
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  const wt = g('workplace_type').toLowerCase();
+  const workType = wt.includes('remote') || wt.includes('מהבית') ? 'remote'
+                 : wt.includes('hybrid') || wt.includes('היברידי') ? 'hybrid'
+                 : 'onsite';
+  return {
+    source: 'huji', fnArea: 'huji',
+    title, company: g('company') || 'HUJI Career',
+    category: g('department') || 'huji',
+    size: '', level: 'junior',
+    city: g('location'),
+    url: g('url'),
+    updated: g('date') || fnDate,
+    workType
+  };
+}
+
+async function loadHuji() {
+  if ($hjStatus) $hjStatus.innerHTML = 'HUJI Career: <span style="color:var(--ink-faint)">loading…</span>';
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const fname = `huji_jobs_${y}-${m}-${day}.csv`;
+    try {
+      const r = await fetch(LI_RAW + fname);
+      if (!r.ok) continue;
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
+        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
+      parsed.data.forEach(row => { const n = normHuji(row, fname); if (n) rows.push(n); });
+      break;
+    } catch(e) {}
+  }
+  if (rows.length === 0) {
+    if ($hjStatus) $hjStatus.innerHTML = 'HUJI Career: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+  const seen = new Set();
+  HJ_JOBS = rows.filter(r => {
+    const k = r.url || (r.company + '|' + r.title);
+    if (seen.has(k)) return false; seen.add(k); return true;
+  });
+  if ($hjStatus) $hjStatus.innerHTML = `HUJI Career: <strong>${HJ_JOBS.length.toLocaleString()} jobs</strong>`;
+}
+
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
   if(activeSrc==='techmap')  return TM_JOBS;
@@ -1146,8 +1205,9 @@ function getPool(){
   if(activeSrc==='direct') return SP_JOBS;
   if(activeSrc==='mt') return MT_JOBS;
   if(activeSrc==='ac') return AC_JOBS;
+  if(activeSrc==='huji') return HJ_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -1449,12 +1509,13 @@ function render(){
     const spBadge = r.source==='direct'?'<span class="sp-badge">★</span>':'';
     const mtBadge = r.source==='mt'?'<span class="mt-badge">MT</span>':'';
     const acBadge = r.source==='ac'?'<span class="ac-badge">🎓</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',ta:' ta-row',direct:' sp-row',mt:' mt-row',ac:' ac-row'})[r.source]||'';
+    const hjBadge = r.source==='huji'?'<span class="hj-badge">HUJI</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',ta:' ta-row',direct:' sp-row',mt:' mt-row',ac:' ac-row',huji:' hj-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+taBadge+spBadge+mtBadge+acBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+taBadge+spBadge+mtBadge+acBadge+hjBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
@@ -1576,7 +1637,8 @@ render();
     loadTaasuka(),
     loadSponsored(),
     loadMitam(),
-    loadAcademic()
+    loadAcademic(),
+    loadHuji()
   ]).catch(e=>{
     console.error('load error', e);
   });
@@ -1657,7 +1719,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TA_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
