@@ -145,7 +145,7 @@
   .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .company-cell{font-size:13px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .city-cell{font-size:12px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .city-cell{font-size:12px;color:var(--ink-faint);overflow:hidden;line-height:1.6;}
   .deadline{font-size:10px;color:#c0392b;font-family:"JetBrains Mono",monospace;white-space:nowrap;padding:1px 5px;border:1px solid #c0392b;border-radius:3px;margin-right:6px;}
   .role-tag{font-size:10px;color:#555;background:#f0f0f0;padding:1px 6px;border-radius:3px;white-space:nowrap;margin-right:4px;font-family:"JetBrains Mono",monospace;}
   .level-tag{font-size:10px;color:#fff;padding:1px 6px;border-radius:3px;white-space:nowrap;margin-right:4px;font-family:"JetBrains Mono",monospace;}
@@ -167,7 +167,7 @@
   .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .company-cell{font-size:13px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .city-cell{font-size:12px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .city-cell{font-size:12px;color:var(--ink-faint);overflow:hidden;line-height:1.6;}
   .source-cell{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
   .arrow{color:var(--rule);font-size:14px;}
   main{padding:0 24px 64px;}
@@ -266,7 +266,7 @@
     <span><span class="dot"></span>jobfinder</span>
     <span id="lastBuild">loading…</span>
   </div>
-  <h1>Israeli tech <span class="accent">jobs,</span><br>searched seriously.</h1>
+  <h1>Israeli Tech and Public Sector Jobs,<br><span class="accent">Searched Seriously.</span></h1>
   <p class="byline">
     Built by <a href="https://www.linkedin.com/in/jennysotnik/" target="_blank" rel="noopener">Jenny Sotnik Talisman</a> —
     turning the messy public data of the Israeli tech scene into actual signal.<br>
@@ -1473,10 +1473,11 @@ function render(){
       +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
-      +'<span class="city">'+esc(r.city||'—')+'</span>'
-      +(r.deadline?'<span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
+      +'<span class="city-cell">'+esc(r.city||'—')
+      +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
       +(classifySegment(r.title)?'<span class="role-tag">'+esc(classifySegment(r.title))+'</span>':'')
       +(classifyLevel(r.title)?'<span class="level-tag level-'+classifyLevel(r.title)+'">'+esc(classifyLevel(r.title))+'</span>':'')
+      +'</span>'
       +'<span class="arrow">➝</span>'
       +'<button class="track-btn'+(tracked?' sent':'')+'" data-id="'+esc(jobId)+'" onclick="event.preventDefault();event.stopPropagation();toggleTrack(this.dataset.id)" title="Mark as sent">&#128236;</button>'
       +'</a>';
