@@ -111,16 +111,6 @@
   .vbtn:hover{color:var(--ink);}
   .vbtn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(201,127,12,.04);}
 
-
-  /* ─── Searchable select dropdown ─── */
-  .sel-wrap{position:relative;display:inline-block;}
-  .sel-wrap select{padding-right:20px;}
-  .sel-search{display:none;position:absolute;top:100%;left:0;z-index:999;background:#fff;border:1px solid var(--rule);border-radius:3px;box-shadow:0 4px 12px rgba(0,0,0,.1);min-width:200px;}
-  .sel-search input{width:100%;padding:8px 10px;border:none;border-bottom:1px solid var(--rule);font-family:'Carlito',sans-serif;font-size:13px;outline:none;box-sizing:border-box;}
-  .sel-search ul{list-style:none;margin:0;padding:4px 0;max-height:200px;overflow-y:auto;}
-  .sel-search ul li{padding:6px 12px;font-size:13px;cursor:pointer;font-family:'Carlito',sans-serif;}
-  .sel-search ul li:hover,.sel-search ul li.active{background:rgba(201,127,12,.08);color:var(--accent);}
-
   /* ─── Analytics panel ─── */
   #analyticsPanel{padding:32px 48px 64px;display:none;}
   .an-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
@@ -905,12 +895,13 @@ function normTaasuka(row, fname){
   const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
   return {source:'ta', fnArea:'ta',
     title, company: g('company') || 'Taasuka',
-    city: g('location'), location: g('location'), date: g('date') || fnDate,
+    location: g('location'), date: g('date') || fnDate,
     url: g('url'), department: g('department'),
     workType: 'onsite', updated: g('date') || fnDate};
 }
 
-async function loadTaasuka(){
+async function loadTaasuka(),
+    loadSponsored(){
   // Taasuka is a live feed — only load the most recent dated CSV
   const rows=[];
   for(let i=0;i<=6;i++){
@@ -938,17 +929,14 @@ async function loadTaasuka(){
 
 function normSponsored(row, fname){
   const g = k => (row[k]==null?'':String(row[k]).trim());
-  const loc = g('location');
-  const wt  = (g('workplace_type')||'onsite').toLowerCase();
   return {source:'direct', fnArea:'direct',
     title:   g('title'),
     company: g('company'),
-    city:    loc,
-    location:loc,
+    location:g('location'),
     date:    g('date'),
     url:     g('url'),
     department: '',
-    workType: wt,
+    workType: (g('workplace_type')||'onsite').toLowerCase(),
     updated: g('date')};
 }
 
@@ -968,9 +956,7 @@ async function loadSponsored(){
   SP_JOBS=rows;
   if($spStatus) $spStatus.innerHTML=rows.length
     ? `Direct: <strong>${rows.length} jobs</strong>`
-    : `Direct: <span style="color:var(--ink-faint)">none</span>`;
-  populateDropdowns();
-  applyFilters();
+    : `Sponsored: <span style="color:var(--ink-faint)">none</span>`;
 }
 
 async function loadLever(){
@@ -1030,14 +1016,13 @@ function populateDropdowns(){
   const pool = getPool();
   const heLocale = (a,b)=>a.localeCompare(b,'he');
   const fill = (sel, key) => {
-    if(!sel) return;
     const cur = sel.value;
     while(sel.options.length>1) sel.remove(1);
     [...new Set(pool.map(r=>r[key]).filter(Boolean))].sort(heLocale)
       .forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
     if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
   };
-  fill($city,'city'); fill($company,'company');
+  fill($city,'city'); fill($company,'company'); 
 }
 
 
@@ -1092,61 +1077,6 @@ function highlightFilters(){
     const active = el.value !== '' && el.value !== undefined;
     field.classList.toggle('active', active);
   });
-}
-
-
-// ─── HEBREW CITY TRANSLATION MAP ─────────────────────────────────────────────
-const HE_CITIES = {
-  'תל אביב':'Tel Aviv','תל-אביב':'Tel Aviv','תל אביב יפו':'Tel Aviv',
-  'תל אביב-יפו':'Tel Aviv','יפו':'Jaffa',
-  'ירושלים':'Jerusalem','חיפה':'Haifa','באר שבע':'Beer Sheva',
-  'ראשון לציון':'Rishon LeZion','פתח תקווה':'Petah Tikva',
-  'אשדוד':'Ashdod','נתניה':'Netanya','בני ברק':'Bnei Brak',
-  'חולון':'Holon','רמת גן':'Ramat Gan','בת ים':'Bat Yam',
-  'רחובות':'Rehovot','הרצליה':'Herzliya','כפר סבא':'Kfar Saba',
-  'רעננה':'Raanana','מודיעין':'Modiin','מודיעין-מכבים-רעות':'Modiin',
-  'לוד':'Lod','רמלה':'Ramla','נצרת':'Nazareth','עפולה':'Afula',
-  'אשקלון':'Ashkelon','טבריה':'Tiberias','צפת':'Safed',
-  'קריית גת':'Kiryat Gat','קריית שמונה':'Kiryat Shmona',
-  'קריית ביאליק':'Kiryat Bialik','קריית ים':'Kiryat Yam',
-  'קריית מוצקין':'Kiryat Motzkin','קריית אתא':'Kiryat Ata',
-  'הוד השרון':'Hod HaSharon','רהט':'Rahat',
-  'קריית אונו':'Kiryat Ono','אור יהודה':'Or Yehuda','אלעד':'Elad',
-  'בית שמש':'Beit Shemesh','מעלה אדומים':'Maale Adumim',
-  'ראש העין':'Rosh HaAyin','כפר יונה':'Kfar Yona',
-  'נס ציונה':'Nes Ziona','יהוד':'Yehud','סגולה':'Segula',
-  'גדרה':'Gedera','יבנה':'Yavne','זכרון יעקב':'Zikhron Yaakov',
-  'חדרה':'Hadera','טירת כרמל':'Tirat Carmel','עכו':'Akko',
-  'נהריה':'Nahariya','מגדל העמק':'Migdal HaEmek',
-  'נשר':'Nesher','דימונה':'Dimona','אילת':'Eilat',
-  'אום אל-פחם':'Umm al-Fahm','טמרה':'Tamra','שפרעם':'Shfaram',
-  'סכנין':'Sakhnin','כרמיאל':'Karmiel','מצפה רמון':'Mitzpe Ramon',
-  'באר יעקב':'Beer Yaakov','יקנעם':'Yokneam','חריש':'Harish',
-  'צוקי ים':'Tzuk Yam','פרדס חנה':'Pardes Hanna',
-  'בנימינה':'Binyamina','זכרון יעקב':'Zikhron Yaakov',
-  'ראשון לציון':'Rishon LeZion',
-  'אבן יהודה':'Even Yehuda','כפר חסידים':'Kfar Hasidim',
-  'מבשרת ציון':'Mevaseret Zion','אבו גוש':"Abu Ghosh",
-  'גבעת שמואל':'Givat Shmuel','פתח תקוה':'Petah Tikva',
-  'בית דגן':'Beit Dagan','יהוד-מונוסון':'Yehud','קסריה':'Caesarea',
-  'נוף הגליל':'Nof HaGalil','שדרות':'Sderot','אופקים':'Ofakim',
-  'ערד':'Arad','יטבתה':'Yotvata','מצפה רמון':'Mitzpe Ramon',
-  'טירה':'Tira','קלנסווה':'Qalansawe',
-  'כפר קאסם':'Kafr Qasim','בסמת טבעון':'Basmat Tabun',
-  'אחיהוד':'Ahihud','שוהם':'Shoham',
-  'מרכז':'Center','צפון':'North','דרום':'South','שרון':'Sharon',
-  'שפלה':'Shephelah',
-};
-
-function translateCity(city) {
-  if (!city) return city;
-  // Check exact match
-  if (HE_CITIES[city]) return HE_CITIES[city];
-  // Check partial match for compound cities
-  for (const [he, en] of Object.entries(HE_CITIES)) {
-    if (city.includes(he)) return en;
-  }
-  return city; // return as-is if no translation found
 }
 
 // ─── SECTOR CLASSIFIER ───────────────────────────────────────────────────────
@@ -1365,73 +1295,6 @@ $more.addEventListener('click',()=>{visible+=PAGE;render();});
 $export.addEventListener('click',exportCSV);
 
 
-// ─── SEARCHABLE SELECT ───────────────────────────────────────────────────────
-function makeSearchable(selectEl) {
-  const wrap = document.createElement('div');
-  wrap.className = 'sel-wrap';
-  selectEl.parentNode.insertBefore(wrap, selectEl);
-  wrap.appendChild(selectEl);
-
-  const dropdown = document.createElement('div');
-  dropdown.className = 'sel-search';
-  dropdown.innerHTML = '<input placeholder="Search…" autocomplete="off"><ul></ul>';
-  wrap.appendChild(dropdown);
-
-  const input = dropdown.querySelector('input');
-  const ul    = dropdown.querySelector('ul');
-
-  function buildList(filter) {
-    ul.innerHTML = '';
-    const opts = [...selectEl.options].filter(o => o.value !== '');
-    const filtered = filter
-      ? opts.filter(o => o.textContent.toLowerCase().includes(filter.toLowerCase()))
-      : opts;
-    // Add "All" option
-    const allLi = document.createElement('li');
-    allLi.textContent = selectEl.options[0].textContent;
-    allLi.dataset.value = '';
-    ul.appendChild(allLi);
-    filtered.forEach(o => {
-      const li = document.createElement('li');
-      li.textContent = o.textContent;
-      li.dataset.value = o.value;
-      ul.appendChild(li);
-    });
-  }
-
-  // Open on select click
-  selectEl.addEventListener('mousedown', e => {
-    e.preventDefault();
-    selectEl.blur();
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-    input.value = '';
-    buildList('');
-    input.focus();
-  });
-
-  // Filter list on input
-  input.addEventListener('input', () => buildList(input.value));
-
-  // Select item on click
-  ul.addEventListener('click', e => {
-    const li = e.target.closest('li');
-    if (!li) return;
-    selectEl.value = li.dataset.value;
-    dropdown.style.display = 'none';
-    selectEl.dispatchEvent(new Event('change'));
-  });
-
-  // Close on outside click
-  document.addEventListener('click', e => {
-    if (!wrap.contains(e.target)) dropdown.style.display = 'none';
-  });
-
-  // Keyboard navigation
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Escape') dropdown.style.display = 'none';
-  });
-}
-
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
 (async()=>{
@@ -1450,8 +1313,6 @@ render();
   });
   $lastBuild.textContent='live · '+new Date().toISOString().slice(0,10);
   populateDropdowns();
-  makeSearchable($city);
-  makeSearchable($company);
   applyFilters();
 
   // Load techmap in background
