@@ -273,6 +273,54 @@ def run_workable(tm):
     write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'workable_jobs_{TODAY}.csv')
 
 
+# ══ MITAM (NGO / third sector) ═══════════════════════════════════════════════
+def run_mitam():
+    print("\n-- Mitam (מגזר שלישי) -----------------------------------------------")
+    SUPABASE_URL = "https://cbqnuxmnmimbdhmgfkwl.supabase.co/rest/v1/jobs"
+    API_KEY      = "sb_publishable_v6lGDz5AuEgjmXsbJot1ig_TRxyFTeh"
+    try:
+        r = requests.get(SUPABASE_URL,
+            params={
+                "select": "id,title,location,job_type,field,created_at,slug,organizations(name)",
+                "is_active": "eq.true",
+                "order": "created_at.desc",
+            },
+            headers={
+                "apikey": API_KEY,
+                "Authorization": f"Bearer {API_KEY}",
+                "Origin": "https://www.mitam-hr.org",
+                "Referer": "https://www.mitam-hr.org/",
+                "Accept": "application/json",
+            },
+            timeout=30)
+        if not r.ok:
+            print(f"  - {r.status_code} {r.text[:100]}")
+            return
+        raw = r.json()
+        jobs = []
+        for j in raw:
+            if not j.get("title"): continue
+            org  = j.get("organizations") or {}
+            name = org.get("name", "") if isinstance(org, dict) else ""
+            slug = j.get("slug") or str(j.get("id", ""))
+            url  = f"https://www.mitam-hr.org/jobs/{slug}" if slug else "https://www.mitam-hr.org/Jobs"
+            jobs.append({
+                "title":          (j.get("title") or "").strip(),
+                "company":        name or "עמותה",
+                "location":       (j.get("location") or "").strip(),
+                "date":           (j.get("created_at") or "")[:10] or TODAY,
+                "url":            url,
+                "department":     (j.get("field") or "").strip(),
+                "workplace_type": (j.get("job_type") or "").strip(),
+            })
+        print(f"  + {len(jobs)}")
+        write_csv(dedup_jobs(jobs),
+            ['title','company','location','date','url','department','workplace_type'],
+            f'mitam_jobs_{TODAY}.csv')
+    except Exception as e:
+        print(f"  x {e}")
+
+
 # ── History snapshot ─────────────────────────────────────────────────────────
 def update_history():
     import os, csv as _csv
@@ -404,6 +452,7 @@ def main():
     run_lever(lever)
     run_ashby({})
     run_workable({})
+    run_mitam()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
