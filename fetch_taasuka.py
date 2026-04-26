@@ -7,6 +7,12 @@ from datetime import date
 from bs4 import BeautifulSoup
 
 TODAY   = date.today().isoformat()
+
+# Run on Thursdays only (weekday 3). Skip otherwise unless forced.
+import sys
+if '--force' not in sys.argv and date.today().weekday() != 3:
+    print(f"Today is not Thursday — skipping Taasuka. Use --force to override.")
+    sys.exit(0)
 BASE    = 'https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs'
 JOB_URL = 'https://www.taasuka.gov.il/he/Applicants/jobdetails?jobid={}'
 HEADERS = {
