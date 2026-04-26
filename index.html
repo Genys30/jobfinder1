@@ -37,7 +37,7 @@
   .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);
     margin-right:8px;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;}
   @keyframes pulse{50%{opacity:.35;}}
-  h1{font-size:clamp(44px,7vw,96px);font-weight:700;font-style:italic;letter-spacing:-.02em;line-height:.95;}
+  h1{font-size:clamp(28px,4vw,56px);font-weight:700;font-style:italic;letter-spacing:-.02em;line-height:1.1;}
   h1 .accent{color:var(--accent);font-style:normal;font-weight:500;}
   .sub{margin-top:18px;max-width:640px;color:var(--ink-dim);font-size:16px;line-height:1.5;}
   .sub a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--ink-faint);text-underline-offset:3px;}
@@ -139,12 +139,12 @@
   .an-box{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:20px 24px;}.an-box canvas{max-height:220px;}
   .an-box-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:16px;}
   .an-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);margin-top:10px;text-align:center;}
-  a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+  a.job{display:grid;grid-template-columns:90px 1fr 200px 90px 140px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
   a.job:hover{background:rgba(201,127,12,.04);}
   .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
   .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .company-cell{font-size:13px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .category{display:none;}
   .city-cell{font-size:12px;color:var(--ink-faint);overflow:hidden;line-height:1.6;}
   .deadline{font-size:10px;color:#c0392b;font-family:"JetBrains Mono",monospace;white-space:nowrap;padding:1px 5px;border:1px solid #c0392b;border-radius:3px;margin-right:6px;}
   .role-tag{font-size:10px;color:#555;background:#f0f0f0;padding:1px 6px;border-radius:3px;white-space:nowrap;margin-right:4px;font-family:"JetBrains Mono",monospace;}
@@ -161,12 +161,12 @@
   @media(max-width:1100px){
     
     .reset{grid-column:1/-1;}
-    a.job{display:grid;grid-template-columns:90px 1fr 200px 120px 90px 140px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+    a.job{display:grid;grid-template-columns:90px 1fr 200px 90px 140px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
   a.job:hover{background:rgba(201,127,12,.04);}
   .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
   .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .company-cell{font-size:13px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .category{display:none;}
   .city-cell{font-size:12px;color:var(--ink-faint);overflow:hidden;line-height:1.6;}
   .source-cell{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
   .arrow{color:var(--rule);font-size:14px;}
@@ -1472,7 +1472,6 @@ function render(){
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
       +'<span class="title">'+esc(r.title)+levelBadge+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
-      +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
       +(classifySegment(r.title)?'<span class="role-tag">'+esc(classifySegment(r.title))+'</span>':'')
