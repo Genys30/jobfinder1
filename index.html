@@ -150,6 +150,7 @@
   .company-cell{font-size:13px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .category{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .city-cell{font-size:12px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .deadline{font-size:10px;color:#c0392b;font-family:"JetBrains Mono",monospace;white-space:nowrap;padding:1px 5px;border:1px solid #c0392b;border-radius:3px;margin-right:6px;}
   .source-cell{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);}
   .arrow{color:var(--rule);font-size:14px;}
   main{padding:0 24px 64px;}
@@ -605,6 +606,14 @@ function formatDate(s){
   return d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
 }
 
+function fmtDeadline(s){
+  const d = parseDate(s);
+  if(!d) return '';
+  return String(d.getDate()).padStart(2,'0')+'/'
+       + String(d.getMonth()+1).padStart(2,'0')+'/'
+       + String(d.getFullYear()).slice(2);
+}
+
 // Strip country/district from LinkedIn location: keep only city
 function cleanCity(loc){
   if(!loc) return '';
@@ -1050,6 +1059,7 @@ function normMitam(row, fname) {
     city: g('location'),
     url:  g('url'),
     updated: g('date') || fnDate,
+    deadline: g('deadline') || '',
     workType
   };
 }
@@ -1103,6 +1113,7 @@ function normAcademic(row, fname) {
     city: g('location'),
     url: g('url'),
     updated: g('date') || fnDate,
+    deadline: g('deadline') || '',
     workType: g('workplace_type')
   };
 }
@@ -1159,6 +1170,7 @@ function normHuji(row, fname) {
     city: g('location'),
     url: g('url'),
     updated: g('date') || fnDate,
+    deadline: g('deadline') || '',
     workType
   };
 }
@@ -1519,6 +1531,7 @@ function render(){
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="category">'+esc(r.category||'—')+'</span>'
       +'<span class="city">'+esc(r.city||'—')+'</span>'
+      +(r.deadline?'<span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
       +'<span class="arrow">➝</span>'
       +'<button class="track-btn'+(tracked?' sent':'')+'" data-id="'+esc(jobId)+'" onclick="event.preventDefault();event.stopPropagation();toggleTrack(this.dataset.id)" title="Mark as sent">&#128236;</button>'
       +'</a>';

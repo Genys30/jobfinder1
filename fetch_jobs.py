@@ -314,11 +314,12 @@ def run_bgu():
             jobs.append({"title": title.strip(),
                 "company": "אוניברסיטת בן-גוריון בנגב",
                 "location": "באר שבע",
-                "date": parse_date(date_str) if date_str else TODAY,
+                "date": TODAY,
+                "deadline": parse_date(date_str) if date_str else "",
                 "url": url or URL,
                 "department": "", "workplace_type": "onsite"})
         print(f"  + {len(jobs)}")
-        write_csv(jobs, ["title","company","location","date","url","department","workplace_type"],
+        write_csv(jobs, ["title","company","location","date","deadline","url","department","workplace_type"],
             f"bgu_jobs_{TODAY}.csv")
     except Exception as e:
         print(f"  x {e}")
