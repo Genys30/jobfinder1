@@ -140,7 +140,7 @@
   .an-box{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:20px 24px;}.an-box canvas{max-height:220px;}
   .an-box-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:16px;}
   .an-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-faint);margin-top:10px;text-align:center;}
-  a.job{display:grid;grid-template-columns:90px 1fr 160px 240px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+  a.job{display:grid;grid-template-columns:90px 1fr 160px 240px 24px 30px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
   a.job:hover{background:rgba(201,127,12,.04);}
   .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
   .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -162,7 +162,7 @@
   @media(max-width:1100px){
     
     .reset{grid-column:1/-1;}
-    a.job{display:grid;grid-template-columns:90px 1fr 160px 240px 24px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
+    a.job{display:grid;grid-template-columns:90px 1fr 160px 240px 24px 30px 30px;align-items:center;gap:0 16px;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;transition:background .12s;}
   a.job:hover{background:rgba(201,127,12,.04);}
   .job-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);white-space:nowrap;}
   .title{font-size:15px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -204,7 +204,12 @@
   }
 
   /* CV Tracker - Kanban */
-  .track-btn{display:inline-flex;align-items:center;justify-content:center;
+  .share-btn{display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:3px;border:1px solid var(--rule);
+    background:none;cursor:pointer;font-size:13px;color:var(--ink-dim);
+    transition:all .15s;flex-shrink:0;}
+  .share-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .share-btn.copied{background:var(--accent);border-color:var(--accent);color:#fff;}
     width:26px;height:26px;border:1px solid var(--rule);border-radius:3px;
     background:none;cursor:pointer;font-size:13px;color:var(--ink-faint);
     transition:all .15s;flex-shrink:0;margin-left:2px;}
@@ -1476,6 +1481,7 @@ function render(){
       +'</span>'
       +'<span class="arrow">➝</span>'
       +'<button class="track-btn'+(tracked?' sent':'')+'" data-id="'+esc(jobId)+'" onclick="event.preventDefault();event.stopPropagation();toggleTrack(this.dataset.id)" title="Mark as sent">&#128236;</button>'
+      +'<button class="share-btn" data-url="'+esc(r.url)+'" data-title="'+esc(r.title)+'" onclick="event.preventDefault();event.stopPropagation();shareJob(this)" title="Share">&#128279;</button>'
       +'</a>';
   }).join('');
   $moreWrap.style.display = FILTERED.length>visible?'block':'none';
@@ -1810,6 +1816,21 @@ function getApps(){
 }
 function saveApps(arr){ localStorage.setItem(TRACK_KEY, JSON.stringify(arr)); }
 function isTracked(id){ return getApps().some(function(a){ return a.id===id; }); }
+
+function shareJob(btn) {
+  const url   = btn.dataset.url;
+  const title = btn.dataset.title;
+  const text  = `Hey! I saw this position on jobfinder and thought of you. It looks like a great match: ${url}\nYou can find more roles like this at https://genys30.github.io/jobfinder/`;
+  if (navigator.share) {
+    navigator.share({ title, text, url }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      btn.textContent = '✓';
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '&#128279;'; }, 2000);
+    });
+  }
+}
 
 function toggleTrack(id){
   var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS);
