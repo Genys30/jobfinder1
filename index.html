@@ -1113,9 +1113,8 @@ async function loadAcademic() {
   }
   const seen = new Set();
   AC_JOBS = allRows.filter(r => {
-    const k = r.url && !r.url.includes('salesforce-sites.com')
-      ? r.url
-      : (r.company + '|' + r.title);
+    const sharedUrl = !r.url || r.url.includes('salesforce-sites.com') || r.url.includes('/recruitment/');
+    const k = sharedUrl ? (r.company + '|' + r.title) : r.url;
     if (seen.has(k)) return false; seen.add(k); return true;
   });
   if ($acStatus) $acStatus.innerHTML = `Academic: <strong>${AC_JOBS.length.toLocaleString()} jobs</strong>`;
