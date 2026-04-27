@@ -343,20 +343,13 @@
     <option value="30">30 days</option>
   </select>
   <select id="sector">
-    <option value="">Sector</option>
-    <option value="cyber">Cyber</option>
-    <option value="fintech">Fintech</option>
-    <option value="health">Health</option>
-    <option value="media">Media</option>
-    <option value="hardware">Hardware</option>
-    <option value="defence">Defence</option>
-    <option value="automotive">Auto</option>
-    <option value="gaming">Gaming</option>
-    <option value="public">Public</option>
-    <option value="industrial">Industrial</option>
-    <option value="retail">Retail</option>
-    <option value="agritech">Agritech</option>
-    <option value="foodtech">Foodtech</option>
+    <option value="">Employer Type</option>
+    <option value="startup">🚀 Startup / Scale-up</option>
+    <option value="private">🏢 Private</option>
+    <option value="public">🏛️ Public Sector</option>
+    <option value="academic">🎓 Academic / Research</option>
+    <option value="nonprofit">🤝 Nonprofit / NGO</option>
+    <option value="defence">🛡️ Defence</option>
   </select>
   <select id="source">
     <option value="">Source</option>
@@ -403,7 +396,7 @@
     </div>
     <div class="an-card" id="anCardSector">
       <div class="an-num" id="anTopSector">—</div>
-      <div class="an-label">Top sector</div>
+      <div class="an-label">Top employer type</div>
       <div class="an-sublabel" id="anTopSectorN"></div>
     </div>
     <div class="an-card" id="anCardRole">
@@ -1304,83 +1297,63 @@ function translateCity(city) {
 }
 
 // ─── SECTOR CLASSIFIER ───────────────────────────────────────────────────────
-// Known Israeli companies → sector (checked first, most reliable)
-const KNOWN_COMPANIES = {
-  'check point':'cyber','checkpoint':'cyber','cyberark':'cyber','wiz':'cyber',
-  'palo alto':'cyber','sentinelone':'cyber','claroty':'cyber','tenable':'cyber',
-  'snyk':'cyber','pentera':'cyber','armis':'cyber','cyera':'cyber',
-  'aqua security':'cyber','aquasec':'cyber','hunters':'cyber',
-  'sweet security':'cyber','orca security':'cyber','axonius':'cyber',
-  'wing security':'cyber','island':'cyber','cato networks':'cyber','cato':'cyber',
-  'perimeter 81':'cyber','cheq':'cyber','transmit security':'cyber',
-  'xm cyber':'cyber','vulcan':'cyber','radiflow':'cyber','cyolo':'cyber',
-  'tufin':'cyber','forescout':'cyber','varonis':'cyber','illusive':'cyber',
-  'morphisec':'cyber','silverfort':'cyber','cymulate':'cyber','sygnia':'cyber',
-  'grip security':'cyber','seemplicity':'cyber','veriti':'cyber','zafran':'cyber',
-  'fireblocks':'cyber','chainalysis':'cyber','opus security':'cyber',
-  'payoneer':'fintech','tipalti':'fintech','rapyd':'fintech','lemonade':'fintech',
-  'riskified':'fintech','forter':'fintech','melio':'fintech','etoro':'fintech',
-  'plus500':'fintech','fundbox':'fintech','hippo':'fintech',
-  'next insurance':'fintech','personetics':'fintech','sunbit':'fintech',
-  'credorax':'fintech','bluesnap':'fintech','simplex':'fintech','nuvei':'fintech',
-  'pagaya':'fintech','capitolis':'fintech','behalf':'fintech','lendbuzz':'fintech',
-  'orca bio':'health','zebra medical':'health','nanox':'health','brainsway':'health',
-  'earlysense':'health','itamar medical':'health','medigus':'health',
-  'todos medical':'health','nucleai':'health','ibex medical':'health',
-  'mdclone':'health','kahun':'health','aidoc':'health','tyto care':'health',
-  'datos health':'health','orcamp':'health',
-  'taboola':'media','outbrain':'media','kaltura':'media','perion':'media',
-  'ironsource':'media','wix':'media','sizmek':'media','undertone':'media',
-  'minute media':'media','minutemedia':'media',
-  'intel':'hardware','nvidia':'hardware','mobileye':'hardware','mellanox':'hardware',
-  'ceva':'hardware','tower semiconductor':'hardware','hailo':'hardware',
-  'valens':'hardware','sifive':'hardware','arbe':'hardware','innoviz':'hardware',
-  'elbit systems':'defence','rafael':'defence','iai':'defence',
-  'israel aerospace':'defence','controp':'defence','mer systems':'defence',
-  'elta systems':'defence','aeronautics':'defence','uvision':'defence','xtend':'defence',
-  'optibus':'automotive','via':'automotive','electreon':'automotive',
-  'ituran':'automotive','nexar':'automotive','autofleet':'automotive',
-  'karamba':'automotive','foretellix':'automotive','cipia':'automotive',
-  'playtika':'gaming','moon active':'gaming','papaya gaming':'gaming',
-  'plarium':'gaming','bagelcode':'gaming','jelly button':'gaming',
-  'dynamic yield':'retail','yotpo':'retail','global-e':'retail','global e':'retail',
-  'syte':'retail','finaloop':'retail','feedvisor':'retail',
-  'netafim':'agritech','taranis':'agritech','phytech':'agritech',
-  'cropx':'agritech','weedout':'agritech','prospera':'agritech',
-  'aleph farms':'foodtech','supermeat':'foodtech','future meat':'foodtech',
-  'redefine meat':'foodtech','remilk':'foodtech','imagindairy':'foodtech',
-}
-
-const SECTOR_KW = {
-  cyber:      /\b(cyber|cybersec|security(?!.*food|.*health|.*home)|firewall|malware|threat(?! intel)|siem|soar|edr\b|xdr\b|endpoint|zero.?trust|vulnerabilit|phish|penetrat|forensic|iam\b|encryption|ransomware|ciso|soc\b|deception|cspm|ciem|cnapp|appsec|devsecops)\b/i,
-  fintech:    /\b(fintech|payment|pay(?!pal)|bank(?!ing app)|financial(?! health)|credit(?! score firm)|insur(?!anc.*health)|invest(?!igation)|trading(?! card)|forex|crypto|blockchain|defi|wallet|lending|loan|mortgage|payroll|invoice|regtech|remittanc|treasury|neobank|open.?banking)\b/i,
-  health:     /\b(health(?! insurance tech)|medical|med(?:ical|tech|device)|bio(?:tech|pharma|med|informatic)|pharma|genomic|genetic|clinical|patient|therap|diagnos|imaging|surgic|oncol|cancer|drug(?! testing company)|digital health|telemedicin|wellness(?! app)|dental|cardio|neuro|radiol|patholog|specimen|laboratory|hospital)\b/i,
-  media:      /\b(media|adtech|ad.?tech|advertis|publisher|broadcast|streaming|video(?! security)|audio|entertainment|influencer|creator(?! tool)|content(?! security)|news(?!letter)|magazine|social(?! security))\b/i,
-  hardware:   /\b(semiconductor|chip(?! security)|silicon|processor|fpga|asic|embedded(?! security)|firmware|pcb\b|electronic|sensor(?! security)|radar|lidar|antenna|rf\b|optical|laser|photonic|robotic(?! security)|circuit|wafer|fab\b|foundry)\b/i,
-  defence:    /\b(defense|defence|military|army|navy|air force|weapon|missile|uav\b|unmanned|aerial(?! vehicle security)|aerospace|tactical|ballistic|idf\b|combat|surveillance(?! cyber)|countermeasure|drone(?! delivery)|ammunition)\b/i,
-  automotive: /\b(automotive|vehicle(?! security)|fleet(?! security)|\bev\b|electric vehicle|autonomous(?! security)|adas\b|self.?driving|telematics|v2x\b|connected car|smart(?! security).*car|mobility(?! pay)|charging(?! ev security))\b/i,
-  gaming:     /\b(gaming|casino|esport|lottery|mobile game|game studio|game developer|slot|poker|bingo|fantasy sport|metaverse(?! security))\b/i,
-  public:     /\b(government|municipal|govtech|gov.?tech|ministry|utilities|smart city|public sector|civic tech|e.?gov|federal|national(?! security))\b/i,
-  industrial: /\b(industrial(?! security)|manufacturing|factory|plant(?! based)|production(?! studio)|supply chain|logistics(?! tech)|warehouse|scada|plc\b|automation(?! marketing)|process control|iot(?! security)|industry 4|smart factory|predictive maintenance)\b/i,
-  retail:     /\b(retail|e.?commerce|ecommerce|marketplace|fashion|apparel|consumer goods|fmcg|grocery|supermarket|last.?mile|direct.?to.?consumer|dtc\b|brand(?! safety)|loyalty(?! security)|point.?of.?sale|pos\b)\b/i,
-  agritech:   /\b(agro|agritech|agriculture|agritech|farm(?!ed meat)|crop|irrigation|precision farm|soil(?! security)|fertilizer|livestock|dairy(?! tech)|plant(?! base).*tech|field(?! security)|harvest)\b/i,
-  foodtech:   /\b(food(?! security)|foodtech|food.?tech|nutrition|protein(?! security)|plant.?based|cultivated meat|cell.*meat|fermentation(?! bio)|beverage|restaurant(?! tech)|culinary|food safety|alternative protein|meat.*alternative)\b/i,
+// ── EMPLOYER TYPE CLASSIFIER ─────────────────────────────────────────────────
+// Known companies → employer type
+const KNOWN_EMPLOYER_TYPE = {
+  // Defence
+  'elbit':'defence','rafael':'defence','iai':'defence','israel aerospace':'defence',
+  'controp':'defence','elta':'defence','aeronautics':'defence','uvision':'defence',
+  'xtend':'defence','mer systems':'defence',
+  // Academic
+  'technion':'academic','weizmann':'academic','hebrew university':'academic',
+  'tel aviv university':'academic','bar ilan':'academic','ben gurion':'academic',
+  'bgu':'academic','huji':'academic','haifa university':'academic',
+  'open university':'academic','reichman':'academic','idc herzliya':'academic',
+  'ariel university':'academic',
+  // Public sector
+  'national insurance':'public','bituach leumi':'public','tax authority':'public',
+  'mas hachnasat':'public','bank of israel':'public','israel securities':'public',
+  'רשות ניירות':'public','civil service':'public',
+  // Nonprofit / NGO
+  'mitam':'nonprofit','joint':'nonprofit','jdc':'nonprofit','isoc':'nonprofit',
+  'tech for good':'nonprofit',
 };
 
-function classifySector(company, title, source) {
+// Source-based employer type (most reliable signal)
+const SOURCE_EMPLOYER_TYPE = {
+  'techmap':'startup', 'comeet':'startup', 'greenhouse':'startup',
+  'lv':'startup', 'ab':'startup', 'wk':'startup',
+  'linkedin':'private',
+  'mt':'nonprofit',
+  'ac':'academic',
+  'huji':'academic',
+};
 
-  const c = company.toLowerCase().trim();
-  // Check known companies first
-  for (const [name, sector] of Object.entries(KNOWN_COMPANIES)) {
-    if (c.includes(name)) return sector;
+function classifyEmployerType(company, title, source) {
+  const c = (company||'').toLowerCase().trim();
+
+  // 1. Known companies
+  for (const [name, type] of Object.entries(KNOWN_EMPLOYER_TYPE)) {
+    if (c.includes(name)) return type;
   }
-  // Keyword fallback
-  for (const [sector, re] of Object.entries(SECTOR_KW)) {
-    if (re.test(c)) return sector;
-  }
-  return '';
+
+  // 2. Source signal
+  const srcType = SOURCE_EMPLOYER_TYPE[source];
+  if (srcType) return srcType;
+
+  // 3. Keyword fallback on company name
+  if (/\b(university|universit|college|institute|academy|research center|מכון|אוניברסיטה|מכללה|טכניון|ויצמן)\b/i.test(c)) return 'academic';
+  if (/\b(ministry|municipal|government|city of|עיריית|משרד|רשות|ממשלת|לאומי|national insurance|מדינת)\b/i.test(c)) return 'public';
+  if (/\b(ngo|nonprofit|non.profit|foundation|association|עמותה|קרן|ארגון)\b/i.test(c)) return 'nonprofit';
+  if (/\b(defense|defence|military|rafael|elbit|aerospace|idf|צבא|ביטחון)\b/i.test(c)) return 'defence';
+
+  return 'private';
 }
 
+const SECTOR_LABELS = {
+  startup:'Startup / Scale-up', private:'Private', public:'Public Sector',
+  academic:'Academic / Research', nonprofit:'Nonprofit / NGO', defence:'Defence'
+};
 // ─── FILTER ──────────────────────────────────────────────────────────────────
 function applyFilters(){
   const q        = $q.value.trim().toLowerCase();
@@ -1411,7 +1384,7 @@ function applyFilters(){
     if(company   && r.company!==company)     return false;
     if(segFilter && classifySegment(r.title)!==segFilter)   return false;
     if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
-    if(secFilter && classifySector(r.company,r.title,r.source)!==secFilter)   return false;
+    if(secFilter && classifyEmployerType(r.company,r.title,r.source)!==secFilter)   return false;
     if(srcFilter && r.source!==srcFilter)    return false;
     if(wtFilter  && (r.workType||'')!==wtFilter) return false;
     if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q))) return false;
@@ -1617,7 +1590,7 @@ render();
 const CHART_INSTANCES = {};
 const PALETTE = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c','#b71c1c','#e65100','#01579b','#4a148c','#558b2f','#6d4c41'];
 const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern'};
-const SECTOR_LABELS = {cyber:'Cyber',fintech:'Fintech',health:'Health',media:'Media',hardware:'Hardware',defence:'Defence',automotive:'Auto',gaming:'Gaming',public:'Public',industrial:'Industrial',retail:'Retail',agritech:'Agritech',foodtech:'Foodtech'};
+const SECTOR_LABELS_OLD = {}; // replaced
 
 function destroyChart(id){ if(CHART_INSTANCES[id]){ CHART_INSTANCES[id].destroy(); delete CHART_INSTANCES[id]; } }
 function count(arr,fn){ const m={}; arr.forEach(r=>{ const k=fn(r); if(k){ m[k]=(m[k]||0)+1; } }); return m; }
@@ -1683,7 +1656,7 @@ async function renderAnalytics(){
 
   // ── Metric cards ──
   document.getElementById('anTotal').textContent = jobs.length.toLocaleString();
-  const bySector = count(jobs, r=>classifySector(r.company,r.title,r.source));
+  const bySector = count(jobs, r=>classifyEmployerType(r.company,r.title,r.source));
   const byRole   = count(jobs, r=>classifySegment(r.title));
   const topSec   = topN(bySector,1)[0];
   const topRole  = topN(byRole,1)[0];
@@ -1764,7 +1737,7 @@ async function renderAnalytics(){
     data:{labels:validSectors.map(k=>SECTOR_LABELS[k]||k),
       datasets:validRoles.map((role,i)=>({
         label:ROLE_LABELS[role]||role,
-        data:validSectors.map(sec=>jobs.filter(r=>classifySector(r.company,r.title,r.source)===sec&&classifySegment(r.title)===role).length),
+        data:validSectors.map(sec=>jobs.filter(r=>classifyEmployerType(r.company,r.title,r.source)===sec&&classifySegment(r.title)===role).length),
         backgroundColor:roleColors[i],borderRadius:2
       }))},
     options:{responsive:true,maintainAspectRatio:false,
