@@ -109,6 +109,7 @@
 
   .an-select{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;padding:4px 8px;border:1px solid var(--rule);background:#fff;color:var(--ink);border-radius:3px;cursor:pointer;}
   .an-select:focus{border-color:var(--accent);outline:none;}
+  .an-select.is-active{border-color:var(--accent);background:rgba(201,127,12,.08);color:var(--accent);font-weight:700;}
   /* ─── View toggle ─── */
   .view-toggle{display:flex;gap:0;border-bottom:1px solid var(--rule);background:rgba(245,241,232,.6);}
   .vbtn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
@@ -1383,6 +1384,12 @@ const SECTOR_LABELS = {
 };
 // ─── FILTER ──────────────────────────────────────────────────────────────────
 function applyFilters(){
+  // mark active filters
+  [$city,$company,$segment,$level,$date,$sector,$source,$worktype].forEach(el=>{
+    if(!el) return;
+    el.classList.toggle('is-active', el.value !== '');
+  });
+  if($q) $q.style.borderColor = $q.value.trim() ? 'var(--accent)' : '';
   const q        = $q.value.trim().toLowerCase();
   const city     = $city.value;
   const company  = $company.value;
@@ -1503,12 +1510,15 @@ let qTimer;
 $q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFilters,120);});
 [$city,$company,$date,$level,$segment,$sector,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
 $reset.addEventListener('click',()=>{
-  $q.value='';$city.value='';$company.value='';$date.value='';
+  $q.value='';$q.style.borderColor='';$city.value='';$company.value='';$date.value='';
   if($level)$level.value='';
   if($segment)$segment.value='';
   if($sector)$sector.value='';
   if($source)$source.value='';
   if($worktype)$worktype.value='';
+  [$city,$company,$segment,$level,$date,$sector,$source,$worktype].forEach(el=>{
+    if(el) el.classList.remove('is-active');
+  });
   applyFilters();
 });
 $more.addEventListener('click',()=>{visible+=PAGE;render();});
