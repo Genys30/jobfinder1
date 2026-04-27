@@ -28,6 +28,6 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add comeet_jobs_*.csv greenhouse_jobs_*.csv
+          git add comeet_jobs_*.csv greenhouse_jobs_*.csv bgu_extra_jobs_*.csv
           git diff --staged --quiet || git commit -m "chore: jobs update $(date -u +%Y-%m-%d)"
           git push
