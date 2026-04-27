@@ -1818,11 +1818,22 @@ function saveApps(arr){ localStorage.setItem(TRACK_KEY, JSON.stringify(arr)); }
 function isTracked(id){ return getApps().some(function(a){ return a.id===id; }); }
 
 function shareJob(btn) {
-  const url   = btn.dataset.url;
-  const title = btn.dataset.title;
-  const text  = `Hey! I saw this position on jobfinder and thought of you. It looks like a great match: ${url}\nYou can find more roles like this at https://genys30.github.io/jobfinder/`;
+  const rawUrl = btn.dataset.url;
+  const title  = btn.dataset.title;
+  // Strip tracking params — keep only clean base URL
+  let cleanUrl = rawUrl;
+  try {
+    const u = new URL(rawUrl);
+    if (u.hostname.includes('linkedin.com')) {
+      const match = u.pathname.match(/\/jobs\/view\/(\d+)/);
+      cleanUrl = match ? `https://www.linkedin.com/jobs/view/${match[1]}/` : u.origin + u.pathname;
+    } else {
+      cleanUrl = u.origin + u.pathname + (u.search.length < 60 ? u.search : '');
+    }
+  } catch(e) {}
+  const text = `Hey! I saw this position on jobfinder and thought of you. It looks like a great match: ${cleanUrl}\nYou can find more roles like this at https://genys30.github.io/jobfinder/`;
   if (navigator.share) {
-    navigator.share({ title, text, url }).catch(()=>{});
+    navigator.share({ title, text }).catch(()=>{});
   } else {
     navigator.clipboard.writeText(text).then(() => {
       btn.classList.add('copied');
