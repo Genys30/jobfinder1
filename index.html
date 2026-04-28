@@ -18,6 +18,7 @@
   --ac:#1a6b3a;--ac-pale:rgba(26,107,58,0.07);
   --wz:#1a6b3a;--bgu:#2d6b1a;--tn:#6b3a1a;
   --hj:#1a3a6b;--hj-pale:rgba(26,58,107,0.07);
+  --ha:#2c5f8a;--ha-pale:rgba(44,95,138,0.07);
   --gh:#2e7d32;--gh-pale:rgba(46,125,50,0.07);
   --lv:#c2410c;--lv-pale:rgba(194,65,12,0.07);
   --ab:#7c3aed;--ab-pale:rgba(124,58,237,0.07);
@@ -100,6 +101,8 @@
   .ac-row:hover .title{color:var(--ac);}
   .hj-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--hj);}
   .hj-row:hover .title{color:var(--hj);}
+  .huji-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ha);}
+  .huji-row:hover .title{color:var(--ha);}
   .tau-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ta);}
   .tau-row:hover .title{color:var(--ta);}
   .li-row:hover .title{color:var(--li);}
@@ -314,7 +317,9 @@
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--tn)"></span><span id="tnStatusText">Technion: loading…</span></div>
   <span class="databar-sep">·</span>
-  <div class="datasrc"><span class="src-dot" style="background:var(--hj)"></span><span id="hjStatusText">HUJI Career: loading…</span></div>
+  <div class="datasrc"><span class="src-dot" style="background:var(--hj)"></span><span id="hjStatusText">HUJI Alumni Career: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--ha)"></span><span id="hujiStatusText">HUJI: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--ta)"></span><span id="tauStatusText">TAU: loading…</span></div>
 </div>
@@ -381,7 +386,8 @@
       <option value="weizmann">Weizmann 🔬</option>
       <option value="bgu">BGU 🎓</option>
       <option value="technion">Technion 🎓</option>
-      <option value="huji">HUJI Career</option>
+      <option value="huji-alumni">HUJI Alumni Career</option>
+      <option value="huji">HUJI 🎓</option>
       <option value="tau">TAU 🎓</option>
   </select>
   <select id="worktype">
@@ -552,7 +558,8 @@ let WK_JOBS  = [];
 let SP_JOBS  = [];   // sponsored   // workable
 let MT_JOBS  = [];   // mitam NGO
 let AC_JOBS  = [];   // academic (Weizmann etc)
-let HJ_JOBS  = [];   // HUJI Career
+let HJ_JOBS  = [];   // HUJI Alumni Career
+let HUJI_JOBS = [];  // HUJI positions
 let TAU_JOBS = [];   // TAU (אוניברסיטת תל אביב)
 let FILTERED = [];
 let visible  = PAGE;
@@ -582,6 +589,7 @@ const $spStatus  = document.getElementById('spStatusText');
 const $mtStatus  = document.getElementById('mtStatusText');
 const $acStatus  = document.getElementById('acStatusText');
 const $hjStatus  = document.getElementById('hjStatusText');
+const $hujiStatus = document.getElementById('hujiStatusText');
 const $tauStatus = document.getElementById('tauStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
@@ -1139,7 +1147,7 @@ async function loadAcademic() {
   if($tnStatus) $tnStatus.innerHTML=`Technion: <strong>${tnCount} jobs</strong>`;
 }
 
-// ─── LOAD HUJI CAREER ────────────────────────────────────────────────────────
+// ─── LOAD HUJI ALUMNI CAREER ─────────────────────────────────────────────────
 function normHuji(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
   const title = g('title').split('\n')[0].trim();
@@ -1150,9 +1158,9 @@ function normHuji(row, fname) {
                  : wt.includes('hybrid') || wt.includes('היברידי') ? 'hybrid'
                  : 'onsite';
   return {
-    source: 'huji', fnArea: 'huji',
-    title, company: g('company') || 'HUJI Career',
-    category: g('department') || 'huji',
+    source: 'huji-alumni', fnArea: 'huji-alumni',
+    title, company: g('company') || 'HUJI Alumni Career',
+    category: g('department') || 'huji-alumni',
     size: '', level: 'junior',
     city: g('location'),
     url: g('url'),
@@ -1163,12 +1171,12 @@ function normHuji(row, fname) {
 }
 
 async function loadHuji() {
-  if ($hjStatus) $hjStatus.innerHTML = 'HUJI Career: <span style="color:var(--ink-faint)">loading…</span>';
+  if ($hjStatus) $hjStatus.innerHTML = 'HUJI Alumni Career: <span style="color:var(--ink-faint)">loading…</span>';
   const rows = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(); d.setDate(d.getDate() - i);
     const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
-    const fname = `huji_jobs_${y}-${m}-${day}.csv`;
+    const fname = `huji_alumni_jobs_${y}-${m}-${day}.csv`;
     try {
       const r = await fetch(LI_RAW + fname);
       if (!r.ok) continue;
@@ -1180,7 +1188,7 @@ async function loadHuji() {
     } catch(e) {}
   }
   if (rows.length === 0) {
-    if ($hjStatus) $hjStatus.innerHTML = 'HUJI Career: <span style="color:var(--ink-faint)">no file yet</span>';
+    if ($hjStatus) $hjStatus.innerHTML = 'HUJI Alumni Career: <span style="color:var(--ink-faint)">no file yet</span>';
     return;
   }
   const seen = new Set();
@@ -1188,7 +1196,59 @@ async function loadHuji() {
     const k = r.url || (r.company + '|' + r.title);
     if (seen.has(k)) return false; seen.add(k); return true;
   });
-  if ($hjStatus) $hjStatus.innerHTML = `HUJI Career: <strong>${HJ_JOBS.length.toLocaleString()} jobs</strong>`;
+  if ($hjStatus) $hjStatus.innerHTML = `HUJI Alumni Career: <strong>${HJ_JOBS.length.toLocaleString()} jobs</strong>`;
+}
+
+// ─── LOAD HUJI POSITIONS (האוניברסיטה העברית - משרות פנימיות) ────────────────
+function normHujiPositions(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  if (!title) return null;
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  return {
+    source: 'huji', fnArea: 'huji',
+    title,
+    company: 'האוניברסיטה העברית בירושלים',
+    category: 'administrative',
+    size: '', level: '',
+    city: g('campus') || 'ירושלים',
+    url: g('url'),
+    updated: g('date') || fnDate,
+    deadline: g('deadline') || '',
+    department: g('department'),
+    description: g('description'),
+    requirements: g('requirements'),
+    workType: 'onsite'
+  };
+}
+
+async function loadHujiPositions() {
+  if ($hujiStatus) $hujiStatus.innerHTML = 'HUJI: <span style="color:var(--ink-faint)">loading…</span>';
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const fname = `huji_positions_${y}-${m}-${day}.csv`;
+    try {
+      const r = await fetch(LI_RAW + fname);
+      if (!r.ok) continue;
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
+        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
+      parsed.data.forEach(row => { const n = normHujiPositions(row, fname); if (n) rows.push(n); });
+      break;
+    } catch(e) {}
+  }
+  if (rows.length === 0) {
+    if ($hujiStatus) $hujiStatus.innerHTML = 'HUJI: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+  const seen = new Set();
+  HUJI_JOBS = rows.filter(r => {
+    const k = r.url || (r.company + '|' + r.title);
+    if (seen.has(k)) return false; seen.add(k); return true;
+  });
+  if ($hujiStatus) $hujiStatus.innerHTML = `HUJI: <strong>${HUJI_JOBS.length.toLocaleString()} jobs</strong>`;
 }
 
 // ─── LOAD TAU (אוניברסיטת תל אביב) ─────────────────────────────────────────
@@ -1258,10 +1318,11 @@ function getPool(){
   if(activeSrc==='bgu') return AC_JOBS.filter(r=>r.source==='bgu');
   if(activeSrc==='technion') return AC_JOBS.filter(r=>r.source==='technion');
   if(activeSrc==='ac') return AC_JOBS;
-  if(activeSrc==='huji') return HJ_JOBS;
+  if(activeSrc==='huji-alumni') return HJ_JOBS;
+  if(activeSrc==='huji') return HUJI_JOBS;
   if(activeSrc==='tau')  return TAU_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -1417,7 +1478,7 @@ const SOURCE_EMPLOYER_TYPE = {
   'linkedin':'private',
   'mt':'nonprofit',
   'ac':'academic','weizmann':'academic','bgu':'academic','technion':'academic',
-  'huji':'academic','tau':'academic',
+  'huji':'academic','huji-alumni':'academic','tau':'academic',
 };
 
 function classifyEmployerType(company, title, source) {
@@ -1534,14 +1595,15 @@ function render(){
     const spBadge = r.source==='direct'?'<span class="sp-badge">★</span>':'';
     const mtBadge = r.source==='mt'?'<span class="mt-badge">MT</span>':'';
     const acBadge = r.source==='ac'?'<span class="ac-badge">🎓</span>':'';
-    const hjBadge = r.source==='huji'?'<span class="hj-badge">HUJI</span>':'';
+    const hjBadge  = r.source==='huji-alumni'?'<span class="hj-badge">Alumni</span>':'';
+    const hujiBadge = r.source==='huji'?'<span class="huji-badge">HUJI</span>':'';
     const tauBadge = r.source==='tau'?'<span class="tau-badge">TAU</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row',huji:' hj-row',tau:' tau-row'})[r.source]||'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+tauBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -1671,6 +1733,7 @@ render();
     loadMitam(),
     loadAcademic(),
     loadHuji(),
+    loadHujiPositions(),
     loadTAU()
   ]).catch(e=>{
     console.error('load error', e);
@@ -1752,7 +1815,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -1917,7 +1980,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS);
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){

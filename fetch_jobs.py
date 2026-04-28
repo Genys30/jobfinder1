@@ -422,9 +422,9 @@ def run_mitam():
         print(f"  x {e}")
 
 
-# ══ HUJI CAREER (student/junior jobs) ════════════════════════════════════════
+# ══ HUJI ALUMNI CAREER (student/junior jobs) ══════════════════════════════════
 def run_huji():
-    print("\n-- HUJI Career (מרכז קריירה) ----------------------------------------")
+    print("\n-- HUJI Alumni Career (מרכז קריירה) ----------------------------------")
     import re as _re
     from bs4 import BeautifulSoup as _BS
     BASE_H   = "https://hujicareer.co.il"
@@ -445,14 +445,12 @@ def run_huji():
 
     def parse(soup):
         jobs = []
-        # JetEngine listing: each card is an article, title in h4.jet-listing-dynamic-field__content
         cards = soup.select("article") or soup.select(".jet-listing-grid__item")
         for card in cards:
             title_el = card.select_one("h4.jet-listing-dynamic-field__content") or \
                        card.select_one("h4") or card.select_one("h3")
             title = title_el.get_text(strip=True) if title_el else ""
             if not title: continue
-            # URL from elementor button link
             link_el = card.select_one("a.elementor-button") or card.select_one("a[href*='/jobs/']")
             url = ""
             if link_el:
@@ -463,7 +461,6 @@ def run_huji():
             text = card.get_text(" ", strip=True)
             img = card.select_one("img[alt]")
             company = img.get("alt","").strip() if img else ""
-            # Clean up company name (remove "ירושלים" etc if it leaked in)
             if company and len(company) > 40: company = ""
             pub_date = ""
             m = _re.search(r'(\d{2}/\d{2}/\d{4})', text)
@@ -474,10 +471,10 @@ def run_huji():
             wt = ("hybrid" if HYBRID_KW.search(title+" "+text[:100])
                   else "remote" if REMOTE_KW.search(title+" "+location)
                   else "onsite")
-            jobs.append({"title": title, "company": company or "HUJI Career",
+            jobs.append({"title": title, "company": company or "HUJI Alumni Career",
                 "location": location, "date": pub_date or TODAY, "url": url,
                 "department": "", "workplace_type": wt,
-                "level": "junior", "source": "huji"})
+                "level": "junior", "source": "huji-alumni"})
         return jobs
 
     all_jobs = []; seen = set()
@@ -498,7 +495,127 @@ def run_huji():
     print(f"  + {len(all_jobs)}")
     write_csv(all_jobs,
         ["title","company","location","date","url","department","workplace_type","level","source"],
-        f"huji_jobs_{TODAY}.csv")
+        f"huji_alumni_jobs_{TODAY}.csv")
+
+
+# ══ HUJI POSITIONS (האוניברסיטה העברית - משרות פנימיות) ══════════════════════
+def run_huji_positions():
+    print("\n-- HUJI Positions (האוניברסיטה העברית בירושלים) ----------------------")
+    from bs4 import BeautifulSoup as _BS
+    import time, re as _re
+
+    SEARCH_URL = "https://huji.hunterhrms.com/search-results/"
+    BASE = "https://huji.hunterhrms.com"
+
+    def fetch_page(url):
+        try:
+            r = requests.get(url, headers={**HEADERS,
+                "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
+                "Referer": "https://huji.hunterhrms.com/"}, timeout=30)
+            r.raise_for_status()
+            return _BS(r.text, "html.parser")
+        except Exception as e:
+            print(f"  [warn] {e}")
+            return None
+
+    def parse_deadline(s):
+        m = _re.search(r'(\d{1,2})[/.](\d{1,2})[/.](\d{4})', s)
+        if m:
+            return f"{m.group(3)}-{m.group(2).zfill(2)}-{m.group(1).zfill(2)}"
+        return ""
+
+    def fetch_description(jobcode):
+        url = f"{BASE}/job-details/?jobcode={jobcode}"
+        soup = fetch_page(url)
+        if not soup:
+            return "", "", url
+        desc, reqs = "", ""
+        full_text = soup.get_text("\n", strip=True)
+        for marker in ["תיאור המשרה", "תיאור התפקיד:"]:
+            if marker in full_text:
+                after = full_text.split(marker, 1)[1]
+                for stop in ["דרישות המשרה", "דרישות התפקיד:", "הערות", "כפיפות:"]:
+                    if stop in after:
+                        after = after.split(stop, 1)[0]
+                desc = after.strip()
+                break
+        for marker in ["דרישות המשרה", "דרישות התפקיד:"]:
+            if marker in full_text:
+                after = full_text.split(marker, 1)[1]
+                for stop in ["הערות", "כפיפות:", "היקף משרה:", "במסגרת מדיניות"]:
+                    if stop in after:
+                        after = after.split(stop, 1)[0]
+                reqs = after.strip()
+                break
+        return desc, reqs, url
+
+    # ── Scrape listing page ───────────────────────────────────────────────────
+    soup = fetch_page(SEARCH_URL)
+    if not soup:
+        print("  x could not fetch HUJI positions page")
+        return
+
+    jobs = []
+    seen = set()
+
+    for wrap in soup.select(".job-wrap"):
+        label = wrap.select_one("label.job-title")
+        if not label:
+            continue
+        jobcode = label.get("for", "").strip()
+        if not jobcode or jobcode in seen:
+            continue
+        seen.add(jobcode)
+
+        title = label.get_text(strip=True)
+        # Remove checkbox text noise
+        title = _re.sub(r'\s+', ' ', title).strip()
+
+        campus_el = wrap.select_one("p.kampus")
+        campus = campus_el.get_text(strip=True) if campus_el else "ירושלים"
+
+        # Deadline
+        deadline_raw = ""
+        for el in wrap.select(".last-date, .date"):
+            t = el.get_text(strip=True)
+            if _re.search(r'\d{2}/\d{2}/\d{4}', t):
+                deadline_raw = t
+                break
+        deadline = parse_deadline(deadline_raw)
+
+        jobs.append({
+            "title": title,
+            "company": "האוניברסיטה העברית בירושלים",
+            "location": "ירושלים",
+            "date": TODAY,
+            "deadline": deadline,
+            "jobcode": jobcode,
+            "campus": campus,
+            "department": "",
+            "workplace_type": "onsite",
+            "description": "",
+            "requirements": "",
+            "url": "",
+        })
+
+    print(f"  Found {len(jobs)} listings — fetching descriptions...")
+
+    for i, job in enumerate(jobs, 1):
+        desc, reqs, url = fetch_description(job["jobcode"])
+        job["description"] = desc
+        job["requirements"] = reqs
+        job["url"] = url
+        print(f"  [{i}/{len(jobs)}] {job['title'][:60]}")
+        time.sleep(0.4)
+
+    print(f"  + {len(jobs)}")
+    write_csv(
+        jobs,
+        ["title", "company", "location", "date", "deadline", "url",
+         "jobcode", "campus", "department", "workplace_type",
+         "description", "requirements"],
+        f"huji_positions_{TODAY}.csv"
+    )
 
 
 # ══ TECHNION HR (טכניון - מכון טכנולוגי לישראל) ══════════════════════════════
@@ -792,6 +909,7 @@ def main():
     run_weizmann()
     run_bgu()
     run_huji()
+    run_huji_positions()
     run_technion()
     run_tau()
     print("\nUpdating history...")
