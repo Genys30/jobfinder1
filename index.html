@@ -100,6 +100,8 @@
   .ac-row:hover .title{color:var(--ac);}
   .hj-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--hj);}
   .hj-row:hover .title{color:var(--hj);}
+  .tau-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ta);}
+  .tau-row:hover .title{color:var(--ta);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -313,6 +315,8 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--tn)"></span><span id="tnStatusText">Technion: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--hj)"></span><span id="hjStatusText">HUJI Career: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--ta)"></span><span id="tauStatusText">TAU: loading…</span></div>
 </div>
 
 <!-- Filters -->
@@ -337,6 +341,7 @@
     <option value="support">CS</option>
     <option value="management">Mgmt</option>
     <option value="intern">Intern</option>
+    <option value="administrative">Administrative</option>
   </select>
   <select id="level">
     <option value="">Level</option>
@@ -377,6 +382,7 @@
       <option value="bgu">BGU 🎓</option>
       <option value="technion">Technion 🎓</option>
       <option value="huji">HUJI Career</option>
+      <option value="tau">TAU 🎓</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -547,6 +553,7 @@ let SP_JOBS  = [];   // sponsored   // workable
 let MT_JOBS  = [];   // mitam NGO
 let AC_JOBS  = [];   // academic (Weizmann etc)
 let HJ_JOBS  = [];   // HUJI Career
+let TAU_JOBS = [];   // TAU (אוניברסיטת תל אביב)
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -575,6 +582,7 @@ const $spStatus  = document.getElementById('spStatusText');
 const $mtStatus  = document.getElementById('mtStatusText');
 const $acStatus  = document.getElementById('acStatusText');
 const $hjStatus  = document.getElementById('hjStatusText');
+const $tauStatus = document.getElementById('tauStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -1183,6 +1191,58 @@ async function loadHuji() {
   if ($hjStatus) $hjStatus.innerHTML = `HUJI Career: <strong>${HJ_JOBS.length.toLocaleString()} jobs</strong>`;
 }
 
+// ─── LOAD TAU (אוניברסיטת תל אביב) ─────────────────────────────────────────
+function normTAU(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  if (!title) return null;
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  return {
+    source: 'tau', fnArea: 'tau',
+    title,
+    company: g('company') || 'אוניברסיטת תל אביב',
+    category: 'administrative',
+    size: '', level: '',
+    city: g('location') || 'תל אביב',
+    url: g('url'),
+    updated: g('date') || fnDate,
+    deadline: g('deadline') || '',
+    department: g('department'),
+    description: g('description'),
+    requirements: g('requirements'),
+    workType: 'onsite'
+  };
+}
+
+async function loadTAU() {
+  if ($tauStatus) $tauStatus.innerHTML = 'TAU: <span style="color:var(--ink-faint)">loading…</span>';
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const fname = `tau_jobs_${y}-${m}-${day}.csv`;
+    try {
+      const r = await fetch(LI_RAW + fname);
+      if (!r.ok) continue;
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
+        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
+      parsed.data.forEach(row => { const n = normTAU(row, fname); if (n) rows.push(n); });
+      break;
+    } catch(e) {}
+  }
+  if (rows.length === 0) {
+    if ($tauStatus) $tauStatus.innerHTML = 'TAU: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+  const seen = new Set();
+  TAU_JOBS = rows.filter(r => {
+    const k = r.url || (r.company + '|' + r.title);
+    if (seen.has(k)) return false; seen.add(k); return true;
+  });
+  if ($tauStatus) $tauStatus.innerHTML = `TAU: <strong>${TAU_JOBS.length.toLocaleString()} jobs</strong>`;
+}
+
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
   if(activeSrc==='techmap')  return TM_JOBS;
@@ -1199,8 +1259,9 @@ function getPool(){
   if(activeSrc==='technion') return AC_JOBS.filter(r=>r.source==='technion');
   if(activeSrc==='ac') return AC_JOBS;
   if(activeSrc==='huji') return HJ_JOBS;
+  if(activeSrc==='tau')  return TAU_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -1234,6 +1295,7 @@ const SEGMENTS = {
   marketing:  /\b(marketing|growth|content|seo|sem|brand|demand generation|campaign|copywriter|social media|pr\b|public relations|communications|field marketing|product marketing)\b|שיווק|קמפיין/i,
   support:    /\b(customer success|customer support|technical support|implementation|solutions engineer|solution consultant|integration engineer|onboarding|professional services|client success|support engineer)\b|יועץ.ת חינוכי/i,
   operations: /\b(hr\b|human resources|recruiter|talent acquisition|people ops|finance|accounting|legal|counsel|procurement|office manager|operations|ops\b|admin|executive assistant|ea\b|it manager|information technology|supply chain|logistics|biz ops|revenue ops|sales ops)\b|ראש לשכה|מנהל.ת לשכה|משאבי אנוש|רכז.ת|ביקורת פנים|בטיחות|ספרי|ספרנ|אחזקה|כלכלנ|חשבות|מנהח"ש/i,
+  administrative: /רכז.ת מינהל|מנהל.ת מינהל|מנהל.ת משרד|מינהל.ת|סגל מנהלי|אדמיניסטרציה|administrative|coordinator|administrator/i,
 };
 
 function classifySegment(title) {
@@ -1355,7 +1417,7 @@ const SOURCE_EMPLOYER_TYPE = {
   'linkedin':'private',
   'mt':'nonprofit',
   'ac':'academic','weizmann':'academic','bgu':'academic','technion':'academic',
-  'huji':'academic',
+  'huji':'academic','tau':'academic',
 };
 
 function classifyEmployerType(company, title, source) {
@@ -1473,12 +1535,13 @@ function render(){
     const mtBadge = r.source==='mt'?'<span class="mt-badge">MT</span>':'';
     const acBadge = r.source==='ac'?'<span class="ac-badge">🎓</span>':'';
     const hjBadge = r.source==='huji'?'<span class="hj-badge">HUJI</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row',huji:' hj-row'})[r.source]||'';
+    const tauBadge = r.source==='tau'?'<span class="tau-badge">TAU</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row',huji:' hj-row',tau:' tau-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+tauBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -1607,7 +1670,8 @@ render();
     loadSponsored(),
     loadMitam(),
     loadAcademic(),
-    loadHuji()
+    loadHuji(),
+    loadTAU()
   ]).catch(e=>{
     console.error('load error', e);
   });
@@ -1688,7 +1752,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -1853,7 +1917,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS);
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){
