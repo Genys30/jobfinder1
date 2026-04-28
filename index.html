@@ -24,6 +24,7 @@
   --ab:#7c3aed;--ab-pale:rgba(124,58,237,0.07);
   --wk:#0369a1;--wk-pale:rgba(3,105,161,0.07);
   --ta:#1a7f5a;--ta-pale:rgba(26,127,90,0.07);
+  --uf:#006ab3;--uf-pale:rgba(0,106,179,0.07);
   --sp:#c97f0c;--sp-pale:rgba(201,127,12,0.07);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -105,6 +106,8 @@
   .huji-row:hover .title{color:var(--ha);}
   .tau-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ta);}
   .tau-row:hover .title{color:var(--ta);}
+  .uf-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--uf);}
+  .uf-row:hover .title{color:var(--uf);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -322,6 +325,8 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--ha)"></span><span id="hujiStatusText">HUJI: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--ta)"></span><span id="tauStatusText">TAU: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--uf)"></span><span id="ufStatusText">Haifa U: loading…</span></div>
 </div>
 
 <!-- Filters -->
@@ -389,6 +394,7 @@
       <option value="huji-alumni">HUJI Alumni Career</option>
       <option value="huji">HUJI 🎓</option>
       <option value="tau">TAU 🎓</option>
+      <option value="haifa">Haifa U 🎓</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -561,6 +567,7 @@ let AC_JOBS  = [];   // academic (Weizmann etc)
 let HJ_JOBS  = [];   // HUJI Alumni Career
 let HUJI_JOBS = [];  // HUJI positions
 let TAU_JOBS = [];   // TAU (אוניברסיטת תל אביב)
+let UF_JOBS  = [];   // University of Haifa (אוניברסיטת חיפה)
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -591,6 +598,7 @@ const $acStatus  = document.getElementById('acStatusText');
 const $hjStatus  = document.getElementById('hjStatusText');
 const $hujiStatus = document.getElementById('hujiStatusText');
 const $tauStatus = document.getElementById('tauStatusText');
+const $ufStatus  = document.getElementById('ufStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -1303,6 +1311,58 @@ async function loadTAU() {
   if ($tauStatus) $tauStatus.innerHTML = `TAU: <strong>${TAU_JOBS.length.toLocaleString()} jobs</strong>`;
 }
 
+// ─── LOAD HAIFA UNIVERSITY (אוניברסיטת חיפה) ─────────────────────────────────
+function normHaifa(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  if (!title) return null;
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  return {
+    source: 'haifa', fnArea: 'haifa',
+    title,
+    company: 'אוניברסיטת חיפה',
+    category: 'administrative',
+    size: '', level: '',
+    city: 'חיפה',
+    url: g('url'),
+    updated: g('date') || fnDate,
+    deadline: g('deadline') || '',
+    department: g('department'),
+    description: g('description'),
+    requirements: g('requirements'),
+    workType: 'onsite'
+  };
+}
+
+async function loadHaifa() {
+  if ($ufStatus) $ufStatus.innerHTML = 'Haifa U: <span style="color:var(--ink-faint)">loading…</span>';
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const fname = `haifa_jobs_${y}-${m}-${day}.csv`;
+    try {
+      const r = await fetch(LI_RAW + fname);
+      if (!r.ok) continue;
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
+        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
+      parsed.data.forEach(row => { const n = normHaifa(row, fname); if (n) rows.push(n); });
+      break;
+    } catch(e) {}
+  }
+  if (rows.length === 0) {
+    if ($ufStatus) $ufStatus.innerHTML = 'Haifa U: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+  const seen = new Set();
+  UF_JOBS = rows.filter(r => {
+    const k = r.url || (r.company + '|' + r.title);
+    if (seen.has(k)) return false; seen.add(k); return true;
+  });
+  if ($ufStatus) $ufStatus.innerHTML = `Haifa U: <strong>${UF_JOBS.length.toLocaleString()} jobs</strong>`;
+}
+
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
   if(activeSrc==='techmap')  return TM_JOBS;
@@ -1321,8 +1381,9 @@ function getPool(){
   if(activeSrc==='huji-alumni') return HJ_JOBS;
   if(activeSrc==='huji') return HUJI_JOBS;
   if(activeSrc==='tau')  return TAU_JOBS;
+  if(activeSrc==='haifa') return UF_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -1478,7 +1539,7 @@ const SOURCE_EMPLOYER_TYPE = {
   'linkedin':'private',
   'mt':'nonprofit',
   'ac':'academic','weizmann':'academic','bgu':'academic','technion':'academic',
-  'huji':'academic','huji-alumni':'academic','tau':'academic',
+  'huji':'academic','huji-alumni':'academic','tau':'academic','haifa':'academic',
 };
 
 function classifyEmployerType(company, title, source) {
@@ -1598,12 +1659,13 @@ function render(){
     const hjBadge  = r.source==='huji-alumni'?'<span class="hj-badge">Alumni</span>':'';
     const hujiBadge = r.source==='huji'?'<span class="huji-badge">HUJI</span>':'';
     const tauBadge = r.source==='tau'?'<span class="tau-badge">TAU</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row'})[r.source]||'';
+    const ufBadge  = r.source==='haifa'?'<span class="uf-badge">Haifa</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -1734,7 +1796,8 @@ render();
     loadAcademic(),
     loadHuji(),
     loadHujiPositions(),
-    loadTAU()
+    loadTAU(),
+    loadHaifa()
   ]).catch(e=>{
     console.error('load error', e);
   });
@@ -1815,7 +1878,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -1980,7 +2043,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS);
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){

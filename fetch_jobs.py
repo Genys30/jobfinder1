@@ -895,6 +895,112 @@ def run_tau():
         f"tau_jobs_{TODAY}.csv"
     )
 
+# ══ HAIFA UNIVERSITY (אוניברסיטת חיפה) ══════════════════════════════════════
+def run_haifa():
+    print("\n-- Haifa University (אוניברסיטת חיפה) --------------------------------")
+    from bs4 import BeautifulSoup as _BS
+    import re as _re
+
+    URL = "https://hr.haifa.ac.il/%D7%93%D7%A8%D7%95%D7%A9%D7%99%D7%9D/"
+
+    try:
+        r = requests.get(URL, headers={**HEADERS,
+            "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
+            "Referer": "https://hr.haifa.ac.il/"}, timeout=30)
+        r.raise_for_status()
+        soup = _BS(r.text, "html.parser")
+    except Exception as e:
+        print(f"  [warn] {e}")
+        return
+
+    jobs = []
+    seen = set()
+
+    # Each job is an <a> tag with job number + title as text, linking to detail page
+    # Pattern: links whose href contains a job number slug under hr.haifa.ac.il
+    BASE = "https://hr.haifa.ac.il"
+
+    # Jobs are in the main content — find all <a> links that look like job listings
+    # Each job link text starts with a number (job code) e.g. "3326 כותב/ת..."
+    content = soup.select_one("#main, .site-main, article, .entry-content") or soup
+
+    for a in content.select("a[href]"):
+        href = a.get("href", "")
+        text = a.get_text(" ", strip=True)
+        # Job links: text starts with digits (job code)
+        if not _re.match(r'^\d+\s+\S', text):
+            continue
+        if not href.startswith("http"):
+            href = BASE + href
+        if "hr.haifa.ac.il" not in href:
+            continue
+        if href in seen:
+            continue
+        seen.add(href)
+
+        # Split job code from title
+        m = _re.match(r'^(\d+)\s+(.+)$', text)
+        if not m:
+            continue
+        job_code = m.group(1).strip()
+        title = m.group(2).strip()
+
+        # Find the sibling content block after this link for description/requirements
+        # The page embeds full text in expandable divs after each link
+        parent = a.find_parent()
+        desc, reqs, dept = "", "", ""
+
+        # Walk up to find the containing block and extract text sections
+        block = a.find_parent(["div", "section", "article", "li"])
+        if block:
+            full_text = block.get_text("\n", strip=True)
+            # Extract description
+            for marker in ["תיאור התפקיד:", "תיאור התפקיד"]:
+                if marker in full_text:
+                    after = full_text.split(marker, 1)[1]
+                    for stop in ["דרישות תפקיד:", "דרישות התפקיד:", "דרישות התפקיד", "שפות:", "היקף משרה:"]:
+                        if stop in after:
+                            after = after.split(stop, 1)[0]
+                    desc = after.strip()
+                    break
+            # Extract requirements
+            for marker in ["דרישות תפקיד:", "דרישות התפקיד:", "דרישות התפקיד"]:
+                if marker in full_text:
+                    after = full_text.split(marker, 1)[1]
+                    for stop in ["שפות:", "היקף משרה:", "קורות חיים", "אוניברסיטת חיפה מקדמת"]:
+                        if stop in after:
+                            after = after.split(stop, 1)[0]
+                    reqs = after.strip()
+                    break
+            # Extract department (ביחידה:)
+            dm = _re.search(r'ביחידה[:\s]+([^\n]+)', full_text)
+            if dm:
+                dept = dm.group(1).strip()
+
+        jobs.append({
+            "title": title,
+            "company": "אוניברסיטת חיפה",
+            "location": "חיפה",
+            "date": TODAY,
+            "deadline": "",
+            "url": href,
+            "job_code": job_code,
+            "department": dept,
+            "workplace_type": "onsite",
+            "description": desc,
+            "requirements": reqs,
+        })
+        print(f"  {job_code}: {title[:60]}")
+
+    print(f"  + {len(jobs)}")
+    write_csv(
+        jobs,
+        ["title", "company", "location", "date", "deadline", "url",
+         "job_code", "department", "workplace_type", "description", "requirements"],
+        f"haifa_jobs_{TODAY}.csv"
+    )
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     print(f"=== fetch_jobs.py  {TODAY} ===\n")
@@ -912,6 +1018,7 @@ def main():
     run_huji_positions()
     run_technion()
     run_tau()
+    run_haifa()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
