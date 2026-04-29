@@ -1456,7 +1456,7 @@ async function loadDeloitte() {
   }
   if (!rows.length) { if ($dlStatus) $dlStatus.innerHTML = 'Deloitte: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
   const seen = new Set();
-  DL_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
+  DL_JOBS = rows.filter(r => { const k = r.title.toLowerCase()+'|'+(r.city||''); if(seen.has(k))return false; seen.add(k); return true; });
   if ($dlStatus) $dlStatus.innerHTML = `Deloitte: <strong>${DL_JOBS.length.toLocaleString()} jobs</strong>`;
 }
 
