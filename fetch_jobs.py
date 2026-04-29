@@ -1220,6 +1220,77 @@ def run_ey():
         f"ey_jobs_{TODAY}.csv")
 
 
+# ══ THE JOINT (ג'וינט) ════════════════════════════════════════════════════════
+def run_joint():
+    print("\n-- The Joint (ג'וינט) ------------------------------------------------")
+    from bs4 import BeautifulSoup as _BS
+    import re as _re
+
+    BASE = "https://www.thejoint.org.il"
+    LIST_URL = BASE + "/en/career/"
+
+    html = _pw_get(LIST_URL, wait_selector="a[href*='juid']", wait_ms=3000)
+    if not html:
+        print("  x could not fetch Joint career page"); return
+
+    soup = _BS(html, "html.parser")
+    jobs = []
+    seen = set()
+
+    for a in soup.select("a[href*='juid']"):
+        href = a.get("href", "")
+        url = href if href.startswith("http") else BASE + href
+        if url in seen: continue
+        seen.add(url)
+
+        # Title from aria-label: "Read more about the position: [title]"
+        aria = a.get("aria-label", "")
+        if "Read more about the position:" in aria:
+            title = aria.split("Read more about the position:", 1)[1].strip()
+        else:
+            title = a.get_text(strip=True)
+
+        if not title: continue
+
+        # Published date from link text
+        full_text = a.get_text(" ", strip=True)
+        pub_date = ""
+        dm = _re.search(r'(\d{2}/\d{2}/\d{4})', full_text)
+        if dm:
+            p = dm.group(1).split("/")
+            pub_date = f"{p[2]}-{p[1]}-{p[0]}"
+
+        # City — try to extract from surrounding text
+        city = "ישראל"
+        parent = a.find_parent()
+        if parent:
+            pt = parent.get_text(" ", strip=True)
+            for c in ["תל אביב", "ירושלים", "חיפה", "באר שבע", "רמת גן",
+                      "Tel Aviv", "Jerusalem", "Haifa", "Beer Sheva"]:
+                if c in pt:
+                    city = c; break
+
+        jobs.append({
+            "title": title,
+            "company": "The Joint (ג'וינט)",
+            "city": city,
+            "date": pub_date or TODAY,
+            "deadline": "",
+            "url": url,
+            "department": "",
+            "workplace_type": "onsite",
+            "description": "",
+            "requirements": "",
+        })
+        print(f"  {title[:70]}")
+
+    print(f"  + {len(jobs)}")
+    write_csv(jobs,
+        ["title","company","city","date","deadline","url",
+         "department","workplace_type","description","requirements"],
+        f"joint_jobs_{TODAY}.csv")
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     print(f"=== fetch_jobs.py  {TODAY} ===\n")
@@ -1241,6 +1312,7 @@ def main():
     run_kpmg()
     run_deloitte()
     run_ey()
+    run_joint()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
