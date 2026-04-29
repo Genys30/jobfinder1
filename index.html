@@ -284,6 +284,24 @@
     font-size:12px;color:var(--ink-faint);}
   @media(max-width:900px){.kanban-board{grid-template-columns:1fr 1fr;}}
   @media(max-width:600px){.kanban-board{grid-template-columns:1fr;} #appsPanel{padding:16px 12px 48px;}}
+  /* ── Job Detail Popup ───────────────────────────────────────────────── */
+  #job-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+  #job-popup-overlay.open{display:flex;}
+  #job-popup{background:var(--panel);border-radius:8px;max-width:700px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.18);overflow:hidden;}
+  #job-popup-header{padding:20px 24px 16px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  #job-popup-title{font-family:'Carlito',sans-serif;font-size:1.15rem;font-weight:700;color:var(--ink);line-height:1.3;margin:0;}
+  #job-popup-meta{font-size:.8rem;color:var(--ink-faint);margin-top:4px;}
+  #job-popup-close{background:none;border:none;cursor:pointer;font-size:1.4rem;color:var(--ink-faint);line-height:1;padding:2px 4px;flex-shrink:0;margin-top:-2px;}
+  #job-popup-close:hover{color:var(--ink);}
+  #job-popup-body{padding:20px 24px;overflow-y:auto;flex:1;}
+  #job-popup-body h4{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 8px;}
+  #job-popup-body p{font-size:.88rem;color:var(--ink-dim);line-height:1.65;white-space:pre-wrap;margin:0 0 20px;}
+  #job-popup-body .no-desc{font-size:.85rem;color:var(--ink-faint);font-style:italic;margin-bottom:20px;}
+  #job-popup-footer{padding:14px 24px;border-top:1px solid var(--rule);display:flex;gap:10px;justify-content:flex-end;}
+  .popup-apply-btn{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:9px 20px;font-size:.88rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;}
+  .popup-apply-btn:hover{opacity:.88;}
+  .popup-close-btn{background:none;border:1px solid var(--rule);border-radius:4px;padding:9px 16px;font-size:.88rem;cursor:pointer;color:var(--ink-dim);}
+  .popup-close-btn:hover{background:var(--bg);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -435,6 +453,27 @@
 </div>
 
 <main>
+  <!-- Job Detail Popup -->
+  <div id="job-popup-overlay" onclick="if(event.target===this)closePopup()">
+    <div id="job-popup" role="dialog" aria-modal="true">
+      <div id="job-popup-header">
+        <div>
+          <div id="job-popup-title"></div>
+          <div id="job-popup-meta"></div>
+        </div>
+        <button id="job-popup-close" onclick="closePopup()" aria-label="Close">✕</button>
+      </div>
+      <div id="job-popup-body">
+        <div id="job-popup-desc-section"></div>
+        <div id="job-popup-reqs-section"></div>
+      </div>
+      <div id="job-popup-footer">
+        <button class="popup-close-btn" onclick="closePopup()">Close</button>
+        <a id="job-popup-apply" class="popup-apply-btn" href="#" target="_blank" rel="noopener">Apply →</a>
+      </div>
+    </div>
+  </div>
+
   <div id="list"></div>
   <div class="more-wrap" id="moreWrap" style="display:none;">
     <button class="more" id="more">Load more</button>
@@ -1140,7 +1179,9 @@ function normAcademic(row, fname) {
     url: g('url'),
     updated: g('date') || fnDate,
     deadline: g('deadline') || '',
-    workType: g('workplace_type')
+    workType: g('workplace_type'),
+    description: g('description'),
+    requirements: g('requirements'),
   };
 }
 
@@ -1781,7 +1822,7 @@ function applyFilters(){
     if(secFilter && classifyEmployerType(r.company,r.title,r.source)!==secFilter)   return false;
     if(srcFilter && r.source!==srcFilter)    return false;
     if(wtFilter  && (r.workType||'')!==wtFilter) return false;
-    if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q))) return false;
+    if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q)||(r.description||'').toLowerCase().includes(q)||(r.requirements||'').toLowerCase().includes(q))) return false;
     if(cutoff){
       const d = parseDate(r.updated);
       if(r.source==='techmap' && (!d||d.getTime()<cutoff)) return false;
@@ -1816,9 +1857,13 @@ function render(){
   }
 
   const slice = FILTERED.slice(0,visible);
+  // Build job lookup map for popup
+  window._jobMap = {};
+  FILTERED.forEach(r => { window._jobMap[r.url||(r.title+r.company)] = r; });
   $list.innerHTML = slice.map(r=>{
     const href   = r.url||'#';
-    const target = r.url?'target="_blank" rel="noopener"':'';
+    const hasDesc = !!(r.description && r.description.trim());
+    const jobKey = esc(r.url||(r.title+r.company));
     const szLabel = SIZE_LABEL[r.size]||r.size;
     const szMarkup= szLabel?'<span class="size">· '+esc(szLabel)+'</span>':'';
     const levelBadge = r.level?'<span class="level-badge">'+esc(r.level)+'</span>':'';
@@ -1842,7 +1887,9 @@ function render(){
     const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
-    return '<a class="job'+rowCls+'" href="'+esc(href)+'" '+target+'>'
+    const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
+    const arrowLabel = hasDesc ? '📄' : '➝';
+    return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
       +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
@@ -1851,13 +1898,52 @@ function render(){
       +(classifySegment(r.title)?'<span class="role-tag">'+esc(classifySegment(r.title))+'</span>':'')
       +(classifyLevel(r.title)?'<span class="level-tag level-'+classifyLevel(r.title)+'">'+esc(classifyLevel(r.title))+'</span>':'')
       +'</span>'
-      +'<span class="arrow">➝</span>'
+      +'<span class="arrow">'+arrowLabel+'</span>'
       +'<button class="track-btn'+(tracked?' sent':'')+'" data-id="'+esc(jobId)+'" onclick="event.preventDefault();event.stopPropagation();toggleTrack(this.dataset.id)" title="Mark as sent">&#128236;</button>'
       +'<button class="share-btn" data-url="'+esc(r.url)+'" data-title="'+esc(r.title)+'" onclick="event.preventDefault();event.stopPropagation();shareJob(this)" title="Share">&#128279;</button>'
       +'</a>';
   }).join('');
   $moreWrap.style.display = FILTERED.length>visible?'block':'none';
 }
+
+// ─── JOB DETAIL POPUP ────────────────────────────────────────────────────────
+const $overlay   = document.getElementById('job-popup-overlay');
+const $popTitle  = document.getElementById('job-popup-title');
+const $popMeta   = document.getElementById('job-popup-meta');
+const $popDesc   = document.getElementById('job-popup-desc-section');
+const $popReqs   = document.getElementById('job-popup-reqs-section');
+const $popApply  = document.getElementById('job-popup-apply');
+
+function openPopup(r) {
+  $popTitle.textContent = r.title;
+  const metaParts = [r.company, r.city, r.updated ? formatDate(r.updated) : ''].filter(Boolean);
+  $popMeta.textContent = metaParts.join(' · ');
+  $popApply.href = r.url || '#';
+
+  // Description
+  if (r.description && r.description.trim()) {
+    $popDesc.innerHTML = '<h4>About the role</h4><p>' + esc(r.description.trim()) + '</p>';
+  } else {
+    $popDesc.innerHTML = '<p class="no-desc">No description available — click Apply to view on the source site.</p>';
+  }
+  // Requirements
+  if (r.requirements && r.requirements.trim()) {
+    $popReqs.innerHTML = '<h4>Requirements</h4><p>' + esc(r.requirements.trim()) + '</p>';
+  } else {
+    $popReqs.innerHTML = '';
+  }
+
+  $overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePopup() {
+  $overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
 
 // ─── EXPORT ──────────────────────────────────────────────────────────────────
 function exportCSV(){

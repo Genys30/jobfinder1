@@ -281,9 +281,10 @@ def run_workable(tm):
 # ══ BGU (אוניברסיטת בן-גוריון) ═══════════════════════════════════════════════
 def run_bgu():
     print("\n-- BGU External Positions (בן-גוריון) -------------------------------")
-    import re as _re
+    import re as _re, time as _time
     from bs4 import BeautifulSoup as _BS
     URL = "https://bguhr.my.salesforce-sites.com/Gius?mode=external"
+    BASE = "https://bguhr.my.salesforce-sites.com"
 
     def parse_date(s):
         m = _re.search(r'(\d{1,2})/(\d{1,2})/(\d{2,4})', s)
@@ -309,20 +310,54 @@ def run_bgu():
             title    = texts[1].strip() if len(texts) > 1 else ""
             date_str = texts[3].strip() if len(texts) > 3 else (texts[2].strip() if len(texts) > 2 else "")
             if not title: continue
-            # Use job_id as dedup key since all URLs are the same
             if job_id in seen: continue
             seen.add(job_id or title)
-            # Append job ID to title for identification
+
+            # Try to get detail URL from link in the row
+            link_el = row.select_one("a[href]")
+            detail_url = URL
+            if link_el:
+                href = link_el.get("href", "")
+                detail_url = (BASE + href) if href.startswith("/") else (href if href.startswith("http") else URL)
+
             display_title = f"{title} (מס' {job_id})" if job_id else title
             jobs.append({"title": display_title,
                 "company": "אוניברסיטת בן-גוריון בנגב",
-                "location": "באר שבע",
-                "date": TODAY,
+                "location": "באר שבע", "date": TODAY,
                 "deadline": parse_date(date_str) if date_str else "",
-                "url": URL,
-                "department": "", "workplace_type": "onsite"})
+                "url": detail_url, "department": "", "workplace_type": "onsite",
+                "description": "", "requirements": ""})
+
+        print(f"  Found {len(jobs)} — fetching descriptions...")
+        for i, job in enumerate(jobs, 1):
+            if job["url"] == URL: continue
+            try:
+                rd = requests.get(job["url"], headers={**HEADERS,
+                    "Referer": URL}, timeout=20)
+                if rd.ok:
+                    ds = _BS(rd.text, "html.parser")
+                    full = ds.get_text("\n", strip=True)
+                    desc, reqs = "", ""
+                    for marker in ["תיאור המשרה", "תיאור התפקיד", "Job Description"]:
+                        if marker in full:
+                            after = full.split(marker, 1)[1]
+                            for stop in ["דרישות", "Requirements"]:
+                                if stop in after: after = after.split(stop, 1)[0]
+                            desc = after.strip(); break
+                    for marker in ["דרישות התפקיד", "דרישות המשרה", "Requirements"]:
+                        if marker in full:
+                            after = full.split(marker, 1)[1]
+                            for stop in ["הגשת מועמדות", "Apply", "חזרה"]:
+                                if stop in after: after = after.split(stop, 1)[0]
+                            reqs = after.strip(); break
+                    job["description"] = desc
+                    job["requirements"] = reqs
+            except: pass
+            _time.sleep(0.2)
+            print(f"  [{i}/{len(jobs)}] {job['title'][:60]}")
+
         print(f"  + {len(jobs)}")
-        write_csv(jobs, ["title","company","location","date","deadline","url","department","workplace_type"],
+        write_csv(jobs, ["title","company","location","date","deadline","url","department","workplace_type","description","requirements"],
             f"bgu_jobs_{TODAY}.csv")
     except Exception as e:
         print(f"  x {e}")
@@ -331,14 +366,14 @@ def run_bgu():
 # ══ WEIZMANN (Academic) ═══════════════════════════════════════════════════════
 def run_weizmann():
     print("\n-- Weizmann Institute (אקדמי) ---------------------------------------")
+    import time as _time
     try:
         r = requests.get(
             "https://www.weizmann.ac.il/career/jobs",
             headers={**HEADERS, "Accept-Language": "he-IL,he;q=0.9,en;q=0.8"},
             timeout=30)
         if not r.ok:
-            print(f"  - {r.status_code}")
-            return
+            print(f"  - {r.status_code}"); return
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(r.text, "html.parser")
         jobs = []
@@ -346,20 +381,14 @@ def run_weizmann():
         for link in soup.select("a[href*='/career/jobs/']"):
             href = link.get("href", "")
             last = href.rstrip("/").split("?")[0].split("/")[-1]
-            if not last.isdigit() and not (last and last != "jobs"):
-                continue
-            if not last or last == "jobs":
-                continue
+            if not last or last == "jobs": continue
             url = "https://www.weizmann.ac.il" + href if href.startswith("/") else href
-            if url in seen:
-                continue
+            if url in seen: continue
             seen.add(url)
             title_el = link.select_one("h2") or link.select_one("h3")
             title = (title_el.get_text(strip=True) if title_el else link.get_text(strip=True)).strip()
-            if not title:
-                continue
-            department = ""
-            workplace_type = ""
+            if not title: continue
+            department, workplace_type = "", ""
             for dt in link.select("dt"):
                 dd = dt.find_next_sibling("dd")
                 if not dd: continue
@@ -371,9 +400,38 @@ def run_weizmann():
                 "title": title, "company": "מכון ויצמן למדע",
                 "location": "רחובות", "date": TODAY, "url": url,
                 "department": department, "workplace_type": workplace_type,
+                "description": "", "requirements": "",
             })
+
+        print(f"  Found {len(jobs)} — fetching descriptions...")
+        for i, job in enumerate(jobs, 1):
+            try:
+                rd = requests.get(job["url"], headers={**HEADERS,
+                    "Accept-Language": "he-IL,he;q=0.9,en;q=0.8"}, timeout=20)
+                if rd.ok:
+                    ds = BeautifulSoup(rd.text, "html.parser")
+                    full = ds.get_text("\n", strip=True)
+                    desc, reqs = "", ""
+                    for marker in ["תיאור התפקיד", "Job Description", "תיאור המשרה"]:
+                        if marker in full:
+                            after = full.split(marker, 1)[1]
+                            for stop in ["דרישות", "Requirements", "כישורים נדרשים"]:
+                                if stop in after: after = after.split(stop, 1)[0]
+                            desc = after.strip(); break
+                    for marker in ["דרישות", "Requirements", "כישורים נדרשים"]:
+                        if marker in full:
+                            after = full.split(marker, 1)[1]
+                            for stop in ["הגשת מועמדות", "Apply", "פרטי משרה"]:
+                                if stop in after: after = after.split(stop, 1)[0]
+                            reqs = after.strip(); break
+                    job["description"] = desc
+                    job["requirements"] = reqs
+            except: pass
+            print(f"  [{i}/{len(jobs)}] {job['title'][:60]}")
+            _time.sleep(0.3)
+
         print(f"  + {len(jobs)}")
-        write_csv(jobs, ["title","company","location","date","url","department","workplace_type"],
+        write_csv(jobs, ["title","company","location","date","url","department","workplace_type","description","requirements"],
             f"weizmann_jobs_{TODAY}.csv")
     except Exception as e:
         print(f"  x {e}")
@@ -627,6 +685,7 @@ def run_huji_positions():
 def run_technion():
     print("\n-- Technion HR (טכניון) ---------------------------------------------")
     from bs4 import BeautifulSoup as _BS
+    import time as _time
     URL = "https://hr.technion.ac.il/positions/"
     try:
         r = requests.get(URL, headers={**HEADERS,
@@ -639,13 +698,11 @@ def run_technion():
         for card in soup.select("div.wrapper-job"):
             title_el = card.select_one("span.col-3")
             dept_el  = card.select_one("span.col-2")
-            num_el   = card.select_one("span.col-1")
             link_el  = card.select_one("a.wrap-btn") or card.select_one("div.wrap-btn a")
             title = title_el.get_text(strip=True) if title_el else ""
             if not title: continue
-            dept  = dept_el.get_text(strip=True)  if dept_el  else ""
-            jobid = ""
-            url   = URL
+            dept  = dept_el.get_text(strip=True) if dept_el else ""
+            jobid, url = "", URL
             if link_el:
                 href = link_el.get("href", "")
                 if "jobid=" in href:
@@ -658,9 +715,40 @@ def run_technion():
             seen.add(key)
             jobs.append({"title": title, "company": "הטכניון - מכון טכנולוגי לישראל",
                 "location": "חיפה", "date": TODAY, "url": url,
-                "department": dept, "workplace_type": "onsite"})
+                "department": dept, "workplace_type": "onsite",
+                "description": "", "requirements": ""})
+
+        print(f"  Found {len(jobs)} — fetching descriptions...")
+        for i, job in enumerate(jobs, 1):
+            if "jobid=" not in job["url"]: continue
+            try:
+                rd = requests.get(job["url"], headers={**HEADERS,
+                    "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
+                    "Referer": URL}, timeout=20)
+                if rd.ok:
+                    ds = _BS(rd.text, "html.parser")
+                    full = ds.get_text("\n", strip=True)
+                    desc, reqs = "", ""
+                    for marker in ["תיאור התפקיד", "תיאור המשרה", "Job Description"]:
+                        if marker in full:
+                            after = full.split(marker, 1)[1]
+                            for stop in ["דרישות", "Requirements", "כישורים"]:
+                                if stop in after: after = after.split(stop, 1)[0]
+                            desc = after.strip(); break
+                    for marker in ["דרישות התפקיד", "דרישות המשרה", "Requirements", "כישורים נדרשים"]:
+                        if marker in full:
+                            after = full.split(marker, 1)[1]
+                            for stop in ["הגשת מועמדות", "Apply", "חזרה", "לפרטים"]:
+                                if stop in after: after = after.split(stop, 1)[0]
+                            reqs = after.strip(); break
+                    job["description"] = desc
+                    job["requirements"] = reqs
+            except: pass
+            print(f"  [{i}/{len(jobs)}] {job['title'][:60]}")
+            _time.sleep(0.3)
+
         print(f"  + {len(jobs)}")
-        write_csv(jobs, ["title","company","location","date","url","department","workplace_type"],
+        write_csv(jobs, ["title","company","location","date","url","department","workplace_type","description","requirements"],
             f"technion_jobs_{TODAY}.csv")
     except Exception as e:
         print(f"  x {e}")
@@ -1244,7 +1332,7 @@ def run_ey():
 def run_joint():
     print("\n-- The Joint (ג'וינט) ------------------------------------------------")
     from bs4 import BeautifulSoup as _BS
-    import re as _re
+    import re as _re, time
 
     BASE = "https://www.thejoint.org.il"
     LIST_URL = BASE + "/en/career/"
@@ -1254,7 +1342,7 @@ def run_joint():
         print("  x could not fetch Joint career page"); return
 
     soup = _BS(html, "html.parser")
-    jobs = []
+    job_links = []
     seen = set()
 
     for a in soup.select("a[href*='juid']"):
@@ -1263,16 +1351,13 @@ def run_joint():
         if url in seen: continue
         seen.add(url)
 
-        # Title from aria-label: "Read more about the position: [title]"
         aria = a.get("aria-label", "")
         if "Read more about the position:" in aria:
             title = aria.split("Read more about the position:", 1)[1].strip()
         else:
             title = a.get_text(strip=True)
-
         if not title: continue
 
-        # Published date from link text
         full_text = a.get_text(" ", strip=True)
         pub_date = ""
         dm = _re.search(r'(\d{2}/\d{2}/\d{4})', full_text)
@@ -1280,29 +1365,43 @@ def run_joint():
             p = dm.group(1).split("/")
             pub_date = f"{p[2]}-{p[1]}-{p[0]}"
 
-        # City — try to extract from surrounding text
-        city = "ישראל"
-        parent = a.find_parent()
-        if parent:
-            pt = parent.get_text(" ", strip=True)
-            for c in ["תל אביב", "ירושלים", "חיפה", "באר שבע", "רמת גן",
-                      "Tel Aviv", "Jerusalem", "Haifa", "Beer Sheva"]:
-                if c in pt:
-                    city = c; break
+        job_links.append({"title": title, "url": url, "date": pub_date or TODAY})
+
+    print(f"  Found {len(job_links)} listings — fetching descriptions...")
+    jobs = []
+
+    for i, job in enumerate(job_links, 1):
+        detail_html = _pw_get(job["url"])
+        desc, reqs, city = "", "", "ישראל"
+        if detail_html:
+            d = _BS(detail_html, "html.parser")
+            full = d.get_text("\n", strip=True)
+            for c in ["תל אביב", "ירושלים", "חיפה", "באר שבע", "רמת גן", "Tel Aviv", "Jerusalem", "Haifa"]:
+                if c in full: city = c; break
+            # Description
+            for marker in ["About the position", "תיאור התפקיד", "Job Description"]:
+                if marker in full:
+                    after = full.split(marker, 1)[1]
+                    for stop in ["Requirements", "דרישות", "What we're looking for"]:
+                        if stop in after: after = after.split(stop, 1)[0]
+                    desc = after.strip(); break
+            # Requirements
+            for marker in ["Requirements", "דרישות התפקיד", "What we're looking for"]:
+                if marker in full:
+                    after = full.split(marker, 1)[1]
+                    for stop in ["Apply", "הגש", "Send CV", "שלח"]:
+                        if stop in after: after = after.split(stop, 1)[0]
+                    reqs = after.strip(); break
 
         jobs.append({
-            "title": title,
-            "company": "The Joint (ג'וינט)",
-            "city": city,
-            "date": pub_date or TODAY,
-            "deadline": "",
-            "url": url,
-            "department": "",
+            "title": job["title"], "company": "The Joint (ג'וינט)",
+            "city": city, "date": job["date"], "deadline": "",
+            "url": job["url"], "department": "",
             "workplace_type": "onsite",
-            "description": "",
-            "requirements": "",
+            "description": desc, "requirements": reqs,
         })
-        print(f"  {title[:70]}")
+        print(f"  [{i}/{len(job_links)}] {job['title'][:60]}")
+        time.sleep(0.3)
 
     print(f"  + {len(jobs)}")
     write_csv(jobs,
