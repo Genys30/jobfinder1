@@ -1104,45 +1104,22 @@ def run_deloitte():
 
     BASE = "https://careers.deloitte.co.il"
     DEPT_URLS = [
-        ("Technology",       BASE + "/department/technology-en/?page=all"),
-        ("Internal Services",BASE + "/department/internal-services-en/?page=all"),
-        ("Consulting",       BASE + "/department/consulting-en/?page=all"),
-        ("Tax & Legal",      BASE + "/department/tax-en/?page=all"),
-        ("Audit & Assurance",BASE + "/department/audit-assurance-en/?page=all"),
+        ("Technology",        BASE + "/department/technology-en/?page=all"),
+        ("Internal Services", BASE + "/department/internal-services-en/?page=all"),
+        ("Consulting",        BASE + "/department/consulting-en/?page=all"),
+        ("Tax & Legal",       BASE + "/department/tax-en/?page=all"),
+        ("Audit & Assurance", BASE + "/department/audit-assurance-en/?page=all"),
     ]
-
     CITY_MAP = {
         "Tel Aviv": "Tel Aviv", "Haifa": "Haifa",
         "Jerusalem": "Jerusalem", "Yokneam Illit": "Yokneam Illit",
         "Yokne'am Illit": "Yokneam Illit", "Beer Sheva": "Beer Sheva",
     }
-
-    def parse_dept(html, dept_name):
-        soup = _BS(html, "html.parser")
-        jobs = []
-        # Each job: text node → location_icon img → "City, Israel" text → interest_icon img → dept text
-        for loc_img in soup.select("img[src*='location_icon']"):
-            # Title = previous text sibling
-            prev = loc_img.previous_sibling
-            title = str(prev).strip() if prev else ""
-            title = _re.sub(r'\s+', ' ', title).strip()
-            if not title or len(title) < 3: continue
-            if _re.search(r'positions|Deloitte|Why|About|Interns|Services|Privacy|Cookie', title, _re.I): continue
-
-            # City = next text sibling after location_icon
-            city_node = loc_img.next_sibling
-            city_raw = str(city_node).strip() if city_node else ""
-            city_m = _re.match(r'^([\w\s\-\']+),\s*Israel', city_raw)
-            city = CITY_MAP.get(city_m.group(1).strip(), city_m.group(1).strip()) if city_m else "Tel Aviv"
-
-            # Department = text after interest_icon
-            int_img = loc_img.find_next("img", src=_re.compile(r'interest_icon'))
-            dept = ""
-            if int_img and int_img.next_sibling:
-                dept = str(int_img.next_sibling).strip()
-
-            jobs.append({"title": title, "city": city, "dept": dept or dept_name})
-        return jobs
+    SKIP = _re.compile(
+        r'^(positions|locations|deloitte|why|search|about|interns|services|'
+        r'industries|privacy|cookie|facebook|instagram|youtube|linkedin|read more|'
+        r'\d+\s*positions|\d+\s*locations|find your|experience|join us|however|'
+        r'awesome|go team|powered|©|\*)', _re.I)
 
     all_jobs = []
     seen = set()
@@ -1151,20 +1128,38 @@ def run_deloitte():
         print(f"  Fetching {dept_name}...")
         html = _pw_get(url, wait_ms=3000)
         if not html:
-            print(f"  x could not fetch {url}"); continue
-        dept_jobs = parse_dept(html, dept_name)
-        for j in dept_jobs:
-            key = j["title"].lower() + "|" + j["city"]
-            if key in seen: continue
-            seen.add(key)
-            all_jobs.append({
-                "title": j["title"], "company": "Deloitte Israel",
-                "city": j["city"], "date": TODAY,
-                "url": BASE + "/positions/",
-                "department": j["dept"], "workplace_type": "onsite",
-                "description": "", "requirements": "",
-            })
-        print(f"    + {len(dept_jobs)} ({dept_name})")
+            print(f"  x skip"); continue
+
+        soup = _BS(html, "html.parser")
+        lines = [l.strip() for l in soup.get_text("\n").split("\n") if l.strip()]
+
+        i = 0
+        count = 0
+        while i < len(lines):
+            line = lines[i]
+            if (i + 1 < len(lines) and
+                    _re.match(r'^[\w\s\-\'\u2019]+,\s*Israel$', lines[i + 1]) and
+                    4 < len(line) < 100 and
+                    not SKIP.match(line)):
+                city_raw = _re.match(r'^([\w\s\-\'\u2019]+),\s*Israel$', lines[i + 1])
+                city = CITY_MAP.get(city_raw.group(1).strip(), city_raw.group(1).strip()) if city_raw else "Tel Aviv"
+                dept = lines[i + 2].strip() if i + 2 < len(lines) else dept_name
+                if SKIP.match(dept):
+                    dept = dept_name
+                key = line.lower() + "|" + city
+                if key not in seen:
+                    seen.add(key)
+                    all_jobs.append({
+                        "title": line, "company": "Deloitte Israel",
+                        "city": city, "date": TODAY,
+                        "url": BASE + "/positions/",
+                        "department": dept, "workplace_type": "onsite",
+                        "description": "", "requirements": "",
+                    })
+                    count += 1
+                i += 3; continue
+            i += 1
+        print(f"    + {count} ({dept_name})")
 
     print(f"  + {len(all_jobs)} total")
     write_csv(all_jobs,
