@@ -1109,6 +1109,7 @@ def _pw_get(url, wait_selector=None, wait_ms=2000):
             if wait_selector:
                 try: page.wait_for_selector(wait_selector, timeout=8000)
                 except: pass
+                page.wait_for_timeout(wait_ms)  # extra settle time even when selector found
             else:
                 page.wait_for_timeout(wait_ms)
             html = page.content()
@@ -1481,7 +1482,7 @@ def run_bar_alumni():
 
     URL = "https://sites.biu.ac.il/employability/messages"
 
-    html = _pw_get(URL, wait_selector=".expand-collapse-item", wait_ms=3000)
+    html = _pw_get(URL, wait_selector=".expand-collapse-item", wait_ms=4000)
     if not html:
         print("  x could not fetch BAR Alumni page"); return
 
@@ -1496,13 +1497,16 @@ def run_bar_alumni():
         if not title or title in seen: continue
         seen.add(title)
 
-        panels = item.select(".panel-content .text-long")
-        full_text = panels[0].get_text("\n", strip=True) if panels else ""
+        # panel content: try multiple selectors
+        panel_el = (item.select_one(".panel-content .text-long")
+                    or item.select_one(".panel-content")
+                    or item.select_one("div.panel"))
+        full_text = panel_el.get_text("\n", strip=True) if panel_el else ""
 
         # Try to extract apply URL
         apply_url = URL
-        if panels:
-            for a in panels[0].select("a[href]"):
+        if panel_el:
+            for a in panel_el.select("a[href]"):
                 href = a.get("href", "")
                 if href and href.startswith("http"):
                     apply_url = href; break
