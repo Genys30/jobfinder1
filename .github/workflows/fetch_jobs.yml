@@ -1,6 +1,6 @@
 "on":
   schedule:
-    - cron: '0 22 * * *'   # 22:00 UTC = midnight Israel time (IDT)
+    - cron: '0 22 * * *'
   workflow_dispatch:
 
 name: Fetch Jobs (Comeet + Greenhouse)
@@ -19,16 +19,18 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          pip install requests beautifulsoup4 playwright
+          playwright install chromium
 
-      - name: Fetch Comeet + Greenhouse jobs
+      - name: Fetch all jobs
         run: python fetch_jobs.py
 
       - name: Commit CSVs to repo
         run: |
-          git config user.name  "github-actions[bot]"
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add comeet_jobs_*.csv greenhouse_jobs_*.csv bgu_extra_jobs_*.csv
+          git add *_jobs_*.csv history.csv
           git diff --staged --quiet || git commit -m "chore: jobs update $(date -u +%Y-%m-%d)"
           git pull --rebase origin main
           git push
