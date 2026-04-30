@@ -29,6 +29,8 @@
   --dl:#86bc25;--dl-pale:rgba(134,188,37,0.07);
   --ey:#ffe600;--ey-pale:rgba(255,230,0,0.07);
   --jnt:#1d4e8f;--jnt-pale:rgba(29,78,143,0.07);
+  --bar:#6b2d8b;--bar-pale:rgba(107,45,139,0.07);
+  --bis:#2e7b8c;--bis-pale:rgba(46,123,140,0.07);
   --sp:#c97f0c;--sp-pale:rgba(201,127,12,0.07);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -120,6 +122,10 @@
   .ey-row:hover .title{color:#b8a500;}
   .jnt-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--jnt);}
   .jnt-row:hover .title{color:var(--jnt);}
+  .bar-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--bar);}
+  .bar-row:hover .title{color:var(--bar);}
+  .bis-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--bis);}
+  .bis-row:hover .title{color:var(--bis);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -365,6 +371,12 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--ey)"></span><span id="eyStatusText">EY: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--jnt)"></span><span id="jntStatusText">Joint: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--bar)"></span><span id="barStatusText">BAR: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--bar)"></span><span id="barAlumniStatusText">BAR Alumni: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--bis)"></span><span id="bisStatusText">BIS: loading…</span></div>
 </div>
 
 <!-- Filters -->
@@ -437,6 +449,9 @@
       <option value="deloitte">Deloitte</option>
       <option value="ey">EY</option>
       <option value="joint">Joint</option>
+      <option value="bar">BAR 🎓</option>
+      <option value="bar-alumni">BAR Alumni</option>
+      <option value="bis">BIS</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -635,6 +650,9 @@ let KPMG_JOBS = [];  // KPMG
 let DL_JOBS  = [];   // Deloitte
 let EY_JOBS  = [];   // EY
 let JNT_JOBS = [];   // The Joint (ג'וינט)
+let BAR_JOBS = [];   // Bar-Ilan University positions
+let BAR_ALUMNI_JOBS = []; // BAR Alumni Career
+let BIS_JOBS = [];   // BIS (אגודת סטודנטים בר-אילן)
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -670,6 +688,9 @@ const $kpmgStatus = document.getElementById('kpmgStatusText');
 const $dlStatus  = document.getElementById('dlStatusText');
 const $eyStatus  = document.getElementById('eyStatusText');
 const $jntStatus = document.getElementById('jntStatusText');
+const $barStatus = document.getElementById('barStatusText');
+const $barAlumniStatus = document.getElementById('barAlumniStatusText');
+const $bisStatus = document.getElementById('bisStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -1573,6 +1594,117 @@ async function loadJoint() {
   if ($jntStatus) $jntStatus.innerHTML = `Joint: <strong>${JNT_JOBS.length.toLocaleString()} jobs</strong>`;
 }
 
+// ─── LOAD BAR (אוניברסיטת בר-אילן - משרות פנימיות) ──────────────────────────
+function normBAR(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  if (!title) return null;
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  return {
+    source: 'bar', fnArea: 'bar', title,
+    company: 'אוניברסיטת בר-אילן',
+    category: classifySegment(title), size: '', level: classifyLevel(title),
+    city: g('city') || 'רמת גן',
+    url: g('url'), updated: g('date') || fnDate,
+    deadline: g('deadline') || '', department: g('department'),
+    description: g('description'), requirements: g('requirements'), workType: 'onsite'
+  };
+}
+async function loadBAR() {
+  if ($barStatus) $barStatus.innerHTML = 'BAR: <span style="color:var(--ink-faint)">loading…</span>';
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const fname = `bar_jobs_${y}-${m}-${day}.csv`;
+    try {
+      const r = await fetch(LI_RAW + fname); if (!r.ok) continue;
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase() });
+      parsed.data.forEach(row => { const n = normBAR(row, fname); if (n) rows.push(n); });
+      break;
+    } catch(e) {}
+  }
+  if (!rows.length) { if ($barStatus) $barStatus.innerHTML = 'BAR: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
+  const seen = new Set();
+  BAR_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
+  if ($barStatus) $barStatus.innerHTML = `BAR: <strong>${BAR_JOBS.length.toLocaleString()} jobs</strong>`;
+}
+
+// ─── LOAD BAR ALUMNI CAREER ───────────────────────────────────────────────────
+function normBARAlumni(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  if (!title) return null;
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  return {
+    source: 'bar-alumni', fnArea: 'bar-alumni', title,
+    company: g('company') || 'BAR Alumni Career',
+    category: classifySegment(title), size: '', level: classifyLevel(title),
+    city: g('city') || 'רמת גן',
+    url: g('url'), updated: g('date') || fnDate,
+    deadline: g('deadline') || '', department: g('department'),
+    description: g('description'), requirements: g('requirements'), workType: 'onsite'
+  };
+}
+async function loadBARAlumni() {
+  if ($barAlumniStatus) $barAlumniStatus.innerHTML = 'BAR Alumni: <span style="color:var(--ink-faint)">loading…</span>';
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const fname = `bar_alumni_jobs_${y}-${m}-${day}.csv`;
+    try {
+      const r = await fetch(LI_RAW + fname); if (!r.ok) continue;
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase() });
+      parsed.data.forEach(row => { const n = normBARAlumni(row, fname); if (n) rows.push(n); });
+      break;
+    } catch(e) {}
+  }
+  if (!rows.length) { if ($barAlumniStatus) $barAlumniStatus.innerHTML = 'BAR Alumni: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
+  const seen = new Set();
+  BAR_ALUMNI_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
+  if ($barAlumniStatus) $barAlumniStatus.innerHTML = `BAR Alumni: <strong>${BAR_ALUMNI_JOBS.length.toLocaleString()} jobs</strong>`;
+}
+
+// ─── LOAD BIS (אגודת סטודנטים בר-אילן) ──────────────────────────────────────
+function normBIS(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  if (!title) return null;
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  return {
+    source: 'bis', fnArea: 'bis', title,
+    company: g('company') || 'BIS',
+    category: classifySegment(title), size: '', level: classifyLevel(title),
+    city: g('city') || 'רמת גן',
+    url: g('url'), updated: g('date') || fnDate,
+    deadline: g('deadline') || '', department: g('department'),
+    description: g('description'), requirements: g('requirements'), workType: 'onsite'
+  };
+}
+async function loadBIS() {
+  if ($bisStatus) $bisStatus.innerHTML = 'BIS: <span style="color:var(--ink-faint)">loading…</span>';
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const fname = `bis_jobs_${y}-${m}-${day}.csv`;
+    try {
+      const r = await fetch(LI_RAW + fname); if (!r.ok) continue;
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase() });
+      parsed.data.forEach(row => { const n = normBIS(row, fname); if (n) rows.push(n); });
+      break;
+    } catch(e) {}
+  }
+  if (!rows.length) { if ($bisStatus) $bisStatus.innerHTML = 'BIS: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
+  const seen = new Set();
+  BIS_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
+  if ($bisStatus) $bisStatus.innerHTML = `BIS: <strong>${BIS_JOBS.length.toLocaleString()} jobs</strong>`;
+}
+
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
   if(activeSrc==='techmap')  return TM_JOBS;
@@ -1596,8 +1728,11 @@ function getPool(){
   if(activeSrc==='deloitte') return DL_JOBS;
   if(activeSrc==='ey')    return EY_JOBS;
   if(activeSrc==='joint') return JNT_JOBS;
+  if(activeSrc==='bar')   return BAR_JOBS;
+  if(activeSrc==='bar-alumni') return BAR_ALUMNI_JOBS;
+  if(activeSrc==='bis')   return BIS_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BAR_ALUMNI_JOBS,...BIS_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -1753,9 +1888,10 @@ const SOURCE_EMPLOYER_TYPE = {
   'linkedin':'private',
   'mt':'nonprofit',
   'ac':'academic','weizmann':'academic','bgu':'academic','technion':'academic',
-  'huji':'academic','huji-alumni':'academic','tau':'academic','haifa':'academic',
+  'huji':'academic','huji-alumni':'public','tau':'academic','haifa':'academic',
   'kpmg':'private','deloitte':'private','ey':'private',
   'joint':'nonprofit',
+  'bar':'academic','bar-alumni':'public','bis':'public',
 };
 
 function classifyEmployerType(company, title, source) {
@@ -1884,14 +2020,17 @@ function render(){
     const dlBadge  = r.source==='deloitte'?'<span class="dl-badge">Deloitte</span>':'';
     const eyBadge  = r.source==='ey'?'<span class="ey-badge">EY</span>':'';
     const jntBadge = r.source==='joint'?'<span class="jnt-badge">Joint</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row'})[r.source]||'';
+    const barBadge = r.source==='bar'?'<span class="bar-badge">BAR</span>':'';
+    const barAlumniBadge = r.source==='bar-alumni'?'<span class="bar-badge">BAR Alumni</span>':'';
+    const bisBadge = r.source==='bis'?'<span class="bis-badge">BIS</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row','bar-alumni':' bar-row',bis:' bis-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
     const arrowLabel = hasDesc ? '📄' : '➝';
     return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+barAlumniBadge+bisBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -2066,7 +2205,10 @@ render();
     loadKPMG(),
     loadDeloitte(),
     loadEY(),
-    loadJoint()
+    loadJoint(),
+    loadBAR(),
+    loadBARAlumni(),
+    loadBIS()
   ]).catch(e=>{
     console.error('load error', e);
   });
@@ -2147,7 +2289,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BAR_ALUMNI_JOBS,...BIS_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -2312,7 +2454,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS);
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BAR_ALUMNI_JOBS,BIS_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){
