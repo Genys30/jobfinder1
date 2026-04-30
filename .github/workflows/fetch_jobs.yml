@@ -19,15 +19,16 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: pip install requests
 
-      - name: Fetch all jobs
+      - name: Fetch Comeet + Greenhouse jobs
         run: python fetch_jobs.py
 
       - name: Commit CSVs to repo
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add comeet_jobs_*.csv greenhouse_jobs_*.csv lever_jobs_*.csv ashby_jobs_*.csv workable_jobs_*.csv mitam_jobs_*.csv weizmann_jobs_*.csv bgu_jobs_*.csv huji_jobs_*.csv technion_jobs_*.csv history.csv
+          git add comeet_jobs_*.csv greenhouse_jobs_*.csv bgu_extra_jobs_*.csv
           git diff --staged --quiet || git commit -m "chore: jobs update $(date -u +%Y-%m-%d)"
+          git pull --rebase origin main
           git push
