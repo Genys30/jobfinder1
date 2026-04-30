@@ -1410,76 +1410,53 @@ def run_joint():
         f"joint_jobs_{TODAY}.csv")
 
 
-# ══ BAR-ILAN UNIVERSITY POSITIONS (HunterHRMS) ════════════════════════════════
+# ══ BAR-ILAN UNIVERSITY POSITIONS (HunterHRMS via Playwright) ═════════════════
 def run_bar():
     print("\n-- Bar-Ilan University Positions (בר-אילן) --------------------------")
     from bs4 import BeautifulSoup as _BS
     import time as _time, re as _re
 
-    BASE = "https://careers.topmatch.co.il"
-    LIST_URL = BASE + "/biu/index.html"
+    LIST_URL = "https://careers.topmatch.co.il/biu/index.html"
+    BASE = "https://careers.topmatch.co.il/biu"
 
-    try:
-        r = requests.get(LIST_URL, headers={**HEADERS,
-            "Referer": BASE + "/"}, timeout=30)
-        r.raise_for_status()
-        soup = _BS(r.text, "html.parser")
-    except Exception as e:
-        print(f"  x {e}"); return
+    html = _pw_get(LIST_URL, wait_ms=3000)
+    if not html:
+        print("  x could not fetch BAR listing page"); return
 
-    # Find job links: ?compPositionID=XXXXXX
+    soup = _BS(html, "html.parser")
     job_links = []
     seen = set()
+
     for a in soup.select("a[href*='compPositionID']"):
         href = a.get("href", "")
-        url = href if href.startswith("http") else BASE + "/biu/" + href.lstrip("./")
+        url = href if href.startswith("http") else BASE + "/" + href.lstrip("./")
         if url in seen: continue
         seen.add(url)
         title = a.get_text(strip=True)
         if not title: continue
         job_links.append({"title": title, "url": url})
 
-    # If no links found, try API approach like HUJI
-    if not job_links:
-        api_url = BASE + "/biu/redmatch-apply/company.positions.json"
-        try:
-            rj = requests.get(api_url, headers={**HEADERS, "Referer": LIST_URL}, timeout=20)
-            if rj.ok:
-                data = rj.json()
-                for pos in (data if isinstance(data, list) else data.get("positions", [])):
-                    pid = pos.get("compPositionID") or pos.get("positionID", "")
-                    title = pos.get("positionName") or pos.get("title", "")
-                    if pid and title:
-                        url = BASE + f"/biu/redmatch-apply/redmatch.apply.html?compPositionID={pid}"
-                        if url not in seen:
-                            seen.add(url)
-                            job_links.append({"title": title, "url": url})
-        except Exception as e:
-            print(f"  [api warn] {e}")
-
     print(f"  Found {len(job_links)} listings — fetching descriptions...")
     jobs = []
 
     for i, job in enumerate(job_links, 1):
         desc, reqs = "", ""
-        try:
-            rd = requests.get(job["url"], headers={**HEADERS, "Referer": LIST_URL}, timeout=20)
-            if rd.ok:
-                ds = _BS(rd.text, "html.parser")
-                full = ds.get_text("\n", strip=True)
-                for marker in ["תיאור התפקיד", "Job Description", "תיאור המשרה"]:
-                    if marker in full:
-                        after = full.split(marker, 1)[1]
-                        for stop in ["דרישות", "Requirements", "כישורים"]:
-                            if stop in after: after = after.split(stop, 1)[0]
-                        desc = after.strip(); break
-                for marker in ["דרישות התפקיד", "דרישות המשרה", "Requirements", "כישורים נדרשים"]:
-                    if marker in full:
-                        after = full.split(marker, 1)[1]
-                        for stop in ["הגשת מועמדות", "Apply", "חזרה"]:
-                            if stop in after: after = after.split(stop, 1)[0]
-                        reqs = after.strip(); break
-        except: pass
+        detail_html = _pw_get(job["url"])
+        if detail_html:
+            ds = _BS(detail_html, "html.parser")
+            full = ds.get_text("\n", strip=True)
+            for marker in ["תיאור התפקיד", "Job Description", "תיאור המשרה"]:
+                if marker in full:
+                    after = full.split(marker, 1)[1]
+                    for stop in ["דרישות", "Requirements", "כישורים"]:
+                        if stop in after: after = after.split(stop, 1)[0]
+                    desc = after.strip(); break
+            for marker in ["דרישות התפקיד", "דרישות המשרה", "Requirements", "כישורים נדרשים"]:
+                if marker in full:
+                    after = full.split(marker, 1)[1]
+                    for stop in ["הגשת מועמדות", "Apply", "חזרה"]:
+                        if stop in after: after = after.split(stop, 1)[0]
+                    reqs = after.strip(); break
 
         jobs.append({
             "title": job["title"], "company": "אוניברסיטת בר-אילן",
@@ -1489,7 +1466,6 @@ def run_bar():
             "description": desc, "requirements": reqs,
         })
         print(f"  [{i}/{len(job_links)}] {job['title'][:60]}")
-        _time.sleep(0.3)
 
     print(f"  + {len(jobs)}")
     write_csv(jobs,
@@ -1497,7 +1473,7 @@ def run_bar():
         f"bar_jobs_{TODAY}.csv")
 
 
-# ══ BAR-ILAN ALUMNI CAREER (sites.biu.ac.il/employability) ════════════════════
+# ══ BAR-ILAN ALUMNI CAREER (Playwright) ═══════════════════════════════════════
 def run_bar_alumni():
     print("\n-- BAR Alumni Career (מרכז קריירה בר-אילן) --------------------------")
     from bs4 import BeautifulSoup as _BS
@@ -1505,19 +1481,14 @@ def run_bar_alumni():
 
     URL = "https://sites.biu.ac.il/employability/messages"
 
-    try:
-        r = requests.get(URL, headers={**HEADERS,
-            "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
-            "Referer": "https://sites.biu.ac.il/employability"}, timeout=30)
-        r.raise_for_status()
-        soup = _BS(r.text, "html.parser")
-    except Exception as e:
-        print(f"  x {e}"); return
+    html = _pw_get(URL, wait_selector=".expand-collapse-item", wait_ms=3000)
+    if not html:
+        print("  x could not fetch BAR Alumni page"); return
 
+    soup = _BS(html, "html.parser")
     jobs = []
     seen = set()
 
-    # Structure: .expand-collapse-item with .accordion-title h3 + .panel-content .text-long
     for item in soup.select(".expand-collapse-item"):
         h3 = item.select_one(".accordion-title h3")
         if not h3: continue
@@ -1525,21 +1496,18 @@ def run_bar_alumni():
         if not title or title in seen: continue
         seen.add(title)
 
-        # Get description from .panel-content .text-long (first one — second is duplicate)
         panels = item.select(".panel-content .text-long")
         full_text = panels[0].get_text("\n", strip=True) if panels else ""
 
-        # Try to extract apply URL from links
+        # Try to extract apply URL
         apply_url = URL
-        links = panels[0].select("a[href]") if panels else []
-        for a in links:
-            href = a.get("href", "")
-            if href and href.startswith("http") and "biu.ac.il" not in href:
-                apply_url = href; break
-            elif href and href.startswith("http"):
-                apply_url = href
+        if panels:
+            for a in panels[0].select("a[href]"):
+                href = a.get("href", "")
+                if href and href.startswith("http"):
+                    apply_url = href; break
 
-        # Split description and requirements
+        # Split description/requirements
         desc, reqs = full_text, ""
         for req_marker in ["דרישות התפקיד", "דרישות:", "Requirements", "כישורים נדרשים", "מה חשוב להביא"]:
             if req_marker in full_text:
@@ -1548,19 +1516,14 @@ def run_bar_alumni():
                 reqs = (req_marker + "\n" + parts[1]).strip()
                 break
 
-        # Get work type from title
         worktype = "parttime" if any(w in title for w in ["חלקית", "שעתי", "סטודנט"]) else "onsite"
 
         jobs.append({
-            "title": title,
-            "company": "BAR Alumni Career",
-            "city": "רמת גן",
-            "date": TODAY,
-            "url": apply_url,
-            "department": "",
+            "title": title, "company": "BAR Alumni Career",
+            "city": "רמת גן", "date": TODAY,
+            "url": apply_url, "department": "",
             "workplace_type": worktype,
-            "description": desc,
-            "requirements": reqs,
+            "description": desc, "requirements": reqs,
         })
         print(f"  {title[:70]}")
 
@@ -1570,7 +1533,7 @@ def run_bar_alumni():
         f"bar_alumni_jobs_{TODAY}.csv")
 
 
-# ══ BIS (אגודת סטודנטים בר-אילן) ═════════════════════════════════════════════
+# ══ BIS (אגודת סטודנטים בר-אילן) via Playwright ══════════════════════════════
 def run_bis():
     print("\n-- BIS - אגודת סטודנטים בר-אילן ------------------------------------")
     from bs4 import BeautifulSoup as _BS
@@ -1578,93 +1541,59 @@ def run_bis():
 
     URL = "https://www.bis.org.il/jobs"
 
-    try:
-        r = requests.get(URL, headers={**HEADERS,
-            "Accept-Language": "he-IL,he;q=0.9,en;q=0.8",
-            "Referer": "https://www.bis.org.il/"}, timeout=30)
-        r.raise_for_status()
-        soup = _BS(r.text, "html.parser")
-    except Exception as e:
-        print(f"  x {e}"); return
+    html = _pw_get(URL, wait_ms=4000)
+    if not html:
+        print("  x could not fetch BIS jobs page"); return
 
+    soup = _BS(html, "html.parser")
     jobs = []
     seen = set()
 
-    # BIS is a Wix site — jobs appear as text blocks with title + description inline
-    # Look for job blocks in the main content area
-    full_text = soup.get_text("\n", strip=True)
-    lines = [l.strip() for l in full_text.split("\n") if l.strip()]
-
-    # Find job title patterns — jobs usually start with role name followed by description
-    # Title indicators: lines that are short (<80 chars) followed by longer description
-    # Use h3/h4 elements as titles
-    job_titles = []
-    for el in soup.select("h3, h4, .job-title, [data-testid*='title']"):
+    # BIS is Wix — jobs appear as rich text blocks
+    # Try h3/h4 elements first
+    for el in soup.select("h3, h4, h2"):
         t = el.get_text(strip=True)
-        if t and len(t) > 3 and len(t) < 120 and t not in seen:
-            # Get surrounding text as description
-            desc_parts = []
-            sib = el.find_next_sibling()
-            for _ in range(5):
-                if not sib: break
-                if sib.name in ["h3", "h4"]: break
-                desc_parts.append(sib.get_text("\n", strip=True))
-                sib = sib.find_next_sibling()
-            desc = "\n".join(desc_parts).strip()
+        if not t or len(t) < 4 or len(t) > 120: continue
+        if _re.search(r'BIS|אגודה|קריירה|career@|צרו קשר|פייסבוק|אינסטגרם|©|תנאי|משרות|Jobs|חפש', t, _re.I): continue
+        if t in seen: continue
+        seen.add(t)
 
-            # Extract work type
-            worktype = "parttime" if any(w in t + desc for w in ["חלקית", "שעתי", "משמרות"]) else "onsite"
+        # Get description from following siblings
+        desc_parts = []
+        sib = el.find_next_sibling()
+        for _ in range(8):
+            if not sib: break
+            if sib.name in ["h2", "h3", "h4"]: break
+            text = sib.get_text("\n", strip=True)
+            if text: desc_parts.append(text)
+            sib = sib.find_next_sibling()
+        desc = "\n".join(desc_parts).strip()
 
-            seen.add(t)
-            job_titles.append({"title": t, "description": desc, "worktype": worktype})
-
-    # Fallback: parse from raw text if no structured elements found
-    if not job_titles:
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-            # Short line followed by longer content = likely a title
-            if (5 < len(line) < 100 and
-                    not _re.search(r'BIS|אגודה|קריירה|career@|מסננים|צרו קשר|פייסבוק|אינסטגרם|©|תנאי', line, _re.I) and
-                    i + 1 < len(lines) and len(lines[i+1]) > 30):
-                title = line
-                if title not in seen:
-                    seen.add(title)
-                    # Collect description lines
-                    desc_lines = []
-                    j = i + 1
-                    while j < len(lines) and j < i + 15:
-                        if len(lines[j]) < 5 or _re.search(r'©|צרו קשר|תנאי שירות', lines[j]):
-                            break
-                        desc_lines.append(lines[j])
-                        j += 1
-                    desc = "\n".join(desc_lines).strip()
-                    worktype = "parttime" if any(w in title + desc for w in ["חלקית", "שעתי", "משמרות"]) else "onsite"
-                    job_titles.append({"title": title, "description": desc, "worktype": worktype})
-            i += 1
-
-    for job in job_titles:
-        # Split description/requirements
-        desc, reqs = job["description"], ""
+        desc_clean, reqs = desc, ""
         for req_marker in ["דרישות התפקיד", "דרישות:", "Requirements", "כישורים"]:
-            if req_marker in job["description"]:
-                parts = job["description"].split(req_marker, 1)
-                desc = parts[0].strip()
+            if req_marker in desc:
+                parts = desc.split(req_marker, 1)
+                desc_clean = parts[0].strip()
                 reqs = (req_marker + "\n" + parts[1]).strip()
                 break
 
+        worktype = "parttime" if any(w in t + desc for w in ["חלקית", "שעתי", "משמרות"]) else "onsite"
+
+        # Try to find apply link
+        apply_url = URL
+        for a in el.find_all_next("a", href=True, limit=5):
+            href = a.get("href", "")
+            if href.startswith("http") and "bis.org.il" not in href:
+                apply_url = href; break
+
         jobs.append({
-            "title": job["title"],
-            "company": "BIS - אגודת סטודנטים בר-אילן",
-            "city": "רמת גן",
-            "date": TODAY,
-            "url": URL,
-            "department": "",
-            "workplace_type": job["worktype"],
-            "description": desc,
-            "requirements": reqs,
+            "title": t, "company": "BIS - אגודת סטודנטים בר-אילן",
+            "city": "רמת גן", "date": TODAY,
+            "url": apply_url, "department": "",
+            "workplace_type": worktype,
+            "description": desc_clean, "requirements": reqs,
         })
-        print(f"  {job['title'][:70]}")
+        print(f"  {t[:70]}")
 
     print(f"  + {len(jobs)}")
     write_csv(jobs,
