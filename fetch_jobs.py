@@ -1482,7 +1482,7 @@ def run_bar_alumni():
 
     URL = "https://sites.biu.ac.il/employability/messages"
 
-    html = _pw_get(URL, wait_selector=".expand-collapse-item", wait_ms=4000)
+    html = _pw_get(URL, wait_selector=".expand-collapse-item", wait_ms=8000)
     if not html:
         print("  x could not fetch BAR Alumni page"); return
 
@@ -1490,7 +1490,13 @@ def run_bar_alumni():
     jobs = []
     seen = set()
 
-    for item in soup.select(".expand-collapse-item"):
+    all_items = soup.select(".expand-collapse-item")
+    print(f"  items found: {len(all_items)}")
+    if all_items:
+        h3_sample = all_items[0].select_one(".accordion-title h3")
+        print(f"  first h3: {h3_sample.get_text(strip=True)[:60] if h3_sample else 'NONE'}")
+
+    for item in all_items:
         h3 = item.select_one(".accordion-title h3")
         if not h3: continue
         title = h3.get_text(strip=True)
