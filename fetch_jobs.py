@@ -1549,49 +1549,61 @@ def run_bis():
     jobs = []
     seen = set()
 
-    # BIS is Wix — jobs appear as rich text blocks
-    # Try h3/h4 elements first
-    for el in soup.select("h3, h4, h2"):
-        t = el.get_text(strip=True)
-        if not t or len(t) < 4 or len(t) > 120: continue
-        if _re.search(r'BIS|אגודה|קריירה|career@|צרו קשר|פייסבוק|אינסטגרם|©|תנאי|משרות|Jobs|חפש', t, _re.I): continue
+    # BIS is a Wix site — job titles render as:
+    #   <p class="font_2 wixui-rich-text__text">
+    #     <span ...><span class="wixui-rich-text__text"> TITLE TEXT</span></span>
+    #   </p>
+    # Subtitle/metadata lines use font_7; we only want font_2 (the title paragraphs).
+    # Each repeater item also contains a font_7 "משרה זמנית" badge — excluded by class filter.
+    SKIP = _re.compile(r'BIS|אגודה|קריירה|career@|צרו קשר|פייסבוק|אינסטגרם|©|תנאי|משרות|Jobs|חפש|מסננים|תחום|מעוניינים', _re.I)
+
+    title_paragraphs = soup.select('p.font_2.wixui-rich-text__text')
+
+    # Fallback: if Wix CSS classes not present (e.g. SSR stripped), try innermost spans in repeater items
+    if not title_paragraphs:
+        title_paragraphs = soup.select('[data-testid="richTextElement"] p')
+
+    for p in title_paragraphs:
+        # Get text from the innermost span to avoid concatenated parent text
+        inner = p.select_one('span.wixui-rich-text__text')
+        t = (inner.get_text(strip=True) if inner else p.get_text(strip=True))
+        if not t or len(t) < 4 or len(t) > 150: continue
+        if SKIP.search(t): continue
         if t in seen: continue
         seen.add(t)
 
-        # Get description from following siblings
-        desc_parts = []
-        sib = el.find_next_sibling()
-        for _ in range(8):
-            if not sib: break
-            if sib.name in ["h2", "h3", "h4"]: break
-            text = sib.get_text("\n", strip=True)
-            if text: desc_parts.append(text)
-            sib = sib.find_next_sibling()
-        desc = "\n".join(desc_parts).strip()
-
-        desc_clean, reqs = desc, ""
-        for req_marker in ["דרישות התפקיד", "דרישות:", "Requirements", "כישורים"]:
-            if req_marker in desc:
-                parts = desc.split(req_marker, 1)
-                desc_clean = parts[0].strip()
-                reqs = (req_marker + "\n" + parts[1]).strip()
-                break
+        # Description: look inside the same repeater item container
+        desc, reqs = "", ""
+        container = p.find_parent(lambda tag: tag.has_attr('data-testid') and 'inline-content' in tag.get('data-testid', ''))
+        if container:
+            # font_7 paragraphs inside same item = subtitle/description lines
+            desc_parts = [el.get_text(strip=True) for el in container.select('p.font_7.wixui-rich-text__text') if el.get_text(strip=True)]
+            full = "\n".join(desc_parts)
+            for req_marker in ["דרישות התפקיד", "דרישות:", "Requirements", "כישורים"]:
+                if req_marker in full:
+                    parts = full.split(req_marker, 1)
+                    desc = parts[0].strip()
+                    reqs = (req_marker + "\n" + parts[1]).strip()
+                    break
+            else:
+                desc = full
 
         worktype = "parttime" if any(w in t + desc for w in ["חלקית", "שעתי", "משמרות"]) else "onsite"
 
-        # Try to find apply link
+        # Apply link: first external href near this item
         apply_url = URL
-        for a in el.find_all_next("a", href=True, limit=5):
-            href = a.get("href", "")
-            if href.startswith("http") and "bis.org.il" not in href:
-                apply_url = href; break
+        if container:
+            for a in container.select("a[href]"):
+                href = a.get("href", "")
+                if href.startswith("http") and "bis.org.il" not in href:
+                    apply_url = href; break
 
         jobs.append({
             "title": t, "company": "BIS - אגודת סטודנטים בר-אילן",
             "city": "רמת גן", "date": TODAY,
             "url": apply_url, "department": "",
             "workplace_type": worktype,
-            "description": desc_clean, "requirements": reqs,
+            "description": desc, "requirements": reqs,
         })
         print(f"  {t[:70]}")
 
