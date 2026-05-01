@@ -656,6 +656,7 @@ let BIS_JOBS = [];   // BIS (אגודת סטודנטים בר-אילן)
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
+let TOTALS   = {}; // per-source total counts, set after each load
 
 // ─── DOM ─────────────────────────────────────────────────────────────────────
 const $q        = document.getElementById('q');
@@ -916,6 +917,7 @@ async function loadLinkedIn(){
     if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
   });
   $liStatus.innerHTML='LinkedIn: <strong>'+LI_JOBS.length.toLocaleString()+' jobs</strong>';
+  TOTALS['linkedin'] = LI_JOBS.length;
 }
 // ─── LOAD COMEET ─────────────────────────────────────────────────────────────
 async function loadComeet(){
@@ -954,6 +956,7 @@ async function loadComeet(){
     if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
   });
   if($cmStatus) $cmStatus.innerHTML='Comeet: <strong>'+CM_JOBS.length.toLocaleString()+' jobs</strong>';
+  TOTALS['comeet'] = CM_JOBS.length;
 }
 // ─── LOAD GREENHOUSE ─────────────────────────────────────────────────────────
 async function loadGreenhouse(){
@@ -996,6 +999,7 @@ async function loadGreenhouse(){
     if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
   });
   if($ghStatus) $ghStatus.innerHTML='Greenhouse: <strong>'+GH_JOBS.length.toLocaleString()+' jobs</strong>';
+  TOTALS['greenhouse'] = GH_JOBS.length;
 }
 
 
@@ -1036,6 +1040,7 @@ async function loadAshby(){
         complete:res=>res.data.forEach(row=>rows.push(normAshby(row,fname)))});}catch(e){}
   }));
   AB_JOBS=rows;
+  TOTALS['ab'] = AB_JOBS.length;
   if($abStatus) $abStatus.innerHTML=rows.length?`Ashby: <strong>${rows.length} jobs</strong>`:`Ashby: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
 }
 async function loadWorkable(){
@@ -1048,6 +1053,7 @@ async function loadWorkable(){
         complete:res=>res.data.forEach(row=>rows.push(normWorkable(row,fname)))});}catch(e){}
   }));
   WK_JOBS=rows;
+  TOTALS['wk'] = WK_JOBS.length;
   if($wkStatus) $wkStatus.innerHTML=rows.length?`Workable: <strong>${rows.length} jobs</strong>`:`Workable: <span style="color:var(--ink-faint)">no file yet — run workflow</span>`;
 }
 
@@ -1081,6 +1087,7 @@ async function loadSponsored(){
       })});
   }catch(e){}
   SP_JOBS=rows;
+  TOTALS['direct'] = SP_JOBS.length;
   if($spStatus) $spStatus.innerHTML=rows.length
     ? `Direct: <strong>${rows.length} jobs</strong>`
     : `Direct: <span style="color:var(--ink-faint)">none</span>`;
@@ -1120,6 +1127,7 @@ async function loadLever(){
     if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
   });
   if($lvStatus) $lvStatus.innerHTML='Lever: <strong>'+LV_JOBS.length.toLocaleString()+' jobs</strong>';
+  TOTALS['lv'] = LV_JOBS.length;
 }
 
 // ─── LOAD MITAM (NGO jobs) ───────────────────────────────────────────────────
@@ -1179,6 +1187,7 @@ async function loadMitam() {
     if (da && db) return db - da; if (db) return 1; if (da) return -1; return 0;
   });
   if ($mtStatus) $mtStatus.innerHTML = `Mitam: <strong>${MT_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['mt'] = MT_JOBS.length;
 }
 
 // ─── LOAD ACADEMIC (Weizmann etc) ────────────────────────────────────────────
@@ -1248,6 +1257,9 @@ async function loadAcademic() {
   if($wzStatus) $wzStatus.innerHTML=`Weizmann: <strong>${wzCount} jobs</strong>`;
   if($bgStatus) $bgStatus.innerHTML=`BGU: <strong>${bgCount} jobs</strong>`;
   if($tnStatus) $tnStatus.innerHTML=`Technion: <strong>${tnCount} jobs</strong>`;
+  TOTALS['weizmann'] = wzCount;
+  TOTALS['bgu']      = bgCount;
+  TOTALS['technion'] = tnCount;
 }
 
 // ─── LOAD HUJI ALUMNI CAREER ─────────────────────────────────────────────────
@@ -1300,6 +1312,7 @@ async function loadHuji() {
     if (seen.has(k)) return false; seen.add(k); return true;
   });
   if ($hjStatus) $hjStatus.innerHTML = `HUJI Alumni Career: <strong>${HJ_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['huji-alumni'] = HJ_JOBS.length;
 }
 
 // ─── LOAD HUJI POSITIONS (האוניברסיטה העברית - משרות פנימיות) ────────────────
@@ -1352,6 +1365,7 @@ async function loadHujiPositions() {
     if (seen.has(k)) return false; seen.add(k); return true;
   });
   if ($hujiStatus) $hujiStatus.innerHTML = `HUJI: <strong>${HUJI_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['huji'] = HUJI_JOBS.length;
 }
 
 // ─── LOAD TAU (אוניברסיטת תל אביב) ─────────────────────────────────────────
@@ -1404,6 +1418,7 @@ async function loadTAU() {
     if (seen.has(k)) return false; seen.add(k); return true;
   });
   if ($tauStatus) $tauStatus.innerHTML = `TAU: <strong>${TAU_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['tau'] = TAU_JOBS.length;
 }
 
 // ─── LOAD HAIFA UNIVERSITY (אוניברסיטת חיפה) ─────────────────────────────────
@@ -1456,6 +1471,7 @@ async function loadHaifa() {
     if (seen.has(k)) return false; seen.add(k); return true;
   });
   if ($ufStatus) $ufStatus.innerHTML = `Haifa U: <strong>${UF_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['haifa'] = UF_JOBS.length;
 }
 
 // ─── LOAD KPMG ───────────────────────────────────────────────────────────────
@@ -1488,6 +1504,7 @@ async function loadKPMG() {
   const seen = new Set();
   KPMG_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if ($kpmgStatus) $kpmgStatus.innerHTML = `KPMG: <strong>${KPMG_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['kpmg'] = KPMG_JOBS.length;
 }
 
 // ─── LOAD DELOITTE ────────────────────────────────────────────────────────────
@@ -1520,6 +1537,7 @@ async function loadDeloitte() {
   const seen = new Set();
   DL_JOBS = rows.filter(r => { const k = r.title.toLowerCase()+'|'+(r.city||''); if(seen.has(k))return false; seen.add(k); return true; });
   if ($dlStatus) $dlStatus.innerHTML = `Deloitte: <strong>${DL_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['deloitte'] = DL_JOBS.length;
 }
 
 // ─── LOAD EY ─────────────────────────────────────────────────────────────────
@@ -1552,6 +1570,7 @@ async function loadEY() {
   const seen = new Set();
   EY_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if ($eyStatus) $eyStatus.innerHTML = `EY: <strong>${EY_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['ey'] = EY_JOBS.length;
 }
 
 // ─── LOAD JOINT (ג'וינט) ─────────────────────────────────────────────────────
@@ -1592,6 +1611,7 @@ async function loadJoint() {
   const seen = new Set();
   JNT_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if ($jntStatus) $jntStatus.innerHTML = `Joint: <strong>${JNT_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['joint'] = JNT_JOBS.length;
 }
 
 // ─── LOAD BAR (אוניברסיטת בר-אילן - משרות פנימיות) ──────────────────────────
@@ -1629,6 +1649,7 @@ async function loadBAR() {
   const seen = new Set();
   BAR_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if ($barStatus) $barStatus.innerHTML = `BAR: <strong>${BAR_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['bar'] = BAR_JOBS.length;
 }
 
 // ─── LOAD BAR ALUMNI CAREER ───────────────────────────────────────────────────
@@ -1666,6 +1687,7 @@ async function loadBARAlumni() {
   const seen = new Set();
   BAR_ALUMNI_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if ($barAlumniStatus) $barAlumniStatus.innerHTML = `BAR Alumni: <strong>${BAR_ALUMNI_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['bar-alumni'] = BAR_ALUMNI_JOBS.length;
 }
 
 // ─── LOAD BIS (אגודת סטודנטים בר-אילן) ──────────────────────────────────────
@@ -1703,6 +1725,7 @@ async function loadBIS() {
   const seen = new Set();
   BIS_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if ($bisStatus) $bisStatus.innerHTML = `BIS: <strong>${BIS_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['bis'] = BIS_JOBS.length;
 }
 
 // ─── POOL ────────────────────────────────────────────────────────────────────
@@ -1919,6 +1942,64 @@ const SECTOR_LABELS = {
   startup:'Startup / Scale-up', private:'Private', public:'Public Sector',
   academic:'Academic / Research', nonprofit:'Nonprofit / NGO', defence:'Defence'
 };
+// ─── DATABAR: live per-source counts ─────────────────────────────────────────
+const DATABAR_SOURCES = [
+  { id:'liStatusText',        key:'linkedin',    label:'LinkedIn' },
+  { id:'cmStatusText',        key:'comeet',      label:'Comeet' },
+  { id:'ghStatusText',        key:'greenhouse',  label:'Greenhouse' },
+  { id:'lvStatusText',        key:'lv',          label:'Lever' },
+  { id:'spStatusText',        key:'direct',      label:'Direct' },
+  { id:'mtStatusText',        key:'mt',          label:'Mitam' },
+  { id:'wzStatusText',        key:'weizmann',    label:'Weizmann' },
+  { id:'bgStatusText',        key:'bgu',         label:'BGU' },
+  { id:'tnStatusText',        key:'technion',    label:'Technion' },
+  { id:'hjStatusText',        key:'huji-alumni', label:'HUJI Alumni Career' },
+  { id:'hujiStatusText',      key:'huji',        label:'HUJI' },
+  { id:'tauStatusText',       key:'tau',         label:'TAU' },
+  { id:'ufStatusText',        key:'haifa',       label:'Haifa U' },
+  { id:'kpmgStatusText',      key:'kpmg',        label:'KPMG' },
+  { id:'dlStatusText',        key:'deloitte',    label:'Deloitte' },
+  { id:'eyStatusText',        key:'ey',          label:'EY' },
+  { id:'jntStatusText',       key:'joint',       label:'Joint' },
+  { id:'barStatusText',       key:'bar',         label:'BAR' },
+  { id:'barAlumniStatusText', key:'bar-alumni',  label:'BAR Alumni' },
+  { id:'bisStatusText',       key:'bis',         label:'BIS' },
+];
+
+function updateDatabar() {
+  const anyActive = (
+    ($q        && $q.value.trim()) ||
+    ($city     && $city.value)     ||
+    ($company  && $company.value)  ||
+    ($segment  && $segment.value)  ||
+    ($level    && $level.value)    ||
+    ($date     && $date.value)     ||
+    ($sector   && $sector.value)   ||
+    ($source   && $source.value)   ||
+    ($worktype && $worktype.value)
+  );
+
+  DATABAR_SOURCES.forEach(({ id, key, label }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const total = TOTALS[key];
+    if (total === undefined) return; // source not loaded yet — leave as-is
+    if (!anyActive) {
+      // No filters active — show full total
+      el.innerHTML = total > 0
+        ? `${label}: <strong>${total.toLocaleString()} jobs</strong>`
+        : `${label}: <span style="color:var(--ink-faint)">0 jobs</span>`;
+    } else {
+      // Filters active — show filtered / total
+      const n = FILTERED.filter(j => j.source === key).length;
+      const color = n === 0 ? 'var(--ink-faint)' : 'inherit';
+      el.innerHTML = total > 0
+        ? `${label}: <strong style="color:${color}">${n.toLocaleString()}</strong><span style="color:var(--ink-faint);font-size:10px"> / ${total.toLocaleString()}</span>`
+        : `${label}: <span style="color:var(--ink-faint)">0</span>`;
+    }
+  });
+}
+
 // ─── FILTER ──────────────────────────────────────────────────────────────────
 function applyFilters(){
   // mark active filters
@@ -1976,6 +2057,7 @@ function applyFilters(){
     return db - da;     // newest first
   });
   visible = PAGE;
+  updateDatabar();
   render();
 }
 
