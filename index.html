@@ -535,18 +535,17 @@
             <option value="operations">Operations</option>
             <option value="management">Management</option>
           </optgroup>
-          <optgroup label="Sector">
-            <option value="cyber">Cyber</option>
-            <option value="fintech">Fintech</option>
-            <option value="health">Health</option>
-            <option value="media">Media</option>
-            <option value="hardware">Hardware</option>
-            <option value="defence">Defence</option>
-            <option value="gaming">Gaming</option>
+          <optgroup label="Level">
+            <option value="entry">Junior</option>
+            <option value="mid">Mid</option>
+            <option value="senior">Senior</option>
+            <option value="advanced">Staff</option>
+            <option value="director">Director+</option>
           </optgroup>
           <optgroup label="Work type">
             <option value="remote">Remote</option>
             <option value="hybrid">Hybrid</option>
+            <option value="onsite">On-site</option>
           </optgroup>
         </select>
         <select id="trendDays" class="an-select">
@@ -580,18 +579,12 @@
     </div>
   </div>
 
-  <!-- Row: Top 20 companies + Source split -->
-  <div class="an-row" style="margin-bottom:20px;">
+  <!-- Row: Top 20 companies (full width) -->
+  <div class="an-row" style="grid-template-columns:1fr;margin-bottom:20px;">
     <div class="an-box">
       <div class="an-box-title">Top 20 hiring companies</div>
       <canvas id="chartCompanies" height="320"></canvas>
       <div class="an-note">Click → filter by company</div>
-    </div>
-    <div class="an-box">
-      <div class="an-box-title">Source split</div>
-      <canvas id="chartSource" height="180"></canvas>
-      <div class="an-box-title" style="margin-top:20px;">Sector × Role breakdown</div>
-      <canvas id="chartHeatmap" height="220"></canvas>
     </div>
   </div>
 
@@ -2347,11 +2340,20 @@ function renderTrendChart(histData, metric, days){
   const metricSelect = document.getElementById('trendMetric');
   const label = metricSelect ? metricSelect.options[metricSelect.selectedIndex].text : metric;
   document.getElementById('trendTitle').textContent = label + ' over time';
+  destroyChart('trend');
+
+  // Level and onsite metrics may not exist in history.csv yet — show a note
+  const levelMetrics = ['entry','mid','senior','advanced','director','onsite'];
+  if(levelMetrics.includes(metric) && !values.some(v=>v>0)){
+    document.getElementById('trendNote').textContent =
+      `"${label}" isn't tracked in history.csv yet — add it to your nightly script to enable this chart.`;
+    return;
+  }
+
   const hasData = values.some(v=>v>0);
   document.getElementById('trendNote').textContent = hasData
     ? `${subset.length} days of data — grows automatically each night`
     : 'No history yet — history.csv builds after first nightly run';
-  destroyChart('trend');
   if(!hasData) return;
   CHART_INSTANCES['trend'] = new Chart(document.getElementById('chartTrend'),{
     type:'line',
@@ -2435,36 +2437,6 @@ async function renderAnalytics(){
       plugins:{legend:{display:false}},
       scales:{x:{grid:{color:'rgba(0,0,0,.05)'}},y:{ticks:{font:{size:10}}}},
       onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ $company.value=compData[els[0].index][0]; }); } }}
-  });
-
-  // ── Source donut ──
-  destroyChart('source');
-  const srcLabels={linkedin:'LinkedIn',comeet:'Comeet',greenhouse:'Greenhouse',lv:'Lever',ab:'Ashby',wk:'Workable',techmap:'Techmap'};
-  const bySrc=count(jobs,r=>r.source);
-  const srcData=Object.entries(bySrc).filter(([,v])=>v>0);
-  CHART_INSTANCES['source']=new Chart(document.getElementById('chartSource'),{
-    type:'doughnut',
-    data:{labels:srcData.map(([k])=>srcLabels[k]||k),datasets:[{data:srcData.map(([,v])=>v),backgroundColor:['#0a66c2','#00897b','#2e7d32','#c2410c','#7c3aed','#0369a1','#888']}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
-      onClick:(_,els)=>{ if(els[0]!=null){ switchToJobs(()=>{ if($source)$source.value=srcData[els[0].index][0]; }); } }}
-  });
-
-  // ── Sector × Role stacked bar ──
-  destroyChart('heatmap');
-  const validSectors=topN(bySector,8).filter(([,v])=>v>10).map(([k])=>k);
-  const validRoles=topN(byRole,6).filter(([k])=>k).map(([k])=>k);
-  const roleColors=['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c'];
-  CHART_INSTANCES['heatmap']=new Chart(document.getElementById('chartHeatmap'),{
-    type:'bar',
-    data:{labels:validSectors.map(k=>SECTOR_LABELS[k]||k),
-      datasets:validRoles.map((role,i)=>({
-        label:ROLE_LABELS[role]||role,
-        data:validSectors.map(sec=>jobs.filter(r=>classifyEmployerType(r.company,r.title,r.source)===sec&&classifySegment(r.title)===role).length),
-        backgroundColor:roleColors[i],borderRadius:2
-      }))},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
-      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'}}}}
   });
 
   // ── Trend (async, loads after sync charts) ──
