@@ -2342,18 +2342,10 @@ function renderTrendChart(histData, metric, days){
   document.getElementById('trendTitle').textContent = label + ' over time';
   destroyChart('trend');
 
-  // Level and onsite metrics may not exist in history.csv yet — show a note
-  const levelMetrics = ['entry','mid','senior','advanced','director','onsite'];
-  if(levelMetrics.includes(metric) && !values.some(v=>v>0)){
-    document.getElementById('trendNote').textContent =
-      `"${label}" isn't tracked in history.csv yet — add it to your nightly script to enable this chart.`;
-    return;
-  }
-
   const hasData = values.some(v=>v>0);
   document.getElementById('trendNote').textContent = hasData
     ? `${subset.length} days of data — grows automatically each night`
-    : 'No history yet — history.csv builds after first nightly run';
+    : 'No history yet for this metric — runs automatically after tonight\'s update';
   if(!hasData) return;
   CHART_INSTANCES['trend'] = new Chart(document.getElementById('chartTrend'),{
     type:'line',
