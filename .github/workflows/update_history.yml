@@ -1,0 +1,49 @@
+name: Update Job History
+
+on:
+  schedule:
+    - cron: '30 22 * * *'   # 22:30 UTC = 01:30 IL time (after all scrapers finish)
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Date to record (YYYY-MM-DD). Leave blank for today.'
+        required: false
+      dry_run:
+        description: 'Dry run (print only, no commit)'
+        required: false
+        default: 'false'
+
+jobs:
+  update-history:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run history updater
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            ARGS="${{ github.event.inputs.date }}"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          python update_history.py $ARGS
+
+      - name: Commit history.csv
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add history.csv
+          git diff --cached --quiet || git commit -m "chore: history snapshot $(date +%F)"
+          git push
