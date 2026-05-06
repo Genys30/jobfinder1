@@ -35,6 +35,33 @@
   --ic:#c0392b;--ic-pale:rgba(192,57,43,0.07);
   --sp:#c97f0c;--sp-pale:rgba(201,127,12,0.07);
   }
+
+  /* ─── Saved searches ─── */
+  .q-wrap{position:relative;display:inline-block;}
+  .q-wrap input{width:140px;}
+  .q-save-btn{font-family:'JetBrains Mono',monospace;font-size:11px;
+    background:none;border:1px solid var(--rule);border-radius:3px;
+    color:var(--ink-faint);cursor:pointer;height:30px;padding:0 7px;
+    margin-left:2px;transition:all .15s;flex-shrink:0;}
+  .q-save-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .saved-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;
+    z-index:999;background:#fff;border:1px solid var(--rule);border-radius:3px;
+    box-shadow:0 4px 12px rgba(0,0,0,.1);min-width:200px;max-width:320px;
+    font-family:'JetBrains Mono',monospace;}
+  .saved-dropdown.open{display:block;}
+  .saved-dropdown-header{font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink-faint);padding:8px 12px 4px;border-bottom:1px solid var(--rule);}
+  .saved-item{display:flex;align-items:center;justify-content:space-between;
+    padding:7px 12px;cursor:pointer;font-size:12px;color:var(--ink);
+    border-bottom:1px solid var(--rule);gap:8px;}
+  .saved-item:last-child{border-bottom:none;}
+  .saved-item:hover{background:rgba(201,127,12,.06);}
+  .saved-item span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .saved-item-del{color:var(--ink-faint);font-size:14px;line-height:1;
+    padding:2px 4px;border:none;background:none;cursor:pointer;flex-shrink:0;}
+  .saved-item-del:hover{color:var(--accent-2);}
+  .saved-empty{padding:10px 12px;font-size:11px;color:var(--ink-faint);text-align:center;}
+
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--ink);font-family:'Carlito','Calibri','Gill Sans MT',sans-serif;
     -webkit-font-smoothing:antialiased;min-height:100vh;
@@ -396,7 +423,14 @@
   <button class="vbtn" id="vbtnAnalytics">&#128202; Analytics</button>
 </div>
 <section class="filters">
-  <input id="q" type="text" placeholder="Position…" autocomplete="off" />
+  <div class="q-wrap">
+    <input id="q" type="text" placeholder="Position…" autocomplete="off" />
+    <button class="q-save-btn" id="qSaveBtn" title="Save this search">☆</button>
+    <div class="saved-dropdown" id="savedDropdown">
+      <div class="saved-dropdown-header">Saved searches</div>
+      <div id="savedList"></div>
+    </div>
+  </div>
   <select id="city"><option value="">City</option></select>
   <select id="company"><option value="">Company</option></select>
   <select id="segment">
@@ -2395,6 +2429,102 @@ async function loadIchilov() {
   applyFilters();
 }
 
+
+// ─── SAVED SEARCHES ──────────────────────────────────────────────────────────
+const SAVED_KEY = 'jf_saved_searches';
+const MAX_SAVED = 15;
+
+function getSaved() {
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function setSaved(arr) {
+  try { localStorage.setItem(SAVED_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+
+function renderSavedList() {
+  const list = document.getElementById('savedList');
+  if (!list) return;
+  const items = getSaved();
+  if (!items.length) {
+    list.innerHTML = '<div class="saved-empty">No saved searches yet</div>';
+    return;
+  }
+  list.innerHTML = items.map((term, i) =>
+    `<div class="saved-item" data-i="${i}">
+       <span>${esc(term)}</span>
+       <button class="saved-item-del" data-i="${i}" title="Delete">×</button>
+     </div>`
+  ).join('');
+
+  list.querySelectorAll('.saved-item').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('saved-item-del')) return;
+      const term = getSaved()[+el.dataset.i];
+      if (term !== undefined) {
+        $q.value = term;
+        closeSavedDropdown();
+        applyFilters();
+      }
+    });
+  });
+  list.querySelectorAll('.saved-item-del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const arr = getSaved();
+      arr.splice(+btn.dataset.i, 1);
+      setSaved(arr);
+      renderSavedList();
+      if (!getSaved().length) closeSavedDropdown();
+    });
+  });
+}
+
+function openSavedDropdown() {
+  const dd = document.getElementById('savedDropdown');
+  if (dd) { renderSavedList(); dd.classList.add('open'); }
+}
+function closeSavedDropdown() {
+  const dd = document.getElementById('savedDropdown');
+  if (dd) dd.classList.remove('open');
+}
+
+function initSavedSearches() {
+  const saveBtn = document.getElementById('qSaveBtn');
+  const dd      = document.getElementById('savedDropdown');
+  if (!saveBtn || !dd || !$q) return;
+
+  // Save button
+  saveBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const term = $q.value.trim();
+    if (!term) return;
+    const arr = getSaved().filter(t => t !== term);
+    arr.unshift(term);
+    if (arr.length > MAX_SAVED) arr.length = MAX_SAVED;
+    setSaved(arr);
+    saveBtn.textContent = '★';
+    setTimeout(() => saveBtn.textContent = '☆', 1200);
+    renderSavedList();
+  });
+
+  // Show dropdown on input focus if saved items exist
+  $q.addEventListener('focus', () => {
+    if (getSaved().length) openSavedDropdown();
+  });
+
+  // Update save button star state when typing
+  $q.addEventListener('input', () => {
+    const term = $q.value.trim();
+    saveBtn.textContent = (term && getSaved().includes(term)) ? '★' : '☆';
+  });
+
+  // Close on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.q-wrap')) closeSavedDropdown();
+  });
+}
+
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
 (async()=>{
@@ -2427,6 +2557,7 @@ render();
   });
   $lastBuild.textContent='live · '+new Date().toISOString().slice(0,10);
   populateDropdowns();
+  initSavedSearches();
   makeSearchable($city);
   makeSearchable($company);
   applyFilters();
