@@ -924,6 +924,111 @@ def run_gotfriends():
     )
 
 
+
+# ══ TOPMATCH HOSPITALS ════════════════════════════════════════════════════════
+# TopMatch (top-group.co.il) is the ATS used by Ichilov and other Israeli
+# hospitals. API: POST careers.topmatch.co.il/CandidateAPI/api//position/Search/{guid}
+# To add a new hospital: find their jobs page, check Network tab for the GUID
+# in the POST to careers.topmatch.co.il, add a row to TOPMATCH_SOURCES.
+
+TOPMATCH_SOURCES = [
+    {
+        'name':       'Ichilov (TASMC)',
+        'company':    'המרכז הרפואי תל-אביב (איכילוב)',
+        'guid':       '3FC41CB2-A7A8-454A-BC2B-0EDC1A919656',
+        'apply_base': 'https://jobs.tasmc.org.il/Positions',
+        'location':   'Tel Aviv',
+        'source':     'ichilov',
+    },
+    # Add more hospitals here once you have their GUIDs, e.g.:
+    # {'name':'Rambam','company':'רמב"ם','guid':'XXXX-...','apply_base':'https://jobs.rambam.org.il/Positions','location':'Haifa','source':'rambam'},
+]
+
+TOPMATCH_API  = 'https://careers.topmatch.co.il/CandidateAPI/api//position/Search/{guid}'
+TOPMATCH_BODY = {'KeyWords': '', 'CategoryId': [], 'countryId': 2, 'cityId': []}
+
+
+def run_topmatch():
+    print('\n-- TopMatch hospitals ------------------------------------------')
+
+    all_jobs = []
+
+    for src in TOPMATCH_SOURCES:
+        print(f"  [{src['name']}]", end=' ', flush=True)
+        try:
+            origin = src['apply_base'].rsplit('/Positions', 1)[0]
+            r = requests.post(
+                TOPMATCH_API.format(guid=src['guid']),
+                json=TOPMATCH_BODY,
+                headers={
+                    **HEADERS,
+                    'Content-Type': 'application/json',
+                    'Accept':       'application/json',
+                    'Origin':       origin,
+                    'Referer':      src['apply_base'] + '/',
+                },
+                timeout=30,
+            )
+            if not r.ok:
+                print(f'x{r.status_code}')
+                continue
+
+            data = r.json()
+
+            # Response: {"positions":[...], "errorCode":0, ...}
+            if isinstance(data, list):
+                positions = data
+            elif isinstance(data, dict):
+                positions = (
+                    data.get('positions') or data.get('Positions') or
+                    data.get('data')      or data.get('Data')      or
+                    next((v for v in data.values() if isinstance(v, list)), [])
+                )
+            else:
+                print('x unexpected response')
+                continue
+
+            jobs = []
+            for p in positions:
+                pos_id = str(p.get('compPositionID') or p.get('positionId') or '').strip()
+                title  = (p.get('jobTitleText') or p.get('extJobTitleText') or '').strip()
+                if not title or not pos_id:
+                    continue
+
+                city = (p.get('displayLocation') or p.get('location') or src['location']).strip()
+                dept = (p.get('fieldDesc') or p.get('categoryName') or '').strip()
+
+                # activationDate: "2026-05-02T11:52:43.117"
+                date_raw = p.get('activationDate') or p.get('publishDate') or ''
+                m = re.search(r'(\d{4}-\d{2}-\d{2})', str(date_raw))
+                date = m.group(1) if m else TODAY
+
+                url = (f"{src['apply_base']}/redmatch-apply/"
+                       f"redmatch.apply.html?compPositionID={pos_id}")
+
+                jobs.append({
+                    'title':          title,
+                    'company':        src['company'],
+                    'location':       city,
+                    'date':           date,
+                    'url':            url,
+                    'department':     dept,
+                    'workplace_type': '',
+                })
+
+            print(f'+{len(jobs)}')
+            all_jobs.extend(jobs)
+
+        except Exception as e:
+            print(f'x {e}')
+
+    write_csv(
+        dedup_jobs(all_jobs),
+        ['title', 'company', 'location', 'date', 'url', 'department', 'workplace_type'],
+        f'topmatch_jobs_{TODAY}.csv',
+    )
+
+
 # ── History snapshot ─────────────────────────────────────────────────────────
 def update_history():
     import os, csv as _csv
@@ -933,11 +1038,11 @@ def update_history():
               'agritech','foodtech','rd','product','data','design','sales',
               'marketing','operations','support','management','intern',
               'remote','hybrid','onsite',
-              'linkedin','comeet','greenhouse','lever','ashby','workable','gotfriends']
+              'linkedin','comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']
 
     # Load all today's CSVs
     rows = []
-    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends']:
+    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']:
         fname = f'{src}_jobs_{TODAY}.csv'
         if not os.path.exists(fname): continue
         with open(fname, encoding='utf-8-sig') as f:
@@ -1002,8 +1107,8 @@ def update_history():
     counts = {f: 0 for f in FIELDS}
     counts['date'] = TODAY
 
-    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0, 'gotfriends': 0}
-    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends']:
+    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0, 'gotfriends': 0, 'topmatch': 0}
+    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']:
         fname = f'{src}_jobs_{TODAY}.csv'
         if os.path.exists(fname):
             with open(fname, encoding='utf-8-sig') as f:
@@ -1017,6 +1122,7 @@ def update_history():
     counts['ashby']    = src_counts['ashby']
     counts['workable'] = src_counts['workable']
     counts['gotfriends'] = src_counts['gotfriends']
+    counts['topmatch']   = src_counts['topmatch']
 
     for row in all_rows:
         title   = g(row,'title','job_title','position')
@@ -1820,6 +1926,7 @@ def main():
     run_bar_alumni()
     run_bis()
     run_gotfriends()
+    run_topmatch()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")

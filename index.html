@@ -32,6 +32,7 @@
   --bar:#6b2d8b;--bar-pale:rgba(107,45,139,0.07);
   --bis:#2e7b8c;--bis-pale:rgba(46,123,140,0.07);
   --gf:#2563eb;--gf-pale:rgba(37,99,235,0.07);
+  --ic:#c0392b;--ic-pale:rgba(192,57,43,0.07);
   --sp:#c97f0c;--sp-pale:rgba(201,127,12,0.07);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -129,6 +130,8 @@
   .bis-row:hover .title{color:var(--bis);}
   .gf-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--gf);}
   .gf-row:hover .title{color:var(--gf);}
+  .ic-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ic);}
+  .ic-row:hover .title{color:var(--ic);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -382,6 +385,8 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--bis)"></span><span id="bisStatusText">BIS: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--gf)"></span><span id="gfStatusText">GotFriends: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--ic)"></span><span id="icStatusText">Ichilov: loading…</span></div>
 </div>
 
 <!-- Filters -->
@@ -458,6 +463,7 @@
       <option value="bar-alumni">BAR Alumni</option>
       <option value="bis">BIS</option>
       <option value="gf">GotFriends</option>
+      <option value="ichilov">Ichilov 🏥</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -653,6 +659,7 @@ let BAR_JOBS = [];   // Bar-Ilan University positions
 let BAR_ALUMNI_JOBS = []; // BAR Alumni Career
 let BIS_JOBS = [];   // BIS (אגודת סטודנטים בר-אילן)
 let GF_JOBS  = [];   // GotFriends
+let IC_JOBS  = [];   // Ichilov (TopMatch)
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -693,6 +700,7 @@ const $barStatus = document.getElementById('barStatusText');
 const $barAlumniStatus = document.getElementById('barAlumniStatusText');
 const $bisStatus = document.getElementById('bisStatusText');
 const $gfStatus  = document.getElementById('gfStatusText');
+const $icStatus  = document.getElementById('icStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -1756,8 +1764,9 @@ function getPool(){
   if(activeSrc==='bar-alumni') return BAR_ALUMNI_JOBS;
   if(activeSrc==='bis')   return BIS_JOBS;
   if(activeSrc==='gf')    return GF_JOBS;
+  if(activeSrc==='ichilov') return IC_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BAR_ALUMNI_JOBS,...BIS_JOBS,...GF_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BAR_ALUMNI_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -2108,14 +2117,15 @@ function render(){
     const barAlumniBadge = r.source==='bar-alumni'?'<span class="bar-badge">BAR Alumni</span>':'';
     const bisBadge = r.source==='bis'?'<span class="bis-badge">BIS</span>':'';
     const gfBadge  = r.source==='gf'?'<span class="gf-badge">GF</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row','bar-alumni':' bar-row',bis:' bis-row',gf:' gf-row'})[r.source]||'';
+    const icBadge  = r.source==='ichilov'?'<span class="ic-badge">Ichilov</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row','bar-alumni':' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
     const arrowLabel = hasDesc ? '📄' : '➝';
     return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+barAlumniBadge+bisBadge+gfBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+barAlumniBadge+bisBadge+gfBadge+icBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -2327,6 +2337,62 @@ async function loadGotFriends() {
   applyFilters();
 }
 
+
+function normIchilov(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  const title = g('title');
+  if (!title) return null;
+  return {
+    source: 'ichilov', fnArea: 'ichilov',
+    title,
+    company: g('company') || 'איכילוב',
+    category: g('department') || 'ichilov',
+    size: '', level: '',
+    city: g('location'),
+    url: g('url'),
+    updated: g('date') || date,
+    workType: 'onsite'
+  };
+}
+
+async function loadIchilov() {
+  if ($icStatus) $icStatus.innerHTML = 'Ichilov: <span style="color:var(--ink-faint)">loading\u2026</span>';
+  const filenames = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    filenames.push(`topmatch_jobs_${y}-${m}-${day}.csv`);
+  }
+  const allRows = (await Promise.all(filenames.map(async fname => {
+    try {
+      const r = await fetch(LI_RAW + fname);
+      if (!r.ok) return [];
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
+        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
+      return parsed.data.map(row => normIchilov(row, fname)).filter(Boolean);
+    } catch(e) { return []; }
+  }))).flat();
+  if (allRows.length === 0) {
+    if ($icStatus) $icStatus.innerHTML = 'Ichilov: <span style="color:var(--ink-faint)">no file yet</span>';
+    return;
+  }
+  const seen = new Set();
+  IC_JOBS = allRows.filter(r => {
+    const k = r.url || (r.company + '|' + r.title + '|' + r.city);
+    if (seen.has(k)) return false; seen.add(k); return true;
+  });
+  IC_JOBS.sort((a, b) => {
+    const da = parseDate(a.updated), db = parseDate(b.updated);
+    if (da && db) return db - da; if (db) return 1; if (da) return -1; return 0;
+  });
+  if ($icStatus) $icStatus.innerHTML = `Ichilov: <strong>${IC_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['ichilov'] = IC_JOBS.length;
+  populateDropdowns();
+  applyFilters();
+}
+
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
 (async()=>{
@@ -2352,7 +2418,8 @@ render();
     loadBAR(),
     loadBARAlumni(),
     loadBIS(),
-    loadGotFriends()
+    loadGotFriends(),
+    loadIchilov()
   ]).catch(e=>{
     console.error('load error', e);
   });
@@ -2434,7 +2501,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BAR_ALUMNI_JOBS,...BIS_JOBS,...GF_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BAR_ALUMNI_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -2569,7 +2636,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BAR_ALUMNI_JOBS,BIS_JOBS,GF_JOBS);
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BAR_ALUMNI_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){
