@@ -2335,7 +2335,9 @@ function normGotFriends(row, fname) {
     location: g('location'),
     url: g('url'),
     updated: g('date') || date,
-    workType: wt.includes('remote') ? 'remote' : wt.includes('hybrid') ? 'hybrid' : 'onsite'
+    workType: wt.includes('remote') ? 'remote' : wt.includes('hybrid') ? 'hybrid' : 'onsite',
+    description: g('description'),
+    requirements: g('requirements'),
   };
 }
 
