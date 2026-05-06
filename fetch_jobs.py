@@ -754,6 +754,176 @@ def run_technion():
         print(f"  x {e}")
 
 
+
+# ══ GOTFRIENDS ════════════════════════════════════════════════════════════════
+# Israel's largest tech-only recruitment platform. Jobs are exclusive —
+# most won't appear on Greenhouse/Lever/etc. No API: plain HTML, server-rendered.
+# URL pattern: /jobslobby/{category}/?page=N&total=TOTALPAGES
+
+def run_gotfriends():
+    print("\n-- GotFriends (גוטפרנדס) -------------------------------------------")
+    from bs4 import BeautifulSoup as _BS
+    import time as _time
+
+    BASE = 'https://www.gotfriends.co.il'
+
+    # Top-level categories only — subcategory pages duplicate the same jobs
+    CATEGORIES = [
+        ('software',           'Software Development'),
+        ('ai',                 'AI & ML'),
+        ('datasecurity',       'Cyber & Security'),
+        ('algorithm',          'Algorithms & Data Science'),
+        ('qa',                 'QA & Automation'),
+        ('executive-position', 'Executive'),
+        ('graduates',          'Graduates (8200/Mamram)'),
+        ('projects',           'Product Management'),
+        ('system',             'DevOps & System'),
+        ('bibig_data',         'BI & Big Data'),
+    ]
+
+    LOC_MAP = {
+        'ת"א והמרכז':     'Tel Aviv',
+        'תל אביב':         'Tel Aviv',
+        'השרון':           'Sharon',
+        'חיפה והצפון':    'Haifa',
+        'חיפה':            'Haifa',
+        'ירושלים':         'Jerusalem',
+        'באר שבע והדרום': 'Beer Sheva',
+        'באר שבע':         'Beer Sheva',
+        'שפלה':            'Shfela',
+        'אילת':            'Eilat',
+    }
+
+    REMOTE_KW = re.compile(r'ריילוקיישן|relocation|remote|מהבית|מרחוק', re.I)
+    HYBRID_KW = re.compile(r'היברידי|hybrid', re.I)
+
+    def map_loc(raw):
+        raw = raw.strip()
+        for heb, eng in LOC_MAP.items():
+            if heb in raw:
+                return eng
+        return 'Israel'
+
+    def parse_page(html, cat_en):
+        soup = _BS(html, 'html.parser')
+        jobs = []
+
+        for h2 in soup.find_all('h2'):
+            a = h2.find('a', href=re.compile(r'/jobslobby/'))
+            if not a:
+                a = h2.find_parent('a', href=re.compile(r'/jobslobby/'))
+            if not a:
+                continue
+
+            href = a.get('href', '')
+            path_depth = len([p for p in href.split('/') if p])
+            if path_depth < 4:
+                continue
+
+            url = href if href.startswith('http') else BASE + href
+            title = h2.get_text(strip=True)
+            if not title:
+                continue
+
+            node = h2 if not h2.find_parent('a') else h2.find_parent('a')
+            context_parts = []
+            sibling = node.next_sibling
+            steps = 0
+            while sibling and steps < 8:
+                if hasattr(sibling, 'name'):
+                    if sibling.name == 'h2':
+                        break
+                    context_parts.append(sibling.get_text(' ', strip=True))
+                elif isinstance(sibling, str):
+                    context_parts.append(sibling.strip())
+                sibling = sibling.next_sibling
+                steps += 1
+            context = ' '.join(context_parts)
+
+            location = 'Israel'
+            parent = node.parent if node else None
+            if parent:
+                for dt in parent.find_all('dt'):
+                    if 'מיקום' in dt.get_text():
+                        dd = dt.find_next_sibling('dd')
+                        if dd:
+                            location = map_loc(dd.get_text(strip=True))
+                        break
+            if location == 'Israel':
+                m = re.search(r'מיקום[:\s]+([^\n\|]{2,30})', context)
+                if m:
+                    location = map_loc(m.group(1))
+
+            combined = title + ' ' + context
+            if REMOTE_KW.search(combined):
+                wt = 'Remote'
+            elif HYBRID_KW.search(combined):
+                wt = 'Hybrid'
+            else:
+                wt = 'onsite'
+
+            jobs.append({
+                'title':          title,
+                'company':        'GotFriends',
+                'location':       location,
+                'date':           TODAY,
+                'url':            url,
+                'department':     cat_en,
+                'workplace_type': wt,
+            })
+
+        return jobs
+
+    all_jobs  = []
+    seen_urls = set()
+
+    for cat_slug, cat_en in CATEGORIES:
+        cat_url = f'{BASE}/jobslobby/{cat_slug}/'
+        print(f'  [{cat_slug}]', end='', flush=True)
+
+        total_pages = 1
+        page = 1
+
+        while page <= total_pages and page <= 40:
+            url = cat_url if page == 1 else f'{cat_url}?page={page}&total={total_pages}'
+            try:
+                r = requests.get(url, timeout=30, headers=HEADERS)
+                if not r.ok:
+                    print(f' x{r.status_code}', end='')
+                    break
+                if page == 1:
+                    for m in re.finditer(r'[?&]total=(\d+)', r.text):
+                        detected = int(m.group(1))
+                        if detected > total_pages:
+                            total_pages = detected
+                        break
+
+                new_jobs = parse_page(r.text, cat_en)
+                added = 0
+                for j in new_jobs:
+                    if j['url'] not in seen_urls:
+                        seen_urls.add(j['url'])
+                        all_jobs.append(j)
+                        added += 1
+
+                print(f' p{page}+{added}', end='', flush=True)
+                page += 1
+                _time.sleep(0.35)
+
+            except Exception as e:
+                print(f' x{e}', end='')
+                break
+
+        print()
+
+    result = dedup_jobs(all_jobs)
+    write_csv(
+        result,
+        ['title', 'company', 'location', 'date', 'url', 'department', 'workplace_type'],
+        f'gotfriends_jobs_{TODAY}.csv',
+    )
+
+
 # ── History snapshot ─────────────────────────────────────────────────────────
 def update_history():
     import os, csv as _csv
@@ -763,11 +933,11 @@ def update_history():
               'agritech','foodtech','rd','product','data','design','sales',
               'marketing','operations','support','management','intern',
               'remote','hybrid','onsite',
-              'linkedin','comeet','greenhouse','lever','ashby','workable']
+              'linkedin','comeet','greenhouse','lever','ashby','workable','gotfriends']
 
     # Load all today's CSVs
     rows = []
-    for src in ['comeet','greenhouse','lever','ashby','workable']:
+    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends']:
         fname = f'{src}_jobs_{TODAY}.csv'
         if not os.path.exists(fname): continue
         with open(fname, encoding='utf-8-sig') as f:
@@ -832,8 +1002,8 @@ def update_history():
     counts = {f: 0 for f in FIELDS}
     counts['date'] = TODAY
 
-    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0}
-    for src in ['comeet','greenhouse','lever','ashby','workable']:
+    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0, 'gotfriends': 0}
+    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends']:
         fname = f'{src}_jobs_{TODAY}.csv'
         if os.path.exists(fname):
             with open(fname, encoding='utf-8-sig') as f:
@@ -846,6 +1016,7 @@ def update_history():
     counts['lever']    = src_counts['lever']
     counts['ashby']    = src_counts['ashby']
     counts['workable'] = src_counts['workable']
+    counts['gotfriends'] = src_counts['gotfriends']
 
     for row in all_rows:
         title   = g(row,'title','job_title','position')
@@ -1648,6 +1819,7 @@ def main():
     run_bar()
     run_bar_alumni()
     run_bis()
+    run_gotfriends()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
