@@ -2431,8 +2431,51 @@ async function loadIchilov() {
 
 
 // ─── SAVED SEARCHES ──────────────────────────────────────────────────────────
-const SAVED_KEY = 'jf_saved_searches';
+// Saves the full filter state (position + all dropdowns), not just the text.
+
+const SAVED_KEY = 'jf_saved_searches_v2';
 const MAX_SAVED = 15;
+
+const FILTER_IDS = ['q','city','company','segment','level','date','sector','source','worktype'];
+const FILTER_LABELS = {
+  segment:{rd:'R&D',product:'Product',data:'Data',design:'Design',sales:'Sales',
+           marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern',administrative:'Admin'},
+  sector:{startup:'Startup',private:'Private',public:'Public',academic:'Academic',nonprofit:'NGO',defence:'Defence'},
+  date:{1:'Today',3:'3d',7:'7d',14:'14d',30:'30d'},
+  worktype:{remote:'Remote',hybrid:'Hybrid',onsite:'On-site'},
+};
+
+function captureFilters() {
+  const state = {};
+  FILTER_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value) state[id] = el.value;
+  });
+  return state;
+}
+
+function applyFilterState(state) {
+  FILTER_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = state[id] || '';
+  });
+  applyFilters();
+}
+
+function stateLabel(state) {
+  const parts = [];
+  if (state.q)        parts.push(state.q);
+  if (state.city)     parts.push(state.city);
+  if (state.company)  parts.push(state.company);
+  if (state.segment)  parts.push(FILTER_LABELS.segment[state.segment] || state.segment);
+  if (state.level)    parts.push(state.level.charAt(0).toUpperCase()+state.level.slice(1));
+  if (state.date)     parts.push(FILTER_LABELS.date[state.date] || state.date);
+  if (state.sector)   parts.push(FILTER_LABELS.sector[state.sector] || state.sector);
+  if (state.source)   parts.push(state.source);
+  if (state.worktype) parts.push(FILTER_LABELS.worktype[state.worktype] || state.worktype);
+  return parts.join(' · ') || '(all jobs)';
+}
 
 function getSaved() {
   try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]'); }
@@ -2450,9 +2493,9 @@ function renderSavedList() {
     list.innerHTML = '<div class="saved-empty">No saved searches yet</div>';
     return;
   }
-  list.innerHTML = items.map((term, i) =>
+  list.innerHTML = items.map((state, i) =>
     `<div class="saved-item" data-i="${i}">
-       <span>${esc(term)}</span>
+       <span title="${esc(stateLabel(state))}">${esc(stateLabel(state))}</span>
        <button class="saved-item-del" data-i="${i}" title="Delete">×</button>
      </div>`
   ).join('');
@@ -2460,12 +2503,8 @@ function renderSavedList() {
   list.querySelectorAll('.saved-item').forEach(el => {
     el.addEventListener('click', e => {
       if (e.target.classList.contains('saved-item-del')) return;
-      const term = getSaved()[+el.dataset.i];
-      if (term !== undefined) {
-        $q.value = term;
-        closeSavedDropdown();
-        applyFilters();
-      }
+      const state = getSaved()[+el.dataset.i];
+      if (state) { closeSavedDropdown(); applyFilterState(state); }
     });
   });
   list.querySelectorAll('.saved-item-del').forEach(btn => {
@@ -2492,15 +2531,17 @@ function closeSavedDropdown() {
 function initSavedSearches() {
   const saveBtn = document.getElementById('qSaveBtn');
   const dd      = document.getElementById('savedDropdown');
-  if (!saveBtn || !dd || !$q) return;
+  if (!saveBtn || !dd) return;
 
-  // Save button
+  // Save current full filter state
   saveBtn.addEventListener('click', e => {
     e.stopPropagation();
-    const term = $q.value.trim();
-    if (!term) return;
-    const arr = getSaved().filter(t => t !== term);
-    arr.unshift(term);
+    const state = captureFilters();
+    if (!Object.keys(state).length) return;  // nothing active
+    const label = stateLabel(state);
+    // Dedup by label
+    const arr = getSaved().filter(s => stateLabel(s) !== label);
+    arr.unshift(state);
     if (arr.length > MAX_SAVED) arr.length = MAX_SAVED;
     setSaved(arr);
     saveBtn.textContent = '★';
@@ -2508,18 +2549,14 @@ function initSavedSearches() {
     renderSavedList();
   });
 
-  // Show dropdown on input focus if saved items exist
-  $q.addEventListener('focus', () => {
+  // Show dropdown on star click if already saved
+  saveBtn.addEventListener('click', e => {});  // handled above
+
+  // Show saved list when clicking the star with no active filters
+  $q && $q.addEventListener('focus', () => {
     if (getSaved().length) openSavedDropdown();
   });
 
-  // Update save button star state when typing
-  $q.addEventListener('input', () => {
-    const term = $q.value.trim();
-    saveBtn.textContent = (term && getSaved().includes(term)) ? '★' : '☆';
-  });
-
-  // Close on outside click
   document.addEventListener('click', e => {
     if (!e.target.closest('.q-wrap')) closeSavedDropdown();
   });
