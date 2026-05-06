@@ -2726,7 +2726,10 @@ async function renderAnalytics(){
 
   // ── Top 20 companies ──
   destroyChart('companies');
-  const byComp=count(jobs,r=>r.company);
+  // Exclude sources where "company" = the agency name, not a real employer
+  const AGENCY_SOURCES = new Set(['gf','huji-alumni']);
+  const realEmployerJobs = jobs.filter(r => !AGENCY_SOURCES.has(r.source || r.fnArea));
+  const byComp=count(realEmployerJobs,r=>r.company);
   const compData=topN(byComp,20);
   CHART_INSTANCES['companies']=new Chart(document.getElementById('chartCompanies'),{
     type:'bar',
