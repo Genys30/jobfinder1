@@ -156,29 +156,6 @@ Experience with VMs, containers, hypervisors, and cloud environments
 Basic scripting knowledge (Bash / Python / PowerShell)
 Background in information security and infrastructure hardening
 Familiarity with networks, communication protocols, and information securityStrong verbal and written communication skills in Hebrew and English"
-Data Engineer -GCP & BigQuery Expert,KPMG Israel,Tel Aviv,2026-05-06,https://kpmg.co.il/technologyconsulting/he/vacancies/technology-consulting/data-engineer-gcp-bigquery-expert-1,Technology Consulting,onsite,"We are looking for an experienced and hands-on Data Engineer to lead the migration of enterprise data platforms to Google Cloud Platform (GCP).
-In this role, you will design, build and maintain scalable ETL/ELT pipelines, develop advanced data models in BigQuery and contribute to the creation of a high-performance, reliable and cost-efficient data architecture.
-You will work closely with analysts, data scientists and engineers and have real impact on how data is consumed across the organization.
-What You Will Do
-Lead the migration of data from on-premise core systems to Google Cloud Platform (GCP).
-Design and develop processed data layers (Silver and Gold) and data marts in BigQuery, including complex business logic.
-Build, orchestrate and maintain data pipelines using Cloud Composer / Apache Airflow.
-Develop robust data transformations, including cleansing, enrichment and data quality improvements.
-Write efficient and optimized SQL queries in BigQuery with strong focus on performance and cost.
-Create and maintain clear and up-to-date technical documentation for data architecture and processes.","3+ years of hands-on experience as a Data Engineer.
-Strong experience working with Google Cloud Platform (GCP) - mandatory.
-Proven experience with BigQuery, including data modeling, complex SQL and performance optimization - mandatory.
-Strong Python skills for ETL/ELT and data transformations.
-Experience with orchestration and workflow management tools such as Cloud Composer, Apache Airflow or similar.
-Experience working with Cloud Storage (GCS) and additional GCP data services such as Cloud SQL, Data Lakes and storage solutions.
-Nice to Have
-Experience with GCP streaming technologies such as Cloud Pub/Sub and Dataflow.
-Familiarity with Git and CI/CD processes.
-Previous experience migrating data from legacy systems such as Mainframe or Oracle to the cloud.
-Personal Skills
-Ability to work independently and lead projects end-to-end.
-Proactive mindset with strong technical curiosity and continuous learning attitude.
-Strong collaboration skills and ability to work with cross-functional teams."
 AI/ML Developer,KPMG Israel,Tel Aviv,2026-05-06,https://kpmg.co.il/technologyconsulting/he/vacancies/technology-consulting/aiml-developer-2,Technology Consulting,onsite,"We are seeking for a talented AI/ML developer with strong focus on Python expertise and hands-on experience in AI/ML models to join our Data Science group. The Data Science group plays a pivotal role in driving the execution and delivery of advanced AI and modern Machine Learning solutions, that empower impactful projects to our target sectors.
 Key Responsibilities:
 Take part in all development aspects, from concept to production, of AI/ML models and LLM-based features (agents development)
@@ -287,6 +264,41 @@ Exposure to multiple industries, cloud platforms, and technical challenges.
 Opportunity to grow technical leadership skills.
 Collaborative team environment with hands-on architectural guidance.
 Continuous learning in a rapidly evolving field.
+מדהים! זו המשרה עליה חלמתי
+טופס הגשת מועמדות בטעינה
+Liked it?"
+GenAI Backend Engineer,KPMG Israel,Tel Aviv,2026-05-06,https://kpmg.co.il/technologyconsulting/he/vacancies/technology-consulting/genai-backend-engineer,Technology Consulting,onsite,"At KPMG Israel, our Generative AI delivery team builds end-to-end AI-powered products for clients across diverse industries. We combine strong software engineering with GenAI capabilities from multi-agent architectures to complete production systems to deliver solutions that create real business value.
+About the Role
+We're looking for a Backend Engineer with a data science foundation to join our AI team and build production systems that integrate Generative AI capabilities. You'll design and implement end-to-end solutions APIs, databases, orchestration, and cloud infrastructure for clients across a wide range of sectors.
+This role is ideal for someone who thinks in systems, enjoys working with GenAI technologies, and wants to grow into designing complex architectures. You'll work alongside senior engineers on real delivery projects from day one.
+Key Responsibilities
+· Design and build backend systems APIs, databases, authentication, and integrations
+· Implement multi-agent architectures and orchestration workflows combining LLMs with backend logic
+· Deploy and maintain systems on GCP, Azure, or AWS
+· Optimize AI system performance, cost, and reliability
+· Collaborate with client teams, DevOps, and stakeholders on project delivery
+· Contribute to technical discussions and solution design","Must Have
+· 1+ years of software development experience
+· Strong proficiency in Python for backend development
+· Experience building backend systems (APIs, databases, or services)
+· Solid understanding of data science fundamentals statistics, ML concepts, and working with data pipelines
+· Familiarity with at least one major cloud platform (GCP, Azure, or AWS)
+· Understanding of software engineering principles and architecture basics
+· Familiarity with GenAI / LLM concepts
+· Bachelor's degree in Computer Science, Data Science, or related field or equivalent practical experience
+Advantages
+· Experience with LLM provider APIs (OpenAI, Anthropic, Google)
+· Exposure to multi-agent systems or LLM-based workflows
+· Hands-on experience with ML frameworks (e.g., scikit-learn, PyTorch, TensorFlow)
+· Academic research or projects in AI, NLP, or data science
+· Personal or university projects involving multi-agent systems or ML model development
+· Docker and Kubernetes experience
+· Experience working on production systems in a client-facing environment
+What We Offer
+· Hands-on work designing end-to-end AI systems across multiple industries
+· Exposure to diverse cloud platforms and technical challenges
+· Mentorship and a clear path to grow into system design and technical leadership
+· Continuous learning in a rapidly evolving field
 מדהים! זו המשרה עליה חלמתי
 טופס הגשת מועמדות בטעינה
 Liked it?"
