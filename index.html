@@ -1792,22 +1792,23 @@ function populateDropdowns(){
 const SEGMENTS = {
   intern:     /\b(intern|internship|student|trainee|apprentice|co-op|coop|graduate program|סטודנט|מתמחה|מתנדב)\b/i,
   management: /\b(vp|vice president|cto|coo|cpo|ciso|cmo|cfo|ceo|head of|director|general manager|gm\b|chief |ראש אגף|ראש תחום|מנהל.?ת אגף|מנהל.?ת מערך|מנכ"ל|סמנכ"ל|ראש צוות|מנהל.?ת מחלקה|מנהל.?ת המרכז|מנהל.?ת מערך)\b/i,
-  rd:         /\b(engineer|developer|dev\b|devops|sre|architect|backend|front.?end|full.?stack|mobile|ios|android|firmware|embedded|infrastructure|platform|security research|reverse engineer|qa\b|quality assurance|tester|testing|sdet|software|r&d|research and develop)\b|מהנדס|מפתח|איש.אשת סיסטם|תומך.ת מחשוב|תומך.ת IT|מנהל.ת מעבדה|מהנדס.ת מעבדה|ביואינפורמטיק|לבורנט|טכנאי|מומחה.ית מולטימדיה|אחראי.ת ניהול זהויות|מיישמ/i,
+  rd:         /\b(engineer|developer|dev\b|devops|sre|architect|backend|front.?end|full.?stack|mobile|ios|android|firmware|embedded|infrastructure|platform|security research|reverse engineer|qa\b|quality assurance|tester|testing|sdet|software|r&d|research and develop|system administrator|database administrator|dba\b|network administrator|cloud administrator|it administrator|sysadmin|systems administrator|db administrator)\b|מהנדס|מפתח|איש.אשת סיסטם|תומך.ת מחשוב|תומך.ת IT|מנהל.ת מעבדה|מהנדס.ת מעבדה|ביואינפורמטיק|לבורנט|טכנאי|מומחה.ית מולטימדיה|אחראי.ת ניהול זהויות|מיישמ|מתאמ.ת מחקר|מתאם.ת מחקר|אח.ות מחקר|רכז.ת מחקר|עוזר מחקר|עוזרת מחקר|רפרנט.ית מערכות|\bDATA\b/i,
   product:    /\b(product manager|product owner|pm\b|product lead|product director|vp product|program manager|project manager|scrum|agile coach)\b|מנהל.ת פרויקט|מנהל.ת תוכנית|מנהל.ת תכנון/i,
-  data:       /\b(data scientist|data engineer|data analyst|analytics engineer|ml engineer|machine learning|deep learning|ai engineer|artificial intelligence|bi engineer|business intelligence|data architect|data platform|nlp|computer vision|llm|model|datawarehouse|data warehouse)\b|מפתח.ת AI|מפתח.ת DATAWAREHOUSE/i,
+  data:       /\b(data scientist|data engineer|data analyst|analytics engineer|ml engineer|machine learning|deep learning|ai engineer|artificial intelligence|bi engineer|business intelligence|data architect|data platform|nlp|computer vision|llm|model|datawarehouse|data warehouse|dataops|\bBI\b)\b|מפתח.ת AI|מפתח.ת DATAWAREHOUSE|דאטה|BI באגף|מערכות מידע ודיגיטל/i,
   design:     /\b(designer|ux|ui\b|user experience|user interface|figma|product design|visual design|graphic|illustrat)\b|אדריכל|מעצב/i,
   sales:      /\b(account executive|account manager|sales engineer|sales manager|business development|bd\b|sdr\b|bdr\b|pre.?sales|presales|revenue|partnership|channel|alliances|enterprise sales|deal)\b|רכז.ת קשרי תעשיה|פיתוח עסקי/i,
   marketing:  /\b(marketing|growth|content|seo|sem|brand|demand generation|campaign|copywriter|social media|pr\b|public relations|communications|field marketing|product marketing)\b|שיווק|קמפיין/i,
-  support:    /\b(customer success|customer support|technical support|implementation|solutions engineer|solution consultant|integration engineer|onboarding|professional services|client success|support engineer)\b|יועץ.ת חינוכי/i,
-  operations: /\b(hr\b|human resources|recruiter|talent acquisition|people ops|finance|accounting|legal|counsel|procurement|office manager|operations|ops\b|admin|executive assistant|ea\b|it manager|information technology|supply chain|logistics|biz ops|revenue ops|sales ops)\b|ראש לשכה|מנהל.ת לשכה|משאבי אנוש|רכז.ת|ביקורת פנים|בטיחות|ספרי|ספרנ|אחזקה|כלכלנ|חשבות|מנהח"ש/i,
-  administrative: /רכז.ת מינהל|מנהל.ת מינהל|מנהל.ת משרד|מינהל.ת|סגל מנהלי|אדמיניסטרציה|administrative|coordinator|administrator/i,
+  support:    /\b(customer success|customer support|technical support|implementation|solutions engineer|solution consultant|integration engineer|onboarding|professional services|client success|support engineer)\b|יועץ.ת חינוכי|נציג.ת שירות|נציג.ה.*שירות|קשרי מטופלים|מרכז שירות ומידע|שירות למטופל|שירות לקוחות/i,
+  operations: /\b(hr\b|human resources|recruiter|talent acquisition|people ops|finance|accounting|legal|counsel|procurement|office manager|operations|ops\b|admin|executive assistant|ea\b|it manager|information technology|supply chain|logistics|biz ops|revenue ops|sales ops)\b|ראש לשכה|מנהל.ת לשכה|משאבי אנוש|רכז.ת|ביקורת פנים|בטיחות|ספרי|ספרנ|אחזקה|כלכלנ|כלכלן|חשבות|מנהח"ש|רשם.ת|מנהל.ת חשבונות|רכש|לוגיסטיק|גביה|הכנסות|התחשבנות|בינוי|תפעול/i,
+  administrative: /רכז.ת מינהל|מנהל.ת מינהל|מנהל.ת משרד|מינהל.ת|סגל מנהלי|אדמיניסטרציה|administrative|coordinator/i,
 };
 
 function classifySegment(title) {
-  // intern check always first
-  if (SEGMENTS.intern.test(title)) return 'intern';
+  if (SEGMENTS.intern.test(title))     return 'intern';
+  if (SEGMENTS.management.test(title)) return 'management';
+  if (SEGMENTS.data.test(title))       return 'data';   // data before rd (מפתח דאטה → data not rd)
   for (const [seg, re] of Object.entries(SEGMENTS)) {
-    if (seg === 'intern') continue;
+    if (['intern','management','data'].includes(seg)) continue;
     if (re.test(title)) return seg;
   }
   return '';
