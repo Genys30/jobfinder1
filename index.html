@@ -460,6 +460,7 @@
     <option value="sales">Sales</option>
     <option value="marketing">Marketing</option>
     <option value="operations">Ops</option>
+    <option value="hr">HR</option>
     <option value="support">CS</option>
     <option value="management">Mgmt</option>
     <option value="intern">Intern</option>
@@ -1863,7 +1864,8 @@ const SEGMENTS = {
   sales:      /\b(account executive|account manager|sales engineer|sales manager|business development|bd\b|sdr\b|bdr\b|pre.?sales|presales|revenue|partnership|channel|alliances|enterprise sales|deal)\b|רכז.ת קשרי תעשיה|פיתוח עסקי/i,
   marketing:  /\b(marketing|growth|content|seo|sem|brand|demand generation|campaign|copywriter|social media|pr\b|public relations|communications|field marketing|product marketing)\b|שיווק|קמפיין/i,
   support:    /\b(customer success|customer support|technical support|implementation|solutions engineer|solution consultant|integration engineer|onboarding|professional services|client success|support engineer)\b|יועץ.ת חינוכי|נציג.ת שירות|נציג.ה.*שירות|קשרי מטופלים|מרכז שירות ומידע|שירות למטופל|שירות לקוחות/i,
-  operations: /\b(hr\b|human resources|recruiter|talent acquisition|people ops|finance|accounting|legal|counsel|procurement|office manager|operations|ops\b|admin|executive assistant|ea\b|it manager|information technology|supply chain|logistics|biz ops|revenue ops|sales ops)\b|ראש לשכה|מנהל.ת לשכה|משאבי אנוש|רכז.ת|ביקורת פנים|בטיחות|ספרי|ספרנ|אחזקה|כלכלנ|כלכלן|חשבות|מנהח"ש|רשם.ת|מנהל.ת חשבונות|רכש|לוגיסטיק|גביה|הכנסות|התחשבנות|בינוי|תפעול/i,
+  operations: /\b(finance|accounting|legal|counsel|procurement|office manager|operations|ops\b|admin|executive assistant|ea\b|it manager|information technology|supply chain|logistics|biz ops|revenue ops|sales ops)\b|ראש לשכה|מנהל.ת לשכה|רכז.ת|ביקורת פנים|בטיחות|ספרי|ספרנ|אחזקה|כלכלנ|כלכלן|חשבות|מנהח"ש|רשם.ת|מנהל.ת חשבונות|רכש|לוגיסטיק|גביה|הכנסות|התחשבנות|בינוי|תפעול/i,
+  hr:         /\b(human resources|hr\b|recruiter|recruiting|recruitment|talent acquisition|talent partner|people ops|people partner|hrbp|hr manager|hr director|hr business partner|compensation|benefits|learning and development|l&d|organizational development|employee relations|workforce|onboarding specialist|hr generalist|hr coordinator|payroll)\b|משאבי אנוש|גיוס|גיוס עובדים|מגייס|מגייסת|רכז.ת גיוס|מנהל.ת גיוס|שכר ותנאים|רווחה|הדרכה ופיתוח|פיתוח ארגוני|ניהול כישרונות/i,
   administrative: /רכז.ת מינהל|מנהל.ת מינהל|מנהל.ת משרד|מינהל.ת|סגל מנהלי|אדמיניסטרציה|administrative|coordinator/i,
 };
 
@@ -1871,6 +1873,7 @@ function classifySegment(title) {
   if (SEGMENTS.intern.test(title))     return 'intern';
   if (SEGMENTS.management.test(title)) return 'management';
   if (SEGMENTS.data.test(title))       return 'data';   // data before rd (מפתח דאטה → data not rd)
+  if (SEGMENTS.hr.test(title))         return 'hr';     // hr before operations
   for (const [seg, re] of Object.entries(SEGMENTS)) {
     if (['intern','management','data'].includes(seg)) continue;
     if (re.test(title)) return seg;
@@ -2819,7 +2822,7 @@ render();
 // ─── ANALYTICS ───────────────────────────────────────────────────────────────
 const CHART_INSTANCES = {};
 const PALETTE = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c','#b71c1c','#e65100','#01579b','#4a148c','#558b2f','#6d4c41'];
-const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern'};
+const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern',hr:'HR'};
 const SECTOR_LABELS_OLD = {}; // replaced
 
 function destroyChart(id){ if(CHART_INSTANCES[id]){ CHART_INSTANCES[id].destroy(); delete CHART_INSTANCES[id]; } }
