@@ -2033,6 +2033,8 @@ const DATABAR_SOURCES = [
   { id:'barStatusText',       key:'bar',         label:'BAR' },
   { id:'barAlumniStatusText', key:'bar-alumni',  label:'BAR Alumni' },
   { id:'bisStatusText',       key:'bis',         label:'BIS' },
+  { id:'gfStatusText',        key:'gf',          label:'GotFriends' },
+  { id:'icStatusText',        key:'ichilov',     label:'Ichilov' },
   { id:'rbStatusText',        key:'rambam',      label:'Rambam' },
   { id:'blStatusText',        key:'beilinson',   label:'Beilinson' },
 ];
@@ -2599,7 +2601,6 @@ function normBeilinson(row, fname) {
   const title = g('title');
   const company = g('company');
   if (!title) return null;
-  // Filter to Rabin Medical Center only (Beilinson + Hasharon campuses)
   if (!company.includes('רבין')) return null;
   return {
     source: 'beilinson', fnArea: 'beilinson',
