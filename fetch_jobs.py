@@ -884,7 +884,7 @@ def run_gotfriends():
         total_pages = 1
         page = 1
 
-        while page <= total_pages and page <= 40:
+        while page <= total_pages and page <= 20:
             url = cat_url if page == 1 else f'{cat_url}?page={page}&total={total_pages}'
             try:
                 r = requests.get(url, timeout=30, headers=HEADERS)
@@ -908,7 +908,7 @@ def run_gotfriends():
 
                 print(f' p{page}+{added}', end='', flush=True)
                 page += 1
-                _time.sleep(0.35)
+                _time.sleep(0.2)
 
             except Exception as e:
                 print(f' x{e}', end='')
@@ -1006,11 +1006,6 @@ def run_topmatch():
                 url = (f"{src['apply_base']}/redmatch-apply/"
                        f"redmatch.apply.html?compPositionID={pos_id}")
 
-                # description is HTML — strip tags for plain-text popup
-                raw_desc = p.get('description') or p.get('shortDescription') or ''
-                from bs4 import BeautifulSoup as _BS
-                description = _BS(raw_desc, 'html.parser').get_text(separator='\n').strip() if raw_desc else ''
-
                 jobs.append({
                     'title':          title,
                     'company':        src['company'],
@@ -1019,7 +1014,6 @@ def run_topmatch():
                     'url':            url,
                     'department':     dept,
                     'workplace_type': '',
-                    'description':    description,
                 })
 
             print(f'+{len(jobs)}')
@@ -1030,7 +1024,7 @@ def run_topmatch():
 
     write_csv(
         dedup_jobs(all_jobs),
-        ['title', 'company', 'location', 'date', 'url', 'department', 'workplace_type', 'description'],
+        ['title', 'company', 'location', 'date', 'url', 'department', 'workplace_type'],
         f'topmatch_jobs_{TODAY}.csv',
     )
 
