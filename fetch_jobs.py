@@ -2002,6 +2002,65 @@ def run_bis():
         f"bis_jobs_{TODAY}.csv")
 
 
+# ══ CLALIT HOSPITALS ══════════════════════════════════════════════════════════
+def _strip_html(html):
+    """Strip HTML tags and normalize whitespace."""
+    text = re.sub(r'<[^>]+>', ' ', html or '')
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+def run_clalit():
+    print("\n-- Clalit Hospitals (כללית) -----------------------------------------")
+    API_URL = (
+        "https://jobs.clalitapps.co.il/CandidateAPI/api//position/Search/"
+        "9E6C0368-A39E-4D83-803E-CF2AF0BA28DD"
+    )
+    PAYLOAD = {"KeyWords": "", "CategoryId": ["0"], "countryId": 2, "cityId": []}
+    try:
+        r = requests.post(API_URL, json=PAYLOAD, timeout=60, headers={
+            **HEADERS,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
+        if not r.ok:
+            print(f"  x {r.status_code}"); return
+        data = r.json()
+        positions = data.get("positions", [])
+        print(f"  total positions from API: {len(positions)}")
+    except Exception as e:
+        print(f"  x {e}"); return
+
+    jobs = []
+    for p in positions:
+        title    = (p.get("jobTitleText") or "").strip()
+        company  = (p.get("affiliateDisplayName") or "כללית").strip()
+        city     = (p.get("displayLocation") or p.get("location") or "").strip()
+        pid      = p.get("compPositionID")
+        date_raw = (p.get("activationDate") or "")[:10]
+        url = (
+            f"https://jobs.clalitapps.co.il/clalit/index.html?ci=0&positionId={pid}"
+            if pid else "https://jobs.clalitapps.co.il/clalit/index.html?ci=0"
+        )
+        dept        = (p.get("fieldDesc") or "").strip()
+        description = _strip_html(p.get("description") or p.get("shortDescription") or "")
+
+        if not title:
+            continue
+        jobs.append({
+            "title": title, "company": company, "location": city,
+            "date": date_raw, "url": url,
+            "department": dept, "workplace_type": "",
+            "description": description,
+        })
+
+    print(f"  + {len(jobs)}")
+    write_csv(
+        dedup_jobs(jobs),
+        ["title", "company", "location", "date", "url", "department", "workplace_type", "description"],
+        f"clalit_jobs_{TODAY}.csv",
+    )
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     print(f"=== fetch_jobs.py  {TODAY} ===\n")
@@ -2030,6 +2089,7 @@ def main():
     run_gotfriends()
     run_topmatch()
     run_rambam()
+    run_clalit()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
