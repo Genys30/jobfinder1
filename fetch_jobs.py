@@ -1029,6 +1029,107 @@ def run_topmatch():
     )
 
 
+
+# ══ RAMBAM ════════════════════════════════════════════════════════════════════
+# Server-rendered HTML — no API. Jobs in <li class="faq_item"> on three pages:
+# general jobs, doctors, nursing.
+
+RAMBAM_PAGES = [
+    ('https://www.rambam.org.il/about-rambam/careers/jobs/',    ''),
+    ('https://www.rambam.org.il/about-rambam/careers/doctors/', 'Medicine'),
+    ('https://www.rambam.org.il/about-rambam/careers/nursing/', 'Nursing'),
+]
+
+def run_rambam():
+    print('\n-- Rambam Medical Center (רמב"ם) ----------------------------------')
+    from bs4 import BeautifulSoup as _BS
+
+    SKIP_KW = ['לא מצאת', 'הגעת עד לפה', 'השאר קו"ח']
+
+    all_jobs  = []
+    seen_urls = set()
+
+    for page_url, default_dept in RAMBAM_PAGES:
+        label = page_url.rstrip('/').split('/')[-1]
+        print(f'  [{label}]', end=' ', flush=True)
+        try:
+            r = requests.get(page_url, timeout=30, headers=HEADERS)
+            if not r.ok:
+                print(f'x{r.status_code}')
+                continue
+
+            soup = _BS(r.text, 'html.parser')
+            items = soup.select('li.faq_item')
+            added = 0
+
+            for item in items:
+                h3 = item.select_one('h3.faq_title')
+                if not h3:
+                    continue
+                title = h3.get_text(strip=True)
+                if not title or any(kw in title for kw in SKIP_KW):
+                    continue
+
+                apply_url = ''
+                desk = item.select_one('div.faq_desk')
+                if desk:
+                    for a in desk.find_all('a', href=True):
+                        href = a['href']
+                        text = a.get_text(strip=True)
+                        if 'להגשת מועמדות' in text or 'לחץ כאן' in text:
+                            apply_url = href
+                            break
+                    if not apply_url:
+                        for a in desk.find_all('a', href=True):
+                            href = a['href']
+                            if any(x in href for x in ['adamtotal', 'merkava', 'tinyurl']):
+                                apply_url = href
+                                break
+
+                if not apply_url:
+                    faq_id = item.get('id', '')
+                    apply_url = f"{page_url}#{faq_id}" if faq_id else page_url
+
+                if apply_url and apply_url in seen_urls:
+                    continue
+                if apply_url:
+                    seen_urls.add(apply_url)
+
+                # Description — strip HTML, clean whitespace
+                desc = ''
+                if desk:
+                    raw = desk.get_text(' ', strip=True)
+                    # Remove the apply-link text at the end
+                    for cut in ['להגשת מועמדות', 'לחץ כאן', '* רק פניות']:
+                        idx = raw.find(cut)
+                        if idx > 0:
+                            raw = raw[:idx]
+                    desc = ' '.join(raw.split())[:1500]
+
+                all_jobs.append({
+                    'title':          title,
+                    'company':        'הקריה הרפואית רמב"ם',
+                    'location':       'Haifa',
+                    'date':           TODAY,
+                    'url':            apply_url or page_url,
+                    'department':     default_dept,
+                    'workplace_type': '',
+                    'description':    desc,
+                })
+                added += 1
+
+            print(f'+{added}')
+
+        except Exception as e:
+            print(f'x {e}')
+
+    write_csv(
+        dedup_jobs(all_jobs),
+        ['title', 'company', 'location', 'date', 'url', 'department', 'workplace_type', 'description'],
+        f'rambam_jobs_{TODAY}.csv',
+    )
+
+
 # ── History snapshot ─────────────────────────────────────────────────────────
 def update_history():
     import os, csv as _csv
@@ -1038,11 +1139,11 @@ def update_history():
               'agritech','foodtech','rd','product','data','design','sales',
               'marketing','operations','support','management','intern',
               'remote','hybrid','onsite',
-              'linkedin','comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']
+              'linkedin','comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch','rambam']
 
     # Load all today's CSVs
     rows = []
-    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']:
+    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch','rambam']:
         fname = f'{src}_jobs_{TODAY}.csv'
         if not os.path.exists(fname): continue
         with open(fname, encoding='utf-8-sig') as f:
@@ -1107,8 +1208,8 @@ def update_history():
     counts = {f: 0 for f in FIELDS}
     counts['date'] = TODAY
 
-    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0, 'gotfriends': 0, 'topmatch': 0}
-    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']:
+    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0, 'gotfriends': 0, 'topmatch': 0, 'rambam': 0}
+    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch','rambam']:
         fname = f'{src}_jobs_{TODAY}.csv'
         if os.path.exists(fname):
             with open(fname, encoding='utf-8-sig') as f:
@@ -1123,6 +1224,7 @@ def update_history():
     counts['workable'] = src_counts['workable']
     counts['gotfriends'] = src_counts['gotfriends']
     counts['topmatch']   = src_counts['topmatch']
+    counts['rambam']    = src_counts['rambam']
 
     for row in all_rows:
         title   = g(row,'title','job_title','position')
@@ -1927,6 +2029,7 @@ def main():
     run_bis()
     run_gotfriends()
     run_topmatch()
+    run_rambam()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
