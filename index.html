@@ -361,6 +361,30 @@
   .popup-apply-btn:hover{opacity:.88;}
   .popup-close-btn{background:none;border:1px solid var(--rule);border-radius:4px;padding:9px 16px;font-size:.88rem;cursor:pointer;color:var(--ink-dim);}
   .popup-close-btn:hover{background:var(--bg);}
+
+  /* ─── City multi-select ─── */
+  .city-multi-wrap{position:relative;display:inline-block;flex-shrink:0;}
+  .city-multi-btn{font-family:'Carlito','Calibri',sans-serif;font-size:13px;color:var(--ink);
+    background:#fff;border:1px solid var(--rule);border-radius:3px;padding:5px 8px;
+    outline:none;cursor:pointer;height:30px;white-space:nowrap;max-width:140px;
+    overflow:hidden;text-overflow:ellipsis;text-align:left;}
+  .city-multi-btn:focus{border-color:var(--accent);}
+  .city-multi-btn.is-active{border-color:var(--accent)!important;background:rgba(201,127,12,.08)!important;color:var(--accent)!important;font-weight:700;}
+  .city-multi-panel{display:none;position:absolute;top:calc(100% + 3px);left:0;z-index:900;
+    background:#fff;border:1px solid var(--rule);border-radius:3px;
+    box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:200px;max-width:280px;}
+  .city-multi-panel.open{display:block;}
+  .city-multi-search{width:100%;padding:7px 10px;border:none;border-bottom:1px solid var(--rule);
+    font-family:'Carlito',sans-serif;font-size:13px;outline:none;box-sizing:border-box;}
+  .city-multi-list{list-style:none;margin:0;padding:4px 0;max-height:220px;overflow-y:auto;}
+  .city-multi-list li{display:flex;align-items:center;gap:8px;padding:5px 12px;
+    font-size:13px;cursor:pointer;font-family:'Carlito',sans-serif;color:var(--ink);}
+  .city-multi-list li:hover{background:rgba(201,127,12,.07);}
+  .city-multi-list li input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+  .city-multi-list .city-multi-clear{font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);border-top:1px solid var(--rule);
+    margin-top:2px;padding-top:6px;justify-content:center;}
+  .city-multi-list .city-multi-clear:hover{color:var(--accent-2);background:none;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -457,7 +481,13 @@
       <div id="savedList"></div>
     </div>
   </div>
-  <select id="city"><option value="">City</option></select>
+  <div class="city-multi-wrap" id="cityWrap">
+    <button class="city-multi-btn" id="cityBtn" type="button">City ▾</button>
+    <div class="city-multi-panel" id="cityPanel">
+      <input class="city-multi-search" id="citySearch" placeholder="Search city…" autocomplete="off">
+      <ul class="city-multi-list" id="cityList"></ul>
+    </div>
+  </div>
   <select id="company"><option value="">Company</option></select>
   <select id="segment">
     <option value="">Role</option>
@@ -734,7 +764,12 @@ let TOTALS   = {}; // per-source total counts, set after each load
 
 // ─── DOM ─────────────────────────────────────────────────────────────────────
 const $q        = document.getElementById('q');
-const $city     = document.getElementById('city');
+const $cityWrap   = document.getElementById('cityWrap');
+const $cityBtn    = document.getElementById('cityBtn');
+const $cityPanel  = document.getElementById('cityPanel');
+const $citySearch = document.getElementById('citySearch');
+const $cityList   = document.getElementById('cityList');
+let selectedCities = new Set(); // multi-select state
 const $company  = document.getElementById('company');
 const $date     = document.getElementById('date');
 const $reset    = document.getElementById('reset');
@@ -1857,9 +1892,80 @@ function populateDropdowns(){
       .forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
     if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
   };
-  fill($city,'city'); fill($company,'company');
+  refreshCityOptions();
+  fill($company,'company');
 }
 
+
+// ─── CITY MULTI-SELECT HELPERS ───────────────────────────────────────────────
+let _allCities = [];
+
+function buildCityList(filter) {
+  $cityList.innerHTML = '';
+  const cities = filter
+    ? _allCities.filter(c => c.toLowerCase().includes(filter.toLowerCase()))
+    : _allCities;
+  cities.forEach(c => {
+    const li = document.createElement('li');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = selectedCities.has(c);
+    cb.addEventListener('change', () => {
+      if (cb.checked) selectedCities.add(c); else selectedCities.delete(c);
+      updateCityBtn();
+      applyFilters();
+    });
+    const label = document.createElement('span');
+    label.textContent = c;
+    label.style.cursor = 'pointer';
+    label.addEventListener('click', () => { cb.click(); });
+    li.appendChild(cb);
+    li.appendChild(label);
+    $cityList.appendChild(li);
+  });
+  // Clear all row
+  if (selectedCities.size > 0) {
+    const li = document.createElement('li');
+    li.className = 'city-multi-clear';
+    li.textContent = '✕ Clear selection';
+    li.addEventListener('click', () => { selectedCities.clear(); buildCityList($citySearch.value); updateCityBtn(); applyFilters(); });
+    $cityList.appendChild(li);
+  }
+}
+
+function updateCityBtn() {
+  if (selectedCities.size === 0) {
+    $cityBtn.textContent = 'City ▾';
+    $cityBtn.classList.remove('is-active');
+  } else {
+    const arr = [...selectedCities];
+    const label = arr.length === 1 ? arr[0] : arr[0] + ' +' + (arr.length - 1);
+    $cityBtn.textContent = label + ' ▾';
+    $cityBtn.classList.add('is-active');
+  }
+}
+
+function refreshCityOptions() {
+  const pool = getPool();
+  const heLocale = (a,b) => a.localeCompare(b,'he');
+  _allCities = [...new Set(pool.map(r => r.city).filter(Boolean))].sort(heLocale);
+  buildCityList($citySearch.value);
+}
+
+// City panel open/close
+$cityBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  $cityPanel.classList.toggle('open');
+  if ($cityPanel.classList.contains('open')) {
+    $citySearch.value = '';
+    buildCityList('');
+    $citySearch.focus();
+  }
+});
+$citySearch.addEventListener('input', () => buildCityList($citySearch.value));
+document.addEventListener('click', e => {
+  if ($cityWrap && !$cityWrap.contains(e.target)) $cityPanel.classList.remove('open');
+});
 
 // ─── SEGMENT CLASSIFIER ──────────────────────────────────────────────────────
 const SEGMENTS = {
@@ -1904,7 +2010,7 @@ function classifyLevel(title) {
 
 // Highlight active filters
 function highlightFilters(){
-  [$q,$city,$segment,$level,$date,$worktype,$company,$sector,$source].forEach(el=>{
+  [$q,$segment,$level,$date,$worktype,$company,$sector,$source].forEach(el=>{
     if(!el) return;
     const field = el.closest('.field');
     if(!field) return;
@@ -2064,7 +2170,7 @@ const DATABAR_SOURCES = [
 function updateDatabar() {
   const anyActive = (
     ($q        && $q.value.trim()) ||
-    ($city     && $city.value)     ||
+    (selectedCities.size)            ||
     ($company  && $company.value)  ||
     ($segment  && $segment.value)  ||
     ($level    && $level.value)    ||
@@ -2098,13 +2204,13 @@ function updateDatabar() {
 // ─── FILTER ──────────────────────────────────────────────────────────────────
 function applyFilters(){
   // mark active filters
-  [$city,$company,$segment,$level,$date,$sector,$source,$worktype].forEach(el=>{
+  [$company,$segment,$level,$date,$sector,$source,$worktype].forEach(el=>{
     if(!el) return;
     el.classList.toggle('is-active', el.value !== '');
   });
   if($q) $q.classList.toggle('is-active', $q.value.trim() !== '');
+  updateCityBtn();
   const q        = $q.value.trim().toLowerCase();
-  const city     = $city.value;
   const company  = $company.value;
   const segFilter  = $segment  ? $segment.value  : '';
   const lvlFilter  = $level    ? $level.value    : '';
@@ -2127,7 +2233,7 @@ function applyFilters(){
 
   const pool = getPool();
   FILTERED = pool.filter(r=>{
-    if(city      && r.city!==city)           return false;
+    if(selectedCities.size && !selectedCities.has(r.city)) return false;
     if(company   && r.company!==company)     return false;
     if(segFilter && classifySegment(r.title)!==segFilter)   return false;
     if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
@@ -2282,15 +2388,16 @@ function exportCSV(){
 // ─── EVENTS ──────────────────────────────────────────────────────────────────
 let qTimer;
 $q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFilters,120);});
-[$city,$company,$date,$level,$segment,$sector,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
+[$company,$date,$level,$segment,$sector,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
 $reset.addEventListener('click',()=>{
-  $q.value='';$q.classList.remove('is-active');$city.value='';$company.value='';$date.value='';
+  $q.value='';$q.classList.remove('is-active');$company.value='';$date.value='';
+  selectedCities.clear(); buildCityList(''); updateCityBtn();
   if($level)$level.value='';
   if($segment)$segment.value='';
   if($sector)$sector.value='';
   if($source)$source.value='';
   if($worktype)$worktype.value='';
-  [$city,$company,$segment,$level,$date,$sector,$source,$worktype].forEach(el=>{
+  [$company,$segment,$level,$date,$sector,$source,$worktype].forEach(el=>{
     if(el) el.classList.remove('is-active');
   });
   applyFilters();
@@ -2815,7 +2922,6 @@ render();
   $lastBuild.textContent='live · '+new Date().toISOString().slice(0,10);
   populateDropdowns();
   initSavedSearches();
-  makeSearchable($city);
   makeSearchable($company);
   applyFilters();
 
