@@ -408,6 +408,7 @@
   <div class="eyebrow">
     <span><span class="dot"></span>jobfinder</span>
     <span id="lastBuild">loading…</span>
+    <span id="activeUsers" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);display:none;">● <span id="activeCount">0</span> online</span>
   </div>
   <h1>Israeli Tech and Public Sector Jobs,<br><span class="accent">Searched Seriously.</span></h1>
   <p class="byline">
@@ -1001,6 +1002,19 @@ async function loadTechmap(){
   });
   const now = new Date();
   $lastBuild.textContent = 'live · '+new Date().toISOString().slice(0,10);
+
+  // Fetch active users from Vercel API
+  async function fetchActiveUsers() {
+    try {
+      const res = await fetch('/api/realtime');
+      const data = await res.json();
+      const count = data.activeUsers || 0;
+      document.getElementById('activeCount').textContent = count;
+      document.getElementById('activeUsers').style.display = count > 0 ? 'inline' : 'none';
+    } catch(e) {}
+  }
+  fetchActiveUsers();
+  setInterval(fetchActiveUsers, 30000);
   $stamp.textContent = 'last sync '+now.toLocaleTimeString();
 }
 
