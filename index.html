@@ -1948,7 +1948,9 @@ function updateCityBtn() {
 function refreshCityOptions() {
   const pool = getPool();
   const heLocale = (a,b) => a.localeCompare(b,'he');
-  _allCities = [...new Set(pool.map(r => r.city).filter(Boolean))].sort(heLocale);
+  _allCities = [...new Set(pool.map(r => r.city).filter(Boolean))]
+    .filter(c => c.length <= 40 && !c.includes('\n') && !c.includes(':') && !/[()[\]{}]/.test(c))
+    .sort(heLocale);
   buildCityList($citySearch.value);
 }
 
