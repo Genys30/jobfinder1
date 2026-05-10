@@ -366,25 +366,31 @@
   .city-multi-wrap{position:relative;display:inline-block;flex-shrink:0;}
   .city-multi-btn{font-family:'Carlito','Calibri',sans-serif;font-size:13px;color:var(--ink);
     background:#fff;border:1px solid var(--rule);border-radius:3px;padding:5px 8px;
-    outline:none;cursor:pointer;height:30px;white-space:nowrap;max-width:140px;
+    outline:none;cursor:pointer;height:30px;white-space:nowrap;max-width:150px;
     overflow:hidden;text-overflow:ellipsis;text-align:left;}
   .city-multi-btn:focus{border-color:var(--accent);}
   .city-multi-btn.is-active{border-color:var(--accent)!important;background:rgba(201,127,12,.08)!important;color:var(--accent)!important;font-weight:700;}
   .city-multi-panel{display:none;position:absolute;top:calc(100% + 3px);left:0;z-index:900;
     background:#fff;border:1px solid var(--rule);border-radius:3px;
-    box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:200px;max-width:280px;}
+    box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:240px;max-width:300px;}
   .city-multi-panel.open{display:block;}
   .city-multi-search{width:100%;padding:7px 10px;border:none;border-bottom:1px solid var(--rule);
     font-family:'Carlito',sans-serif;font-size:13px;outline:none;box-sizing:border-box;}
-  .city-multi-list{list-style:none;margin:0;padding:4px 0;max-height:220px;overflow-y:auto;}
-  .city-multi-list li{display:flex;align-items:center;gap:8px;padding:5px 12px;
-    font-size:13px;cursor:pointer;font-family:'Carlito',sans-serif;color:var(--ink);}
-  .city-multi-list li:hover{background:rgba(201,127,12,.07);}
-  .city-multi-list li input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
-  .city-multi-list .city-multi-clear{font-family:'JetBrains Mono',monospace;font-size:10px;
-    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);border-top:1px solid var(--rule);
-    margin-top:2px;padding-top:6px;justify-content:center;}
-  .city-multi-list .city-multi-clear:hover{color:var(--accent-2);background:none;}
+  .city-multi-list{list-style:none;margin:0;padding:4px 0;max-height:300px;overflow-y:auto;}
+  .ctr{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;user-select:none;}
+  .ctr:hover{background:rgba(201,127,12,.07);}
+  .ctr input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex-shrink:0;margin:0;}
+  .ctr-toggle{font-size:9px;width:12px;text-align:center;color:var(--ink-faint);flex-shrink:0;line-height:1;}
+  .ctr-label{font-family:'Carlito',sans-serif;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ctr-count{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink-faint);flex-shrink:0;}
+  .ctr-top{padding-left:8px;}.ctr-top .ctr-label{font-size:13px;font-weight:700;}
+  .ctr-sub{padding-left:20px;}.ctr-sub .ctr-label{font-size:12px;font-weight:600;}
+  .ctr-city{padding-left:32px;}.ctr-city .ctr-label{font-size:12px;}
+  .city-tree-children{list-style:none;padding:0;margin:0;}
+  .city-multi-clear-row{display:flex;align-items:center;justify-content:center;padding:6px 12px;
+    cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-faint);border-top:1px solid var(--rule);margin-top:2px;}
+  .city-multi-clear-row:hover{color:var(--accent-2);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -1897,39 +1903,247 @@ function populateDropdowns(){
 }
 
 
-// ─── CITY MULTI-SELECT HELPERS ───────────────────────────────────────────────
-let _allCities = [];
+// ─── CITY HIERARCHY ──────────────────────────────────────────────────────────
+const ISRAEL_REGIONS = {
+  Center:['תל אביב','תל-אביב','תל אביב-יפו','תל אביב יפו','יפו','Tel Aviv','Tel Aviv-Yafo','Tel Aviv Yafo','Jaffa',
+    'בת ים','Bat Yam','פתח תקווה','Petah Tikva','Petach Tikva','רמת גן','Ramat Gan','גבעתיים','Givatayim',
+    'חולון','Holon','בני ברק','Bnei Brak','Bney Brak','רמת השרון','Ramat HaSharon','Ramat Hasharon',
+    'הרצליה','Herzliya','כפר סבא','Kfar Sava','Kfar Saba','רעננה',"Ra'anana",'Raanana',
+    'הוד השרון','Hod HaSharon','Hod Hasharon','נתניה','Netanya','ראש העין','Rosh HaAyin','Rosh Haain',
+    'לוד','Lod','רמלה','Ramla','מודיעין','מודיעין מכבים רעות',"Modi'in",'Modiin',
+    'נס ציונה','Nes Ziona','ראשון לציון','Rishon LeZion','Rishon Lezion',"Rishon Le'Zion",
+    'יבנה','Yavne','רחובות','Rehovot','גדרה','Gadera','אזור','Azor','בית דגן','Bet Dagan',
+    'יהוד','Yehud','אור יהודה','Or Yehuda','גן יבנה','Gan Yavne','חדרה','Hadera',
+    'כפר יונה','Kfar Yona','אלעד',"El'ad",'Elad','שוהם','Shoham','קריית אונו','Kiryat Ono',
+    'גבעת שמואל','Givat Shmuel','אריאל','Ariel','כפר קאסם','Kafr Qasim','טייבה','Tayibe',
+    'קלנסווה','Qalansawe','פרדס חנה','Pardes Hanna','בנימינה','Binyamina',
+    'כפר שמריהו','Kfar Shmaryahu','תל מונד','Tel Mond','זכרון יעקב','Zichron Yaakov'],
+  North:['חיפה','Haifa','נצרת','Nazareth','עכו','Acre','Akko','כרמיאל','Carmiel','Karmiel',
+    'טבריה','Tiberias','צפת','Safed','Tzfat','קריית שמונה','Kiryat Shmona','נהריה','Nahariya',
+    'עפולה','Afula','בית שאן','Beit Shean','Bet Shean','קריית אתא','Kiryat Ata',
+    'קריית ביאליק','Kiryat Bialik','קריית מוצקין','Kiryat Motzkin','קריית ים','Kiryat Yam',
+    'מגדל העמק','Migdal HaEmek','יקנעם','Yokneam','עתלית','Atlit','טירת כרמל','Tirat Carmel',
+    'באקה אל-גרבייה','Baqa al-Gharbiyye','אום אל פחם','Umm al-Fahm','שפרעם',"Shfar'am",'Shfaram',
+    'ראש פינה','Rosh Pina','דלית אל כרמל','Daliyat al-Karmel','נשר','Nesher',
+    'קריית טבעון','Kiryat Tivon','מעלות-תרשיחא','Maalot-Tarshiha','כפר ורדים','Kfar Vradim',
+    'פרדס חנה-כרכור','Pardes Hanna-Karkur','זיכרון יעקב','Zichron Ya\'akov'],
+  South:['באר שבע',"Beer Sheva","Be'er Sheva",'Beersheba','Beer-Sheva','Beer Sheba',
+    'אשדוד','Ashdod','אשקלון','Ashkelon','אילת','Eilat','דימונה','Dimona',
+    'קריית גת','Kiryat Gat','נתיבות','Netivot','שדרות','Sderot','ערד','Arad',
+    'מצפה רמון','Mitzpe Ramon','אופקים','Ofakim','רהט','Rahat','לכיש','Lachish',
+    'קריית מלאכי','Kiryat Malachi'],
+  Jerusalem:['ירושלים','Jerusalem','בית שמש','Beit Shemesh','Bet Shemesh',
+    "Ma'ale Adumim",'Maale Adumim','מעלה אדומים',"Givat Ze'ev",'Givat Zeev','גבעת זאב',
+    'מבשרת ציון','Mevasseret Zion','Mevasseret Tzion','הר חוצבים','Har Hotzvim'],
+};
 
-function buildCityList(filter) {
+const CITY_TO_REGION = {};
+for (const [reg, cities] of Object.entries(ISRAEL_REGIONS)) {
+  cities.forEach(c => { CITY_TO_REGION[c] = reg; });
+}
+
+const CITY_TO_COUNTRY = {
+  'London':'UK','Manchester':'UK','Edinburgh':'UK','Birmingham':'UK',
+  'New York':'USA','San Francisco':'USA','Austin':'USA','Boston':'USA',
+  'Chicago':'USA','Seattle':'USA','Los Angeles':'USA','Denver':'USA','Atlanta':'USA','Miami':'USA',
+  'Berlin':'Germany','Munich':'Germany','Hamburg':'Germany','Frankfurt':'Germany',
+  'Madrid':'Spain','Barcelona':'Spain',
+  'Amsterdam':'Netherlands','Rotterdam':'Netherlands',
+  'Paris':'France','Lyon':'France',
+  'Zurich':'Switzerland','Geneva':'Switzerland','Basel':'Switzerland',
+  'Toronto':'Canada','Vancouver':'Canada','Montreal':'Canada',
+  'Singapore':'Singapore','Dublin':'Ireland',
+  'Stockholm':'Sweden','Copenhagen':'Denmark','Oslo':'Norway','Helsinki':'Finland',
+  'Prague':'Czech Republic','Warsaw':'Poland','Krakow':'Poland',
+  'Kyiv':'Ukraine','Kiev':'Ukraine',
+  'Nicosia':'Cyprus','Limassol':'Cyprus','Paphos':'Cyprus',
+  'Dubai':'UAE','Abu Dhabi':'UAE',
+  'Bengaluru':'India','Mumbai':'India','Delhi':'India','New Delhi':'India','Hyderabad':'India','Pune':'India',
+  'Tokyo':'Japan','Osaka':'Japan',
+  'Sydney':'Australia','Melbourne':'Australia',
+  'Hong Kong':'Hong Kong','Shanghai':'China','Beijing':'China',
+  'Vienna':'Austria','Milan':'Italy','Rome':'Italy','Lisbon':'Portugal','Athens':'Greece',
+  'Bucharest':'Romania','Budapest':'Hungary','Sofia':'Bulgaria',
+  'Tallinn':'Estonia','Riga':'Latvia','Vilnius':'Lithuania','Tbilisi':'Georgia',
+};
+
+function getCityClass(city) {
+  if (!city) return null;
+  if (CITY_TO_REGION[city]) return { top:'Israel', sub: CITY_TO_REGION[city] };
+  const heRatio = (city.match(/[\u0590-\u05FF]/g)||[]).length / city.length;
+  if (heRatio > 0.3) return { top:'Israel', sub:'Other' };
+  if (CITY_TO_COUNTRY[city]) return { top:'Abroad', sub: CITY_TO_COUNTRY[city] };
+  if (city.trim()) return { top:'Abroad', sub:'Other' };
+  return null;
+}
+
+// ─── CITY MULTI-SELECT HELPERS ───────────────────────────────────────────────
+const _cityExpanded = {};
+
+function _cityIsValid(c) {
+  return c && c.length <= 40 && !c.includes('\n') && !c.includes(':') && !/[()[\]{}]/.test(c);
+}
+
+function _makeRow(cls, toggleChar, cbChecked, cbIndeterminate, labelText, countText) {
+  const row = document.createElement('div');
+  row.className = 'ctr ' + cls;
+  const tog = document.createElement('span');
+  tog.className = 'ctr-toggle';
+  tog.textContent = toggleChar || '';
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.checked = cbChecked;
+  cb.indeterminate = cbIndeterminate;
+  const lbl = document.createElement('span');
+  lbl.className = 'ctr-label';
+  lbl.textContent = labelText;
+  row.appendChild(tog);
+  row.appendChild(cb);
+  row.appendChild(lbl);
+  if (countText) {
+    const cnt = document.createElement('span');
+    cnt.className = 'ctr-count';
+    cnt.textContent = countText;
+    row.appendChild(cnt);
+  }
+  return { row, tog, cb, lbl };
+}
+
+function buildCityTree(filterText) {
+  const f = (filterText || '').toLowerCase().trim();
+
+  // city → job count
+  const cityCounts = {};
+  getPool().forEach(r => {
+    if (_cityIsValid(r.city)) cityCounts[r.city] = (cityCounts[r.city] || 0) + 1;
+  });
+
+  // build tree structure
+  const tree = {}; // top → sub → [city]
+  Object.keys(cityCounts).forEach(city => {
+    if (f && !city.toLowerCase().includes(f)) return;
+    const cls = getCityClass(city);
+    if (!cls) return;
+    if (!tree[cls.top]) tree[cls.top] = {};
+    if (!tree[cls.top][cls.sub]) tree[cls.top][cls.sub] = [];
+    tree[cls.top][cls.sub].push(city);
+  });
+
   $cityList.innerHTML = '';
-  const cities = filter
-    ? _allCities.filter(c => c.toLowerCase().includes(filter.toLowerCase()))
-    : _allCities;
-  cities.forEach(c => {
-    const li = document.createElement('li');
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = selectedCities.has(c);
-    cb.addEventListener('change', () => {
-      if (cb.checked) selectedCities.add(c); else selectedCities.delete(c);
+
+  const REGION_ORDER = ['Center','North','South','Jerusalem','Other'];
+
+  ['Israel','Abroad'].forEach(top => {
+    if (!tree[top]) return;
+    const topKey = 'T:' + top;
+    if (_cityExpanded[topKey] === undefined) _cityExpanded[topKey] = (top === 'Israel');
+
+    const topCities = Object.values(tree[top]).flat();
+    const topSel = topCities.filter(c => selectedCities.has(c)).length;
+    const { row:topRow, tog:topTog, cb:topCb } = _makeRow(
+      'ctr-top',
+      _cityExpanded[topKey] ? '▾' : '▸',
+      topSel === topCities.length && topCities.length > 0,
+      topSel > 0 && topSel < topCities.length,
+      top === 'Israel' ? '🇮🇱 Israel' : '✈️ Abroad'
+    );
+
+    const topUl = document.createElement('ul');
+    topUl.className = 'city-tree-children';
+    if (!_cityExpanded[topKey]) topUl.style.display = 'none';
+
+    topTog.addEventListener('click', e => {
+      e.stopPropagation();
+      _cityExpanded[topKey] = !_cityExpanded[topKey];
+      topTog.textContent = _cityExpanded[topKey] ? '▾' : '▸';
+      topUl.style.display = _cityExpanded[topKey] ? '' : 'none';
+    });
+    topRow.addEventListener('click', e => { if (e.target !== topCb) topTog.click(); });
+    topCb.addEventListener('change', e => {
+      e.stopPropagation();
+      topCities.forEach(c => topCb.checked ? selectedCities.add(c) : selectedCities.delete(c));
+      buildCityTree(filterText); updateCityBtn(); applyFilters();
+    });
+
+    // sub-regions / countries
+    const subs = top === 'Israel'
+      ? REGION_ORDER.filter(r => tree[top][r])
+      : Object.keys(tree[top]).sort();
+
+    subs.forEach(sub => {
+      const subCities = (tree[top][sub] || []).sort((a,b) => (cityCounts[b]||0) - (cityCounts[a]||0));
+      if (!subCities.length) return;
+      const subKey = 'S:' + top + ':' + sub;
+      if (_cityExpanded[subKey] === undefined) _cityExpanded[subKey] = false;
+
+      const subSel = subCities.filter(c => selectedCities.has(c)).length;
+      const { row:subRow, tog:subTog, cb:subCb } = _makeRow(
+        'ctr-sub',
+        _cityExpanded[subKey] ? '▾' : '▸',
+        subSel === subCities.length && subCities.length > 0,
+        subSel > 0 && subSel < subCities.length,
+        sub
+      );
+
+      const subUl = document.createElement('ul');
+      subUl.className = 'city-tree-children';
+      if (!_cityExpanded[subKey]) subUl.style.display = 'none';
+
+      subTog.addEventListener('click', e => {
+        e.stopPropagation();
+        _cityExpanded[subKey] = !_cityExpanded[subKey];
+        subTog.textContent = _cityExpanded[subKey] ? '▾' : '▸';
+        subUl.style.display = _cityExpanded[subKey] ? '' : 'none';
+      });
+      subRow.addEventListener('click', e => { if (e.target !== subCb) subTog.click(); });
+      subCb.addEventListener('change', e => {
+        e.stopPropagation();
+        subCities.forEach(c => subCb.checked ? selectedCities.add(c) : selectedCities.delete(c));
+        buildCityTree(filterText); updateCityBtn(); applyFilters();
+      });
+
+      // city leaves
+      subCities.forEach(city => {
+        const { row:cityRow, cb:cityCb } = _makeRow(
+          'ctr-city', '', selectedCities.has(city), false, city,
+          cityCounts[city] > 1 ? String(cityCounts[city]) : ''
+        );
+        cityCb.addEventListener('change', () => {
+          if (cityCb.checked) selectedCities.add(city); else selectedCities.delete(city);
+          buildCityTree(filterText); updateCityBtn(); applyFilters();
+        });
+        cityRow.addEventListener('click', e => { if (e.target !== cityCb) cityCb.click(); });
+        const cityLi = document.createElement('li');
+        cityLi.appendChild(cityRow);
+        subUl.appendChild(cityLi);
+      });
+
+      const subLi = document.createElement('li');
+      subLi.appendChild(subRow);
+      subLi.appendChild(subUl);
+      topUl.appendChild(subLi);
+    });
+
+    const topLi = document.createElement('li');
+    topLi.appendChild(topRow);
+    topLi.appendChild(topUl);
+    $cityList.appendChild(topLi);
+  });
+
+  // clear row
+  if (selectedCities.size > 0) {
+    const clearLi = document.createElement('li');
+    const clearRow = document.createElement('div');
+    clearRow.className = 'city-multi-clear-row';
+    clearRow.textContent = '✕ Clear selection';
+    clearRow.addEventListener('click', () => {
+      selectedCities.clear();
+      buildCityTree($citySearch.value);
       updateCityBtn();
       applyFilters();
     });
-    const label = document.createElement('span');
-    label.textContent = c;
-    label.style.cursor = 'pointer';
-    label.addEventListener('click', () => { cb.click(); });
-    li.appendChild(cb);
-    li.appendChild(label);
-    $cityList.appendChild(li);
-  });
-  // Clear all row
-  if (selectedCities.size > 0) {
-    const li = document.createElement('li');
-    li.className = 'city-multi-clear';
-    li.textContent = '✕ Clear selection';
-    li.addEventListener('click', () => { selectedCities.clear(); buildCityList($citySearch.value); updateCityBtn(); applyFilters(); });
-    $cityList.appendChild(li);
+    clearLi.appendChild(clearRow);
+    $cityList.appendChild(clearLi);
   }
 }
 
@@ -1937,21 +2151,16 @@ function updateCityBtn() {
   if (selectedCities.size === 0) {
     $cityBtn.textContent = 'City ▾';
     $cityBtn.classList.remove('is-active');
-  } else {
-    const arr = [...selectedCities];
-    const label = arr.length === 1 ? arr[0] : arr[0] + ' +' + (arr.length - 1);
-    $cityBtn.textContent = label + ' ▾';
-    $cityBtn.classList.add('is-active');
+    return;
   }
+  const arr = [...selectedCities];
+  const label = arr.length === 1 ? arr[0] : arr[0] + ' +' + (arr.length - 1);
+  $cityBtn.textContent = label + ' ▾';
+  $cityBtn.classList.add('is-active');
 }
 
 function refreshCityOptions() {
-  const pool = getPool();
-  const heLocale = (a,b) => a.localeCompare(b,'he');
-  _allCities = [...new Set(pool.map(r => r.city).filter(Boolean))]
-    .filter(c => c.length <= 40 && !c.includes('\n') && !c.includes(':') && !/[()[\]{}]/.test(c))
-    .sort(heLocale);
-  buildCityList($citySearch.value);
+  buildCityTree($citySearch.value);
 }
 
 // City panel open/close
@@ -1960,11 +2169,11 @@ $cityBtn.addEventListener('click', e => {
   $cityPanel.classList.toggle('open');
   if ($cityPanel.classList.contains('open')) {
     $citySearch.value = '';
-    buildCityList('');
+    buildCityTree('');
     $citySearch.focus();
   }
 });
-$citySearch.addEventListener('input', () => buildCityList($citySearch.value));
+$citySearch.addEventListener('input', () => buildCityTree($citySearch.value));
 document.addEventListener('click', e => {
   if ($cityWrap && !$cityWrap.contains(e.target)) $cityPanel.classList.remove('open');
 });
@@ -2393,7 +2602,7 @@ $q.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(applyFil
 [$company,$date,$level,$segment,$sector,$source,$worktype].forEach(el=>{ if(el) el.addEventListener('change',applyFilters); });
 $reset.addEventListener('click',()=>{
   $q.value='';$q.classList.remove('is-active');$company.value='';$date.value='';
-  selectedCities.clear(); buildCityList(''); updateCityBtn();
+  selectedCities.clear(); buildCityTree(''); updateCityBtn();
   if($level)$level.value='';
   if($segment)$segment.value='';
   if($sector)$sector.value='';
