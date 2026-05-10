@@ -1013,8 +1013,6 @@ async function loadTechmap(){
       document.getElementById('activeUsers').style.display = count > 0 ? 'inline' : 'none';
     } catch(e) {}
   }
-  fetchActiveUsers();
-  setInterval(fetchActiveUsers, 30000);
   $stamp.textContent = 'last sync '+now.toLocaleTimeString();
 }
 
@@ -3162,7 +3160,17 @@ render();
   initSavedSearches();
   makeSearchable($company);
   applyFilters();
-
+async function fetchActiveUsers() {
+  try {
+    const res = await fetch('https://jobfinder-eta-seven.vercel.app/api/realtime');
+    const data = await res.json();
+    const count = data.activeUsers || 0;
+    document.getElementById('activeCount').textContent = count;
+    document.getElementById('activeUsers').style.display = count > 0 ? 'inline' : 'none';
+  } catch(e) {}
+}
+fetchActiveUsers();
+setInterval(fetchActiveUsers, 30000);
   // Load techmap in background
   loadTechmap().then(()=>{
     populateDropdowns();
