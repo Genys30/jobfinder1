@@ -379,9 +379,11 @@
   .city-multi-list{list-style:none;margin:0;padding:4px 0;max-height:300px;overflow-y:auto;}
   .ctr{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;user-select:none;}
   .ctr:hover{background:rgba(201,127,12,.07);}
-  .ctr input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex-shrink:0;margin:0;}
-  .ctr-toggle{font-size:9px;width:12px;text-align:center;color:var(--ink-faint);flex-shrink:0;line-height:1;}
-  .ctr-label{font-family:'Carlito',sans-serif;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ctr input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex-shrink:0;margin:0;
+    width:15px;height:15px;min-width:15px;}
+  .ctr-toggle{font-size:9px;width:12px;min-width:12px;text-align:center;color:var(--ink-faint);flex-shrink:0;line-height:1;}
+  .ctr-label{font-family:'Carlito',sans-serif;color:var(--ink);flex:1;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .ctr-count{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink-faint);flex-shrink:0;}
   .ctr-top{padding-left:8px;}.ctr-top .ctr-label{font-size:13px;font-weight:700;}
   .ctr-sub{padding-left:20px;}.ctr-sub .ctr-label{font-size:12px;font-weight:600;}
@@ -391,6 +393,12 @@
     cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
     text-transform:uppercase;color:var(--ink-faint);border-top:1px solid var(--rule);margin-top:2px;}
   .city-multi-clear-row:hover{color:var(--accent-2);}
+  @media(max-width:600px){
+    .city-multi-panel{position:fixed!important;left:8px!important;right:8px!important;
+      width:auto!important;min-width:0!important;max-width:none!important;
+      top:auto;z-index:1500;}
+    .city-multi-list{max-height:50vh;}
+  }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -2168,6 +2176,11 @@ $cityBtn.addEventListener('click', e => {
   e.stopPropagation();
   $cityPanel.classList.toggle('open');
   if ($cityPanel.classList.contains('open')) {
+    // position fixed panel below button on mobile
+    if (window.innerWidth <= 600) {
+      const rect = $cityBtn.getBoundingClientRect();
+      $cityPanel.style.top = (rect.bottom + 4) + 'px';
+    }
     $citySearch.value = '';
     buildCityTree('');
     $citySearch.focus();
