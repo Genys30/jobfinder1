@@ -1006,7 +1006,7 @@ async function loadTechmap(){
   // Fetch active users from Vercel API
   async function fetchActiveUsers() {
     try {
-      const res = await fetch('/api/realtime');
+      const res = await fetch('https://jobfinder-eta-seven.vercel.app/api/realtime');
       const data = await res.json();
       const count = data.activeUsers || 0;
       document.getElementById('activeCount').textContent = count;
