@@ -681,8 +681,138 @@ def run_huji_positions():
     )
 
 
-# ══ TECHNION HR (טכניון - מכון טכנולוגי לישראל) ══════════════════════════════
-def run_technion():
+# ══ SHAARE ZEDEK MEDICAL CENTER (שערי צדק - HunterHRMS via Playwright) ════════
+def run_szmc():
+    print("\n-- Shaare Zedek Medical Center (שערי צדק) ---------------------------")
+    from bs4 import BeautifulSoup as _BS
+    import time, re as _re
+
+    BASE = "https://szmc.hunterhrms.com"
+    MAIN_URL = BASE + "/"
+    DETAIL_BASE = BASE + "/%d7%a4%d7%a8%d7%98%d7%99-%d7%9e%d7%a9%d7%a8%d7%94/"
+
+    CATEGORIES = [
+        "אדמיניסטרציה", "לוגיסטיקה ותשתיות", "מחקר ופיתוח",
+        "מחשוב", "מקצועות הבריאות", "סיעוד וכוחות עזר",
+        "רפואה", "תחומים נוספים",
+    ]
+
+    # ── Get all job codes via Playwright ─────────────────────────────────────
+    all_codes = {}   # jobcode -> title
+
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(headless=True)
+            page = browser.new_page(user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ))
+            page.goto(MAIN_URL, wait_until="networkidle", timeout=30000)
+            time.sleep(2)
+
+            def extract_jobs():
+                html = page.content()
+                soup = _BS(html, "html.parser")
+                # Hot jobs section
+                for el in soup.select("[job-code]"):
+                    code = el.get("job-code", "").strip()
+                    if not code or code in all_codes:
+                        continue
+                    title_el = el.select_one(".hot-job-name, .job-title, h5, label")
+                    title = title_el.get_text(strip=True) if title_el else el.get_text(strip=True)
+                    if title:
+                        all_codes[code] = title
+                # Also standard .job-wrap elements
+                for wrap in soup.select(".job-wrap"):
+                    label = wrap.select_one("label.job-title")
+                    if not label: continue
+                    code = label.get("for", "").strip()
+                    if code and code not in all_codes:
+                        all_codes[code] = label.get_text(strip=True)
+
+            extract_jobs()
+            print(f"  Hot jobs found: {len(all_codes)}")
+
+            # Click each category to reveal more jobs
+            for cat in CATEGORIES:
+                try:
+                    btn = page.locator(f"text={cat}").first
+                    if btn.count():
+                        btn.click()
+                        time.sleep(1.5)
+                        extract_jobs()
+                except Exception:
+                    pass
+
+            browser.close()
+
+    except Exception as e:
+        print(f"  x Playwright error: {e}")
+        return
+
+    print(f"  Total unique job codes: {len(all_codes)}")
+    if not all_codes:
+        print("  x No jobs found")
+        return
+
+    # ── Fetch description for each job ────────────────────────────────────────
+    def fetch_description(jobcode):
+        url = f"{DETAIL_BASE}?jobcode={jobcode}"
+        try:
+            html = _pw_get(url, wait_ms=2000)
+            if not html:
+                return "", "", url
+            soup = _BS(html, "html.parser")
+            full = soup.get_text("\n", strip=True)
+            desc, reqs = "", ""
+            for marker in ["תיאור המשרה", "תיאור התפקיד:", "תיאור התפקיד"]:
+                if marker in full:
+                    after = full.split(marker, 1)[1]
+                    for stop in ["דרישות המשרה", "דרישות התפקיד:", "הערות", "כפיפות:"]:
+                        if stop in after: after = after.split(stop, 1)[0]
+                    desc = after.strip()[:2000]; break
+            for marker in ["דרישות המשרה", "דרישות התפקיד:"]:
+                if marker in full:
+                    after = full.split(marker, 1)[1]
+                    for stop in ["הערות", "כפיפות:", "היקף משרה:", "במסגרת מדיניות"]:
+                        if stop in after: after = after.split(stop, 1)[0]
+                    reqs = after.strip()[:2000]; break
+            return desc, reqs, url
+        except Exception as e:
+            return "", "", f"{DETAIL_BASE}?jobcode={jobcode}"
+
+    jobs = []
+    items = list(all_codes.items())
+    print(f"  Fetching descriptions for {len(items)} jobs...")
+
+    for i, (code, title) in enumerate(items, 1):
+        desc, reqs, url = fetch_description(code)
+        jobs.append({
+            "title":        _re.sub(r'\s+', ' ', title).strip(),
+            "company":      "שערי צדק",
+            "location":     "Jerusalem",
+            "date":         TODAY,
+            "url":          url,
+            "department":   "",
+            "workplace_type": "onsite",
+            "description":  desc,
+            "requirements": reqs,
+        })
+        print(f"  [{i}/{len(items)}] {title[:60]}")
+        time.sleep(0.3)
+
+    print(f"  + {len(jobs)}")
+    write_csv(
+        jobs,
+        ["title", "company", "location", "date", "url",
+         "department", "workplace_type", "description", "requirements"],
+        f"szmc_jobs_{TODAY}.csv"
+    )
+
+
+
     print("\n-- Technion HR (טכניון) ---------------------------------------------")
     from bs4 import BeautifulSoup as _BS
     import time as _time
@@ -884,7 +1014,7 @@ def run_gotfriends():
         total_pages = 1
         page = 1
 
-        while page <= total_pages and page <= 20:
+        while page <= total_pages and page <= 40:
             url = cat_url if page == 1 else f'{cat_url}?page={page}&total={total_pages}'
             try:
                 r = requests.get(url, timeout=30, headers=HEADERS)
@@ -908,7 +1038,7 @@ def run_gotfriends():
 
                 print(f' p{page}+{added}', end='', flush=True)
                 page += 1
-                _time.sleep(0.2)
+                _time.sleep(0.35)
 
             except Exception as e:
                 print(f' x{e}', end='')
@@ -1029,107 +1159,6 @@ def run_topmatch():
     )
 
 
-
-# ══ RAMBAM ════════════════════════════════════════════════════════════════════
-# Server-rendered HTML — no API. Jobs in <li class="faq_item"> on three pages:
-# general jobs, doctors, nursing.
-
-RAMBAM_PAGES = [
-    ('https://www.rambam.org.il/about-rambam/careers/jobs/',    ''),
-    ('https://www.rambam.org.il/about-rambam/careers/doctors/', 'Medicine'),
-    ('https://www.rambam.org.il/about-rambam/careers/nursing/', 'Nursing'),
-]
-
-def run_rambam():
-    print('\n-- Rambam Medical Center (רמב"ם) ----------------------------------')
-    from bs4 import BeautifulSoup as _BS
-
-    SKIP_KW = ['לא מצאת', 'הגעת עד לפה', 'השאר קו"ח']
-
-    all_jobs  = []
-    seen_urls = set()
-
-    for page_url, default_dept in RAMBAM_PAGES:
-        label = page_url.rstrip('/').split('/')[-1]
-        print(f'  [{label}]', end=' ', flush=True)
-        try:
-            r = requests.get(page_url, timeout=30, headers=HEADERS)
-            if not r.ok:
-                print(f'x{r.status_code}')
-                continue
-
-            soup = _BS(r.text, 'html.parser')
-            items = soup.select('li.faq_item')
-            added = 0
-
-            for item in items:
-                h3 = item.select_one('h3.faq_title')
-                if not h3:
-                    continue
-                title = h3.get_text(strip=True)
-                if not title or any(kw in title for kw in SKIP_KW):
-                    continue
-
-                apply_url = ''
-                desk = item.select_one('div.faq_desk')
-                if desk:
-                    for a in desk.find_all('a', href=True):
-                        href = a['href']
-                        text = a.get_text(strip=True)
-                        if 'להגשת מועמדות' in text or 'לחץ כאן' in text:
-                            apply_url = href
-                            break
-                    if not apply_url:
-                        for a in desk.find_all('a', href=True):
-                            href = a['href']
-                            if any(x in href for x in ['adamtotal', 'merkava', 'tinyurl']):
-                                apply_url = href
-                                break
-
-                if not apply_url:
-                    faq_id = item.get('id', '')
-                    apply_url = f"{page_url}#{faq_id}" if faq_id else page_url
-
-                if apply_url and apply_url in seen_urls:
-                    continue
-                if apply_url:
-                    seen_urls.add(apply_url)
-
-                # Description — strip HTML, clean whitespace
-                desc = ''
-                if desk:
-                    raw = desk.get_text(' ', strip=True)
-                    # Remove the apply-link text at the end
-                    for cut in ['להגשת מועמדות', 'לחץ כאן', '* רק פניות']:
-                        idx = raw.find(cut)
-                        if idx > 0:
-                            raw = raw[:idx]
-                    desc = ' '.join(raw.split())[:1500]
-
-                all_jobs.append({
-                    'title':          title,
-                    'company':        'הקריה הרפואית רמב"ם',
-                    'location':       'Haifa',
-                    'date':           TODAY,
-                    'url':            apply_url or page_url,
-                    'department':     default_dept,
-                    'workplace_type': '',
-                    'description':    desc,
-                })
-                added += 1
-
-            print(f'+{added}')
-
-        except Exception as e:
-            print(f'x {e}')
-
-    write_csv(
-        dedup_jobs(all_jobs),
-        ['title', 'company', 'location', 'date', 'url', 'department', 'workplace_type', 'description'],
-        f'rambam_jobs_{TODAY}.csv',
-    )
-
-
 # ── History snapshot ─────────────────────────────────────────────────────────
 def update_history():
     import os, csv as _csv
@@ -1139,11 +1168,11 @@ def update_history():
               'agritech','foodtech','rd','product','data','design','sales',
               'marketing','operations','support','management','intern',
               'remote','hybrid','onsite',
-              'linkedin','comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch','rambam']
+              'linkedin','comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']
 
     # Load all today's CSVs
     rows = []
-    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch','rambam']:
+    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']:
         fname = f'{src}_jobs_{TODAY}.csv'
         if not os.path.exists(fname): continue
         with open(fname, encoding='utf-8-sig') as f:
@@ -1208,8 +1237,8 @@ def update_history():
     counts = {f: 0 for f in FIELDS}
     counts['date'] = TODAY
 
-    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0, 'gotfriends': 0, 'topmatch': 0, 'rambam': 0}
-    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch','rambam']:
+    src_counts = {'linkedin': len(li_rows), 'comeet': 0, 'greenhouse': 0, 'lever': 0, 'ashby': 0, 'workable': 0, 'gotfriends': 0, 'topmatch': 0}
+    for src in ['comeet','greenhouse','lever','ashby','workable','gotfriends','topmatch']:
         fname = f'{src}_jobs_{TODAY}.csv'
         if os.path.exists(fname):
             with open(fname, encoding='utf-8-sig') as f:
@@ -1224,7 +1253,6 @@ def update_history():
     counts['workable'] = src_counts['workable']
     counts['gotfriends'] = src_counts['gotfriends']
     counts['topmatch']   = src_counts['topmatch']
-    counts['rambam']    = src_counts['rambam']
 
     for row in all_rows:
         title   = g(row,'title','job_title','position')
@@ -2002,65 +2030,6 @@ def run_bis():
         f"bis_jobs_{TODAY}.csv")
 
 
-# ══ CLALIT HOSPITALS ══════════════════════════════════════════════════════════
-def _strip_html(html):
-    """Strip HTML tags and normalize whitespace."""
-    text = re.sub(r'<[^>]+>', ' ', html or '')
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
-
-def run_clalit():
-    print("\n-- Clalit Hospitals (כללית) -----------------------------------------")
-    API_URL = (
-        "https://jobs.clalitapps.co.il/CandidateAPI/api//position/Search/"
-        "9E6C0368-A39E-4D83-803E-CF2AF0BA28DD"
-    )
-    PAYLOAD = {"KeyWords": "", "CategoryId": ["0"], "countryId": 2, "cityId": []}
-    try:
-        r = requests.post(API_URL, json=PAYLOAD, timeout=60, headers={
-            **HEADERS,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        })
-        if not r.ok:
-            print(f"  x {r.status_code}"); return
-        data = r.json()
-        positions = data.get("positions", [])
-        print(f"  total positions from API: {len(positions)}")
-    except Exception as e:
-        print(f"  x {e}"); return
-
-    jobs = []
-    for p in positions:
-        title    = (p.get("jobTitleText") or "").strip()
-        company  = (p.get("affiliateDisplayName") or "כללית").strip()
-        city     = (p.get("displayLocation") or p.get("location") or "").strip()
-        pid      = p.get("compPositionID")
-        date_raw = (p.get("activationDate") or "")[:10]
-        url = (
-            f"https://jobs.clalitapps.co.il/clalit/index.html?ci=0&positionId={pid}"
-            if pid else "https://jobs.clalitapps.co.il/clalit/index.html?ci=0"
-        )
-        dept        = (p.get("fieldDesc") or "").strip()
-        description = _strip_html(p.get("description") or p.get("shortDescription") or "")
-
-        if not title:
-            continue
-        jobs.append({
-            "title": title, "company": company, "location": city,
-            "date": date_raw, "url": url,
-            "department": dept, "workplace_type": "",
-            "description": description,
-        })
-
-    print(f"  + {len(jobs)}")
-    write_csv(
-        dedup_jobs(jobs),
-        ["title", "company", "location", "date", "url", "department", "workplace_type", "description"],
-        f"clalit_jobs_{TODAY}.csv",
-    )
-
-
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     print(f"=== fetch_jobs.py  {TODAY} ===\n")
@@ -2077,6 +2046,7 @@ def main():
     run_huji()
     run_huji_positions()
     run_technion()
+    run_szmc()
     run_tau()
     run_haifa()
     run_kpmg()
@@ -2088,8 +2058,6 @@ def main():
     run_bis()
     run_gotfriends()
     run_topmatch()
-    run_rambam()
-    run_clalit()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
