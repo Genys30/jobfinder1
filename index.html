@@ -44,8 +44,6 @@
   --rb:#1a7a4a;--rb-pale:rgba(26,122,74,0.07);
   --bl:#1460aa;--bl-pale:rgba(20,96,170,0.07);
   --sk:#d35400;--sk-pale:rgba(211,84,0,0.07);
-  --sz:#8b1a1a;--sz-pale:rgba(139,26,26,0.07);
-  --hd:#2e6b3e;--hd-pale:rgba(46,107,62,0.07);
   --sp:#c97f0c;--sp-pale:rgba(201,127,12,0.07);
   }
 
@@ -182,10 +180,6 @@
   .bl-row:hover .title{color:var(--bl);}
   .sk-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--sk);}
   .sk-row:hover .title{color:var(--sk);}
-  .sz-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--sz);}
-  .sz-row:hover .title{color:var(--sz);}
-  .hd-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--hd);}
-  .hd-row:hover .title{color:var(--hd);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -491,10 +485,6 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--bl)"></span><span id="blStatusText">Beilinson: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--sk)"></span><span id="skStatusText">Soroka: loading…</span></div>
-  <span class="databar-sep">·</span>
-  <div class="datasrc"><span class="src-dot" style="background:var(--sz)"></span><span id="szStatusText">Shaare Zedek: loading…</span></div>
-  <span class="databar-sep">·</span>
-  <div class="datasrc"><span class="src-dot" style="background:var(--hd)"></span><span id="hdStatusText">Hadassah: loading…</span></div>
   </div>
 </div>
 
@@ -589,8 +579,6 @@
       <option value="rambam">Rambam 🏥</option>
       <option value="beilinson">Beilinson 🏥</option>
       <option value="soroka">Soroka 🏥</option>
-      <option value="szmc">Shaare Zedek 🏥</option>
-      <option value="hadassah">Hadassah 🏥</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -794,8 +782,6 @@ let IC_JOBS  = [];   // Ichilov (TopMatch)
 let RB_JOBS  = [];   // Rambam
 let BL_JOBS  = [];   // Beilinson - Rabin Medical Center
 let SK_JOBS  = [];   // Soroka University Medical Center
-let SZ_JOBS  = [];   // Shaare Zedek Medical Center
-let HD_JOBS  = [];   // Hadassah Medical Center
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -844,8 +830,6 @@ const $icStatus  = document.getElementById('icStatusText');
 const $rbStatus  = document.getElementById('rbStatusText');
 const $blStatus  = document.getElementById('blStatusText');
 const $skStatus  = document.getElementById('skStatusText');
-const $szStatus  = document.getElementById('szStatusText');
-const $hdStatus  = document.getElementById('hdStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -1876,8 +1860,6 @@ function getPool(){
   if(activeSrc==='rambam')  return RB_JOBS;
   if(activeSrc==='beilinson') return BL_JOBS;
   if(activeSrc==='soroka')    return SK_JOBS;
-  if(activeSrc==='szmc')      return SZ_JOBS;
-  if(activeSrc==='hadassah')  return HD_JOBS;
   const seen = new Set();
   return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
@@ -2334,8 +2316,6 @@ const SOURCE_EMPLOYER_TYPE = {
   'ichilov':'public','ic':'public','rambam':'public','rb':'public',
   'beilinson':'public','bl':'public',
   'soroka':'public','sk':'public',
-  'szmc':'public','sz':'public',
-  'hadassah':'public','hd':'public',
 };
 
 function classifyEmployerType(company, title, source) {
@@ -2389,8 +2369,6 @@ const DATABAR_SOURCES = [
   { id:'rbStatusText',        key:'rambam',      label:'Rambam' },
   { id:'blStatusText',        key:'beilinson',   label:'Beilinson' },
   { id:'skStatusText',        key:'soroka',      label:'Soroka' },
-  { id:'szStatusText',        key:'szmc',        label:'Shaare Zedek' },
-  { id:'hdStatusText',        key:'hadassah',    label:'Hadassah' },
 ];
 
 function updateDatabar() {
@@ -2536,16 +2514,14 @@ function render(){
     const rbBadge  = r.source==='rambam'?'<span class="rb-badge">Rambam</span>':'';
     const blBadge  = r.source==='beilinson'?'<span class="bl-badge">Beilinson</span>':'';
     const skBadge  = r.source==='soroka'?'<span class="sk-badge">Soroka</span>':'';
-    const szBadge  = r.source==='szmc'?'<span class="sz-badge">Shaare Zedek</span>':'';
-    const hdBadge  = r.source==='hadassah'?'<span class="hd-badge">Hadassah</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row',szmc:' sz-row',hadassah:' hd-row'})[r.source]||'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
     const arrowLabel = hasDesc ? '📄' : '➝';
     return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+szBadge+hdBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -3006,88 +2982,6 @@ async function loadSoroka() {
   applyFilters();
 }
 
-// ─── SHAARE ZEDEK MEDICAL CENTER ─────────────────────────────────────────────
-function normSzmc(row, fname) {
-  const g = k => (row[k] == null ? '' : String(row[k]).trim());
-  const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
-  const title = g('title');
-  if (!title) return null;
-  return {
-    source: 'szmc', fnArea: 'szmc',
-    title, company: 'שערי צדק',
-    category: classifySegment(title) || 'administrative',
-    size: '', level: classifyLevel(title),
-    city: translateCity(g('location')) || 'Jerusalem',
-    url: g('url'), updated: g('date') || date,
-    workType: 'onsite',
-    description: g('description') || '', requirements: g('requirements') || '',
-  };
-}
-async function loadSzmc() {
-  if ($szStatus) $szStatus.innerHTML = 'Shaare Zedek: <span style="color:var(--ink-faint)">loading\u2026</span>';
-  const filenames = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
-    filenames.push(`szmc_jobs_${y}-${m}-${day}.csv`);
-  }
-  const allRows = (await Promise.all(filenames.map(async fname => {
-    try {
-      const r = await fetch(LI_RAW + fname); if (!r.ok) return [];
-      const text = await r.text();
-      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
-        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
-      return parsed.data.map(row => normSzmc(row, fname)).filter(Boolean);
-    } catch(e) { return []; }
-  }))).flat();
-  if (allRows.length === 0) { if ($szStatus) $szStatus.innerHTML = 'Shaare Zedek: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
-  const seen = new Set();
-  SZ_JOBS = allRows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
-  if ($szStatus) $szStatus.innerHTML = `Shaare Zedek: <strong>${SZ_JOBS.length.toLocaleString()} jobs</strong>`;
-  TOTALS['szmc'] = SZ_JOBS.length; populateDropdowns(); applyFilters();
-}
-
-// ─── HADASSAH MEDICAL CENTER ──────────────────────────────────────────────────
-function normHadassah(row, fname) {
-  const g = k => (row[k] == null ? '' : String(row[k]).trim());
-  const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
-  const title = g('title');
-  if (!title) return null;
-  return {
-    source: 'hadassah', fnArea: 'hadassah',
-    title, company: 'הדסה',
-    category: classifySegment(title) || 'administrative',
-    size: '', level: classifyLevel(title),
-    city: translateCity(g('location')) || 'Jerusalem',
-    url: g('url'), updated: g('date') || date,
-    workType: 'onsite',
-    description: g('description') || '', requirements: g('requirements') || '',
-  };
-}
-async function loadHadassah() {
-  if ($hdStatus) $hdStatus.innerHTML = 'Hadassah: <span style="color:var(--ink-faint)">loading\u2026</span>';
-  const filenames = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
-    filenames.push(`hadassah_jobs_${y}-${m}-${day}.csv`);
-  }
-  const allRows = (await Promise.all(filenames.map(async fname => {
-    try {
-      const r = await fetch(LI_RAW + fname); if (!r.ok) return [];
-      const text = await r.text();
-      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
-        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
-      return parsed.data.map(row => normHadassah(row, fname)).filter(Boolean);
-    } catch(e) { return []; }
-  }))).flat();
-  if (allRows.length === 0) { if ($hdStatus) $hdStatus.innerHTML = 'Hadassah: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
-  const seen = new Set();
-  HD_JOBS = allRows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
-  if ($hdStatus) $hdStatus.innerHTML = `Hadassah: <strong>${HD_JOBS.length.toLocaleString()} jobs</strong>`;
-  TOTALS['hadassah'] = HD_JOBS.length; populateDropdowns(); applyFilters();
-}
-
 // ─── BEILINSON - RABIN MEDICAL CENTER ────────────────────────────────────────
 function normBeilinson(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
@@ -3233,9 +3127,7 @@ render();
     loadIchilov(),
     loadRambam(),
     loadBeilinson(),
-    loadSoroka(),
-    loadSzmc(),
-    loadHadassah()
+    loadSoroka()
   ]).catch(e=>{
     console.error('load error', e);
   });
