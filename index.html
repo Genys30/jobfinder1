@@ -85,6 +85,8 @@
     color:var(--ink-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
   .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);
     margin-right:8px;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;}
+  .dot-green{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3cb97a;
+    margin-right:6px;box-shadow:0 0 10px #3cb97a;animation:pulse 2s infinite;}
   @keyframes pulse{50%{opacity:.35;}}
   h1{font-size:clamp(28px,4vw,56px);font-weight:700;font-style:italic;letter-spacing:-.02em;line-height:1.1;}
   h1 .accent{color:var(--accent);font-style:normal;font-weight:500;}
@@ -407,7 +409,7 @@
 <header>
   <div class="eyebrow">
     <span><span class="dot"></span>jobfinder</span>
-    <span id="lastBuild">loading…</span>
+    <span style="display:inline-flex;align-items:center;gap:0"><span class="dot-green"></span><span id="lastBuild">loading…</span></span>
   </div>
   <h1>Israeli Tech and Public Sector Jobs,<br><span class="accent">Searched Seriously.</span></h1>
   <p class="byline">
