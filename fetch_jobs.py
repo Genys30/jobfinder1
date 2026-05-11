@@ -1911,15 +1911,75 @@ def run_szmc():
         outfile=f"szmc_jobs_{TODAY}.csv",
     )
 
-# ══ HADASSAH MEDICAL CENTER (הדסה - HunterHRMS via Playwright) ════════════════
+# ══ HADASSAH MEDICAL CENTER (הדסה - custom Next.js site) ══════════════════════
 def run_hadassah():
     print("\n-- Hadassah Medical Center (הדסה) -----------------------------------")
-    _run_hunterhrms_playwright(
-        base_url="https://hac.hunterhrms.com",
-        company="הדסה",
-        location="Jerusalem",
-        outfile=f"hadassah_jobs_{TODAY}.csv",
+    from bs4 import BeautifulSoup as _BS
+    import time, re as _re
+
+    BASE      = "https://he.hadassah.org.il"
+    CAREERS   = BASE + "/wanted/careers/"
+
+    html = _pw_get(CAREERS, wait_selector="a[href*='position-']", wait_ms=3000)
+    if not html:
+        print("  x could not fetch Hadassah careers page"); return
+
+    soup = _BS(html, "html.parser")
+    job_links = {}   # url -> title
+    for a in soup.select("a[href*='position-']"):
+        href = a.get("href", "")
+        url  = href if href.startswith("http") else BASE + href
+        name_el = a.select_one(".generic-page-link_nameContainer__4yeQN")
+        title = (name_el.get_text(strip=True) if name_el else a.get_text(strip=True)).strip()
+        if title and url not in job_links:
+            job_links[url] = title
+
+    print(f"  Found {len(job_links)} job links — fetching descriptions...")
+
+    def fetch_desc(url):
+        detail = _pw_get(url, wait_ms=2000)
+        if not detail: return "", ""
+        d = _BS(detail, "html.parser")
+        full = d.get_text("\n", strip=True)
+        desc, reqs = "", ""
+        for m in ["תיאור התפקיד", "תיאור", "פרטי המשרה"]:
+            if m in full:
+                after = full.split(m, 1)[1]
+                for stop in ["דרישות", "תנאים", "היקף משרה", "הגשת מועמדות", "לפרטים"]:
+                    if stop in after: after = after.split(stop, 1)[0]
+                desc = after.strip()[:2000]; break
+        for m in ["דרישות התפקיד", "דרישות"]:
+            if m in full:
+                after = full.split(m, 1)[1]
+                for stop in ["היקף משרה", "הגשת מועמדות", "לפרטים", "הערות"]:
+                    if stop in after: after = after.split(stop, 1)[0]
+                reqs = after.strip()[:2000]; break
+        return desc, reqs
+
+    jobs = []
+    for i, (url, title) in enumerate(job_links.items(), 1):
+        desc, reqs = fetch_desc(url)
+        jobs.append({
+            "title":         _re.sub(r'\s+', ' ', title).strip(),
+            "company":       "הדסה",
+            "location":      "Jerusalem",
+            "date":          TODAY,
+            "url":           url,
+            "department":    "",
+            "workplace_type":"onsite",
+            "description":   desc,
+            "requirements":  reqs,
+        })
+        print(f"  [{i}/{len(job_links)}] {title[:60]}")
+        time.sleep(0.3)
+
+    print(f"  + {len(jobs)}")
+    write_csv(
+        jobs,
+        ["title","company","location","date","url","department","workplace_type","description","requirements"],
+        f"hadassah_jobs_{TODAY}.csv"
     )
+
 
 def _run_hunterhrms_playwright(base_url, company, location, outfile):
     from bs4 import BeautifulSoup as _BS
@@ -1927,9 +1987,8 @@ def _run_hunterhrms_playwright(base_url, company, location, outfile):
 
     DETAIL_BASE = base_url + "/%d7%a4%d7%a8%d7%98%d7%99-%d7%9e%d7%a9%d7%a8%d7%94/"
     CATEGORIES = [
-        "אדמיניסטרציה", "לוגיסטיקה ותשתיות", "מחקר ופיתוח",
-        "מחשוב", "מקצועות הבריאות", "סיעוד וכוחות עזר",
-        "רפואה", "תחומים נוספים",
+        "אדמיניסטרציה","לוגיסטיקה ותשתיות","מחקר ופיתוח",
+        "מחשוב","מקצועות הבריאות","סיעוד וכוחות עזר","רפואה","תחומים נוספים",
     ]
     all_codes = {}
 
@@ -1939,101 +1998,76 @@ def _run_hunterhrms_playwright(base_url, company, location, outfile):
             browser = pw.chromium.launch(headless=True)
             page = browser.new_page(user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
             ))
             page.goto(base_url + "/", wait_until="networkidle", timeout=30000)
             time.sleep(2)
 
             def extract_jobs():
-                html = page.content()
-                soup = _BS(html, "html.parser")
+                soup = _BS(page.content(), "html.parser")
                 for el in soup.select("[job-code]"):
-                    code = el.get("job-code", "").strip()
-                    if not code or code in all_codes:
-                        continue
-                    title_el = el.select_one(".hot-job-name, .job-title, h5, label")
-                    title = title_el.get_text(strip=True) if title_el else el.get_text(strip=True)
-                    if title:
-                        all_codes[code] = title
+                    code = el.get("job-code","").strip()
+                    if not code or code in all_codes: continue
+                    te = el.select_one(".hot-job-name,.job-title,h5,label")
+                    t = te.get_text(strip=True) if te else el.get_text(strip=True)
+                    if t: all_codes[code] = t
                 for wrap in soup.select(".job-wrap"):
-                    label = wrap.select_one("label.job-title")
-                    if not label: continue
-                    code = label.get("for", "").strip()
-                    if code and code not in all_codes:
-                        all_codes[code] = label.get_text(strip=True)
+                    lbl = wrap.select_one("label.job-title")
+                    if not lbl: continue
+                    c = lbl.get("for","").strip()
+                    if c and c not in all_codes: all_codes[c] = lbl.get_text(strip=True)
 
             extract_jobs()
             print(f"  Hot jobs found: {len(all_codes)}")
-
             for cat in CATEGORIES:
                 try:
                     btn = page.locator(f"text={cat}").first
-                    if btn.count():
-                        btn.click()
-                        time.sleep(1.5)
-                        extract_jobs()
-                except Exception:
-                    pass
-
+                    if btn.count(): btn.click(); time.sleep(1.5); extract_jobs()
+                except Exception: pass
             browser.close()
     except Exception as e:
-        print(f"  x Playwright error: {e}")
-        return
+        print(f"  x Playwright error: {e}"); return
 
     print(f"  Total unique job codes: {len(all_codes)}")
-    if not all_codes:
-        print("  x No jobs found"); return
+    if not all_codes: print("  x No jobs found"); return
 
     def fetch_description(jobcode):
         url = f"{DETAIL_BASE}?jobcode={jobcode}"
         try:
             html = _pw_get(url, wait_ms=2000)
-            if not html: return "", "", url
-            soup = _BS(html, "html.parser")
-            full = soup.get_text("\n", strip=True)
-            desc, reqs = "", ""
-            for marker in ["תיאור המשרה", "תיאור התפקיד:", "תיאור התפקיד"]:
-                if marker in full:
-                    after = full.split(marker, 1)[1]
-                    for stop in ["דרישות המשרה", "דרישות התפקיד:", "הערות", "כפיפות:"]:
-                        if stop in after: after = after.split(stop, 1)[0]
-                    desc = after.strip()[:2000]; break
-            for marker in ["דרישות המשרה", "דרישות התפקיד:"]:
-                if marker in full:
-                    after = full.split(marker, 1)[1]
-                    for stop in ["הערות", "כפיפות:", "היקף משרה:", "במסגרת מדיניות"]:
-                        if stop in after: after = after.split(stop, 1)[0]
-                    reqs = after.strip()[:2000]; break
-            return desc, reqs, url
-        except Exception:
-            return "", "", f"{DETAIL_BASE}?jobcode={jobcode}"
+            if not html: return "","",url
+            soup = _BS(html,"html.parser")
+            full = soup.get_text("\n",strip=True)
+            desc,reqs = "",""
+            for m in ["תיאור המשרה","תיאור התפקיד:","תיאור התפקיד"]:
+                if m in full:
+                    after = full.split(m,1)[1]
+                    for s in ["דרישות המשרה","דרישות התפקיד:","הערות","כפיפות:"]:
+                        if s in after: after=after.split(s,1)[0]
+                    desc=after.strip()[:2000]; break
+            for m in ["דרישות המשרה","דרישות התפקיד:"]:
+                if m in full:
+                    after=full.split(m,1)[1]
+                    for s in ["הערות","כפיפות:","היקף משרה:","במסגרת מדיניות"]:
+                        if s in after: after=after.split(s,1)[0]
+                    reqs=after.strip()[:2000]; break
+            return desc,reqs,url
+        except Exception: return "","",f"{DETAIL_BASE}?jobcode={jobcode}"
 
-    jobs = []
-    items = list(all_codes.items())
+    jobs,items = [],list(all_codes.items())
     print(f"  Fetching descriptions for {len(items)} jobs...")
-    for i, (code, title) in enumerate(items, 1):
-        desc, reqs, url = fetch_description(code)
-        jobs.append({
-            "title":         _re.sub(r'\s+', ' ', title).strip(),
-            "company":       company,
-            "location":      location,
-            "date":          TODAY,
-            "url":           url,
-            "department":    "",
-            "workplace_type":"onsite",
-            "description":   desc,
-            "requirements":  reqs,
-        })
+    for i,(code,title) in enumerate(items,1):
+        desc,reqs,url = fetch_description(code)
+        jobs.append({"title":_re.sub(r'\s+',' ',title).strip(),"company":company,
+            "location":location,"date":TODAY,"url":url,"department":"",
+            "workplace_type":"onsite","description":desc,"requirements":reqs})
         print(f"  [{i}/{len(items)}] {title[:60]}")
         time.sleep(0.3)
 
     print(f"  + {len(jobs)}")
-    write_csv(
-        jobs,
+    write_csv(jobs,
         ["title","company","location","date","url","department","workplace_type","description","requirements"],
-        outfile
-    )
+        outfile)
 
 
 def main():
