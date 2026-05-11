@@ -86,8 +86,6 @@
   @media(max-width:480px){#activeUsers{display:none!important;}}
   .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);
     margin-right:8px;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;}
-  .dot-green{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3cb97a;
-    margin-right:5px;box-shadow:0 0 10px #3cb97a;animation:pulse 2s infinite;vertical-align:middle;}
   @keyframes pulse{50%{opacity:.35;}}
   h1{font-size:clamp(28px,4vw,56px);font-weight:700;font-style:italic;letter-spacing:-.02em;line-height:1.1;}
   h1 .accent{color:var(--accent);font-style:normal;font-weight:500;}
@@ -410,7 +408,8 @@
 <header>
   <div class="eyebrow">
     <span><span class="dot"></span>jobfinder</span>
-    <span style="display:inline-flex;align-items:center;gap:5px;"><span class="dot-green"></span><span id="lastBuild">loading…</span><span id="activeUsers" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);display:none;"> · <span id="activeCount">0</span> online</span></span>
+    <span id="lastBuild">loading…</span>
+    <span id="activeUsers" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faint);display:none;">● <span id="activeCount">0</span> online</span>
   </div>
   <h1>Israeli Tech and Public Sector Jobs,<br><span class="accent">Searched Seriously.</span></h1>
   <p class="byline">
@@ -468,6 +467,7 @@
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--bar)"></span><span id="barStatusText">BAR: loading…</span></div>
   <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--bar)"></span><span id="barAlumniStatusText">BAR Alumni: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--bis)"></span><span id="bisStatusText">BIS: loading…</span></div>
   <span class="databar-sep">·</span>
@@ -567,6 +567,7 @@
       <option value="ey">EY</option>
       <option value="joint">Joint</option>
       <option value="bar">BAR 🎓</option>
+      <option value="bar-alumni">BAR Alumni</option>
       <option value="bis">BIS</option>
       <option value="gf">GotFriends</option>
       <option value="ichilov">Ichilov 🏥</option>
@@ -765,6 +766,7 @@ let DL_JOBS  = [];   // Deloitte
 let EY_JOBS  = [];   // EY
 let JNT_JOBS = [];   // The Joint (ג'וינט)
 let BAR_JOBS = [];   // Bar-Ilan University positions
+let BAR_ALUMNI_JOBS = []; // BAR Alumni Career
 let BIS_JOBS = [];   // BIS (אגודת סטודנטים בר-אילן)
 let GF_JOBS  = [];   // GotFriends
 let IC_JOBS  = [];   // Ichilov (TopMatch)
@@ -813,6 +815,7 @@ const $dlStatus  = document.getElementById('dlStatusText');
 const $eyStatus  = document.getElementById('eyStatusText');
 const $jntStatus = document.getElementById('jntStatusText');
 const $barStatus = document.getElementById('barStatusText');
+const $barAlumniStatus = document.getElementById('barAlumniStatusText');
 const $bisStatus = document.getElementById('bisStatusText');
 const $gfStatus  = document.getElementById('gfStatusText');
 const $icStatus  = document.getElementById('icStatusText');
@@ -1793,6 +1796,43 @@ async function loadBAR() {
 }
 
 // ─── LOAD BAR ALUMNI CAREER ───────────────────────────────────────────────────
+function normBARAlumni(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const title = g('title').split('\n')[0].trim();
+  if (!title) return null;
+  const fnDate = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  return {
+    source: 'bar-alumni', fnArea: 'bar-alumni', title,
+    company: g('company') || 'BAR Alumni Career',
+    category: classifySegment(title), size: '', level: classifyLevel(title),
+    city: g('city') || 'רמת גן',
+    url: g('url'), updated: g('date') || fnDate,
+    deadline: g('deadline') || '', department: g('department'),
+    description: g('description'), requirements: g('requirements'), workType: 'onsite'
+  };
+}
+async function loadBARAlumni() {
+  if ($barAlumniStatus) $barAlumniStatus.innerHTML = 'BAR Alumni: <span style="color:var(--ink-faint)">loading…</span>';
+  const rows = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    const fname = `bar_alumni_jobs_${y}-${m}-${day}.csv`;
+    try {
+      const r = await fetch(LI_RAW + fname); if (!r.ok) continue;
+      const text = await r.text();
+      const parsed = Papa.parse(text, { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase() });
+      parsed.data.forEach(row => { const n = normBARAlumni(row, fname); if (n) rows.push(n); });
+      break;
+    } catch(e) {}
+  }
+  if (!rows.length) { if ($barAlumniStatus) $barAlumniStatus.innerHTML = 'BAR Alumni: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
+  const seen = new Set();
+  BAR_ALUMNI_JOBS = rows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
+  if ($barAlumniStatus) $barAlumniStatus.innerHTML = `BAR Alumni: <strong>${BAR_ALUMNI_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['bar-alumni'] = BAR_ALUMNI_JOBS.length;
+}
+
 // ─── LOAD BIS (אגודת סטודנטים בר-אילן) ──────────────────────────────────────
 function normBIS(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
@@ -1855,6 +1895,7 @@ function getPool(){
   if(activeSrc==='ey')    return EY_JOBS;
   if(activeSrc==='joint') return JNT_JOBS;
   if(activeSrc==='bar')   return BAR_JOBS;
+  if(activeSrc==='bar-alumni') return BAR_ALUMNI_JOBS;
   if(activeSrc==='bis')   return BIS_JOBS;
   if(activeSrc==='gf')    return GF_JOBS;
   if(activeSrc==='ichilov') return IC_JOBS;
@@ -1862,7 +1903,7 @@ function getPool(){
   if(activeSrc==='beilinson') return BL_JOBS;
   if(activeSrc==='soroka')    return SK_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BAR_ALUMNI_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -2305,7 +2346,7 @@ const SOURCE_EMPLOYER_TYPE = {
   'huji':'academic','huji-alumni':'public','tau':'academic','haifa':'academic',
   'kpmg':'private','deloitte':'private','ey':'private',
   'joint':'nonprofit',
-  'bar':'academic','bis':'public',
+  'bar':'academic','bar-alumni':'public','bis':'public',
   'ichilov':'public','ic':'public','rambam':'public','rb':'public',
   'beilinson':'public','bl':'public',
   'soroka':'public','sk':'public',
@@ -2356,6 +2397,7 @@ const DATABAR_SOURCES = [
   { id:'eyStatusText',        key:'ey',          label:'EY' },
   { id:'jntStatusText',       key:'joint',       label:'Joint' },
   { id:'barStatusText',       key:'bar',         label:'BAR' },
+  { id:'barAlumniStatusText', key:'bar-alumni',  label:'BAR Alumni' },
   { id:'bisStatusText',       key:'bis',         label:'BIS' },
   { id:'gfStatusText',        key:'gf',          label:'GotFriends' },
   { id:'icStatusText',        key:'ichilov',     label:'Ichilov' },
@@ -2501,20 +2543,21 @@ function render(){
     const eyBadge  = r.source==='ey'?'<span class="ey-badge">EY</span>':'';
     const jntBadge = r.source==='joint'?'<span class="jnt-badge">Joint</span>':'';
     const barBadge = r.source==='bar'?'<span class="bar-badge">BAR</span>':'';
+    const barAlumniBadge = r.source==='bar-alumni'?'<span class="bar-badge">BAR Alumni</span>':'';
     const bisBadge = r.source==='bis'?'<span class="bis-badge">BIS</span>':'';
     const gfBadge  = r.source==='gf'?'<span class="gf-badge">GF</span>':'';
     const icBadge  = r.source==='ichilov'?'<span class="ic-badge">Ichilov</span>':'';
     const rbBadge  = r.source==='rambam'?'<span class="rb-badge">Rambam</span>':'';
     const blBadge  = r.source==='beilinson'?'<span class="bl-badge">Beilinson</span>':'';
     const skBadge  = r.source==='soroka'?'<span class="sk-badge">Soroka</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row'})[r.source]||'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row','bar-alumni':' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
     const arrowLabel = hasDesc ? '📄' : '➝';
     return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+barAlumniBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -3105,6 +3148,7 @@ render();
     loadEY(),
     loadJoint(),
     loadBAR(),
+    loadBARAlumni(),
     loadBIS(),
     loadGotFriends(),
     loadIchilov(),
@@ -3192,7 +3236,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BAR_ALUMNI_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -3330,7 +3374,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS,RB_JOBS,BL_JOBS,SK_JOBS);
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BAR_ALUMNI_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS,RB_JOBS,BL_JOBS,SK_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){
