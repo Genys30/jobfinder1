@@ -1908,11 +1908,11 @@ const ISRAEL_REGIONS = {
     'אשדוד','Ashdod','אשקלון','Ashkelon','אילת','Eilat','דימונה','Dimona',
     'קריית גת','Kiryat Gat','נתיבות','Netivot','שדרות','Sderot','ערד','Arad',
     'מצפה רמון','Mitzpe Ramon','אופקים','Ofakim','רהט','Rahat','לכיש','Lachish',
-    'קריית מלאכי','Kiryat Malachi','דרום','South'],
+    'קריית מלאכי','Kiryat Malachi','דרום','South','בארשבע','באר שבע','Beer Sheva'],
   Jerusalem:['ירושלים','Jerusalem','בית שמש','Beit Shemesh','Bet Shemesh',
     "Ma'ale Adumim",'Maale Adumim','מעלה אדומים',"Givat Ze'ev",'Givat Zeev','גבעת זאב',
     'מבשרת ציון','Mevasseret Zion','Mevasseret Tzion','הר חוצבים','Har Hotzvim',
-    'קמפוס הר הצופים','קמפוס עין כרם',"קמפוס ע\"ש אדמונד י' ספרא"],
+    'קמפוס הר הצופים','קמפוס עין כרם',"קמפוס ע\"ש אדמונד י' ספרא","קמפוס ע\"ש אדמונד י'.ספרא","קמפוס ע\"ש אדמונד י. ספרא",'קמפוס אדמונד ספרא'],
 };
 
 const CITY_TO_REGION = {};
@@ -1949,6 +1949,11 @@ function getCityClass(city) {
   if (!city) return null;
   if (city === 'מהבית') return null; // remote — handled by workType filter
   if (CITY_TO_REGION[city]) return { top:'Israel', sub: CITY_TO_REGION[city] };
+  // Fuzzy fallbacks for known variants
+  if (city.includes('קמפוס') && city.includes('אדמונד')) return { top:'Israel', sub:'Jerusalem' };
+  if (city.includes('קמפוס הר הצופים')) return { top:'Israel', sub:'Jerusalem' };
+  if (city.includes('קמפוס עין כרם')) return { top:'Israel', sub:'Jerusalem' };
+  if (city === 'בארשבע' || city.includes('באר שבע') || city.includes('באר-שבע')) return { top:'Israel', sub:'South' };
   const heRatio = (city.match(/[\u0590-\u05FF]/g)||[]).length / city.length;
   if (heRatio > 0.3) return { top:'Israel', sub:'Other' };
   if (CITY_TO_COUNTRY[city]) return { top:'Abroad', sub: CITY_TO_COUNTRY[city] };
