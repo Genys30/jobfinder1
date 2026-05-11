@@ -44,8 +44,8 @@
   --rb:#1a7a4a;--rb-pale:rgba(26,122,74,0.07);
   --bl:#1460aa;--bl-pale:rgba(20,96,170,0.07);
   --sk:#d35400;--sk-pale:rgba(211,84,0,0.07);
-  --sz:#7b2d8b;--sz-pale:rgba(123,45,139,0.07);
-  --hd:#1a6e8e;--hd-pale:rgba(26,110,142,0.07);
+  --sz:#8b1a1a;--sz-pale:rgba(139,26,26,0.07);
+  --hd:#2e6b3e;--hd-pale:rgba(46,107,62,0.07);
   --sp:#c97f0c;--sp-pale:rgba(201,127,12,0.07);
   }
 
@@ -491,7 +491,9 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--bl)"></span><span id="blStatusText">Beilinson: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--sk)"></span><span id="skStatusText">Soroka: loading…</span></div>
+  <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--sz)"></span><span id="szStatusText">Shaare Zedek: loading…</span></div>
+  <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--hd)"></span><span id="hdStatusText">Hadassah: loading…</span></div>
   </div>
 </div>
@@ -667,10 +669,15 @@
             <option value="rd" selected>R&amp;D / Engineering</option>
             <option value="product">Product</option>
             <option value="data">Data &amp; Analytics</option>
+            <option value="design">Design</option>
             <option value="sales">Sales</option>
             <option value="marketing">Marketing</option>
             <option value="operations">Operations</option>
+            <option value="hr">HR</option>
+            <option value="support">Customer Success</option>
             <option value="management">Management</option>
+            <option value="intern">Intern</option>
+            <option value="administrative">Administrative</option>
           </optgroup>
           <optgroup label="Level">
             <option value="entry">Junior</option>
@@ -837,8 +844,6 @@ const $icStatus  = document.getElementById('icStatusText');
 const $rbStatus  = document.getElementById('rbStatusText');
 const $blStatus  = document.getElementById('blStatusText');
 const $skStatus  = document.getElementById('skStatusText');
-const $szStatus  = document.getElementById('szStatusText');
-const $hdStatus  = document.getElementById('hdStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -1872,7 +1877,7 @@ function getPool(){
   if(activeSrc==='szmc')      return SZ_JOBS;
   if(activeSrc==='hadassah')  return HD_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS,...SZ_JOBS,...HD_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -2009,49 +2014,13 @@ function _makeRow(cls, toggleChar, cbChecked, cbIndeterminate, labelText, countT
   return { row, tog, cb, lbl };
 }
 
-// ─── CITY CANONICALIZATION ────────────────────────────────────────────────────
-const CITY_CANONICAL = {
-  // Tel Aviv + Yafo variants
-  'תל אביב':'Tel Aviv','תל-אביב':'Tel Aviv','תל אביב-יפו':'Tel Aviv',
-  'תל אביב יפו':'Tel Aviv','יפו':'Tel Aviv','Jaffa':'Tel Aviv',
-  'Tel Aviv-Yafo':'Tel Aviv','Tel Aviv Yafo':'Tel Aviv',
-  'Tel Aviv-Yaffo':'Tel Aviv','Tel Aviv Yaffo':'Tel Aviv','Tel Aviv-Yafo':'Tel Aviv',
-  // Rehovot
-  'רחובות':'Rehovot',
-  // Ramat Gan
-  'רמת גן':'Ramat Gan',
-  // Rishon Lezion
-  'ראשון לציון':'Rishon Lezion',"Rishon LeZion":'Rishon Lezion',"Rishon Le'Zion":'Rishon Lezion','Rishon LeZion':'Rishon Lezion',
-  // Netanya
-  'נתניה':'Netanya',
-  // Petah Tikva
-  'פתח תקווה':'Petah Tikva','Petach Tikva':'Petah Tikva',
-  // Givatayim
-  'גבעתיים':'Givatayim',
-  // Petah Tikva alt
-  'פתח-תקווה':'Petah Tikva',
-  // Haifa
-  'חיפה':'Haifa',
-  // Beer Sheva
-  'בער שבע':'Beer Sheva','בערשבע':'Beer Sheva',"Be'er Sheva":'Beer Sheva','באר שבע':'Beer Sheva',
-  // Jerusalem
-  'ירושלים':'Jerusalem',
-};
-function canonicalCity(city) {
-  if (!city) return city;
-  return CITY_CANONICAL[city] || city;
-}
-
 function buildCityTree(filterText) {
   const f = (filterText || '').toLowerCase().trim();
 
   // city → job count
   const cityCounts = {};
   getPool().forEach(r => {
-    if (_cityIsValid(r.city)) {
-      const c = canonicalCity(r.city);
-      cityCounts[c] = (cityCounts[c] || 0) + 1;
-    }
+    if (_cityIsValid(r.city)) cityCounts[r.city] = (cityCounts[r.city] || 0) + 1;
   });
 
   // build tree structure
@@ -2361,10 +2330,10 @@ const SOURCE_EMPLOYER_TYPE = {
   'joint':'nonprofit',
   'bar':'academic','bis':'public',
   'ichilov':'public','ic':'public','rambam':'public','rb':'public',
-  'beilinson':'public','bl':'public','soroka':'public','sk':'public',
-  'szmc':'public','sz':'public','hadassah':'public','hd':'public',
   'beilinson':'public','bl':'public',
   'soroka':'public','sk':'public',
+  'szmc':'public','sz':'public',
+  'hadassah':'public','hd':'public',
 };
 
 function classifyEmployerType(company, title, source) {
@@ -2488,7 +2457,7 @@ function applyFilters(){
 
   const pool = getPool();
   FILTERED = pool.filter(r=>{
-    if(selectedCities.size && !selectedCities.has(canonicalCity(r.city))) return false;
+    if(selectedCities.size && !selectedCities.has(r.city)) return false;
     if(company   && r.company!==company)     return false;
     if(segFilter && classifySegment(r.title)!==segFilter)   return false;
     if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
@@ -3043,49 +3012,37 @@ function normSzmc(row, fname) {
   if (!title) return null;
   return {
     source: 'szmc', fnArea: 'szmc',
-    title,
-    company: g('company') || 'שערי צדק',
-    category: g('department') || 'szmc',
-    size: '', level: '',
-    city: g('location') || 'Jerusalem',
-    url: g('url'),
-    updated: g('date') || date,
+    title, company: 'שערי צדק',
+    category: classifySegment(title) || 'administrative',
+    size: '', level: classifyLevel(title),
+    city: translateCity(g('location')) || 'Jerusalem',
+    url: g('url'), updated: g('date') || date,
     workType: 'onsite',
-    description: g('description') || ''
+    description: g('description') || '', requirements: g('requirements') || '',
   };
 }
-
 async function loadSzmc() {
   if ($szStatus) $szStatus.innerHTML = 'Shaare Zedek: <span style="color:var(--ink-faint)">loading\u2026</span>';
   const filenames = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(); d.setDate(d.getDate() - i);
     const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
-    filenames.push(`shaare_zedek_jobs_${y}-${m}-${day}.csv`);
+    filenames.push(`szmc_jobs_${y}-${m}-${day}.csv`);
   }
   const allRows = (await Promise.all(filenames.map(async fname => {
     try {
-      const r = await fetch(LI_RAW + fname);
-      if (!r.ok) return [];
+      const r = await fetch(LI_RAW + fname); if (!r.ok) return [];
       const text = await r.text();
       const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
         transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
       return parsed.data.map(row => normSzmc(row, fname)).filter(Boolean);
     } catch(e) { return []; }
   }))).flat();
-  if (allRows.length === 0) {
-    if ($szStatus) $szStatus.innerHTML = 'Shaare Zedek: <span style="color:var(--ink-faint)">no file yet</span>';
-    return;
-  }
+  if (allRows.length === 0) { if ($szStatus) $szStatus.innerHTML = 'Shaare Zedek: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
   const seen = new Set();
-  SZ_JOBS = allRows.filter(r => {
-    const k = r.url || (r.company + '|' + r.title);
-    if (seen.has(k)) return false; seen.add(k); return true;
-  });
+  SZ_JOBS = allRows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if ($szStatus) $szStatus.innerHTML = `Shaare Zedek: <strong>${SZ_JOBS.length.toLocaleString()} jobs</strong>`;
-  TOTALS['szmc'] = SZ_JOBS.length;
-  populateDropdowns();
-  applyFilters();
+  TOTALS['szmc'] = SZ_JOBS.length; populateDropdowns(); applyFilters();
 }
 
 // ─── HADASSAH MEDICAL CENTER ──────────────────────────────────────────────────
@@ -3096,18 +3053,15 @@ function normHadassah(row, fname) {
   if (!title) return null;
   return {
     source: 'hadassah', fnArea: 'hadassah',
-    title,
-    company: g('company') || 'הדסה',
-    category: g('department') || 'hadassah',
-    size: '', level: '',
-    city: g('location') || 'Jerusalem',
-    url: g('url'),
-    updated: g('date') || date,
+    title, company: 'הדסה',
+    category: classifySegment(title) || 'administrative',
+    size: '', level: classifyLevel(title),
+    city: translateCity(g('location')) || 'Jerusalem',
+    url: g('url'), updated: g('date') || date,
     workType: 'onsite',
-    description: g('description') || ''
+    description: g('description') || '', requirements: g('requirements') || '',
   };
 }
-
 async function loadHadassah() {
   if ($hdStatus) $hdStatus.innerHTML = 'Hadassah: <span style="color:var(--ink-faint)">loading\u2026</span>';
   const filenames = [];
@@ -3118,27 +3072,18 @@ async function loadHadassah() {
   }
   const allRows = (await Promise.all(filenames.map(async fname => {
     try {
-      const r = await fetch(LI_RAW + fname);
-      if (!r.ok) return [];
+      const r = await fetch(LI_RAW + fname); if (!r.ok) return [];
       const text = await r.text();
       const parsed = Papa.parse(text, { header: true, skipEmptyLines: true,
         transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase() });
       return parsed.data.map(row => normHadassah(row, fname)).filter(Boolean);
     } catch(e) { return []; }
   }))).flat();
-  if (allRows.length === 0) {
-    if ($hdStatus) $hdStatus.innerHTML = 'Hadassah: <span style="color:var(--ink-faint)">no file yet</span>';
-    return;
-  }
+  if (allRows.length === 0) { if ($hdStatus) $hdStatus.innerHTML = 'Hadassah: <span style="color:var(--ink-faint)">no file yet</span>'; return; }
   const seen = new Set();
-  HD_JOBS = allRows.filter(r => {
-    const k = r.url || (r.company + '|' + r.title);
-    if (seen.has(k)) return false; seen.add(k); return true;
-  });
+  HD_JOBS = allRows.filter(r => { const k = r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if ($hdStatus) $hdStatus.innerHTML = `Hadassah: <strong>${HD_JOBS.length.toLocaleString()} jobs</strong>`;
-  TOTALS['hadassah'] = HD_JOBS.length;
-  populateDropdowns();
-  applyFilters();
+  TOTALS['hadassah'] = HD_JOBS.length; populateDropdowns(); applyFilters();
 }
 
 // ─── BEILINSON - RABIN MEDICAL CENTER ────────────────────────────────────────
@@ -3311,7 +3256,7 @@ render();
 // ─── ANALYTICS ───────────────────────────────────────────────────────────────
 const CHART_INSTANCES = {};
 const PALETTE = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c','#b71c1c','#e65100','#01579b','#4a148c','#558b2f','#6d4c41'];
-const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern',hr:'HR'};
+const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern',hr:'HR',administrative:'Admin'};
 const SECTOR_LABELS_OLD = {}; // replaced
 
 function destroyChart(id){ if(CHART_INSTANCES[id]){ CHART_INSTANCES[id].destroy(); delete CHART_INSTANCES[id]; } }
@@ -3372,7 +3317,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS,...SZ_JOBS,...HD_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -3393,7 +3338,7 @@ async function renderAnalytics(){
 
   // ── Role donut ──
   destroyChart('role');
-  const roleData=topN(byRole,10).filter(([k])=>k);
+  const roleData=topN(byRole,12).filter(([k])=>k);
   CHART_INSTANCES['role']=new Chart(document.getElementById('chartRole'),{
     type:'doughnut',
     data:{labels:roleData.map(([k])=>ROLE_LABELS[k]||k),datasets:[{data:roleData.map(([,v])=>v),backgroundColor:PALETTE}]},
@@ -3510,7 +3455,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS,RB_JOBS,BL_JOBS,SK_JOBS,SZ_JOBS,HD_JOBS);
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS,RB_JOBS,BL_JOBS,SK_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){
@@ -3620,7 +3565,7 @@ function exportApps(){
 (function(){
   var toggle = document.getElementById('databarToggle');
   var sources = document.getElementById('databar-sources');
-  var collapsed = localStorage.getItem('databar-collapsed') !== '0';
+  var collapsed = localStorage.getItem('databar-collapsed') !== '1';
   function apply(c){
     if(c){ sources.classList.add('collapsed'); toggle.textContent='Sources ▸'; }
     else { sources.classList.remove('collapsed'); toggle.textContent='Sources ▾'; }
@@ -3628,7 +3573,7 @@ function exportApps(){
   apply(collapsed);
   toggle.addEventListener('click', function(){
     collapsed = !collapsed;
-    localStorage.setItem('databar-collapsed', collapsed ? '1' : '0');
+    localStorage.setItem('databar-collapsed', collapsed ? '0' : '1');
     apply(collapsed);
   });
 })();
