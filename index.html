@@ -83,7 +83,6 @@
   header{padding:40px 48px 28px;border-bottom:1px solid var(--rule);}
   .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
     color:var(--ink-dim);display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
-  @media(max-width:480px){#activeUsers{display:none!important;}}
   .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);
     margin-right:8px;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;}
   @keyframes pulse{50%{opacity:.35;}}
@@ -1004,18 +1003,6 @@ async function loadTechmap(){
   const now = new Date();
   $lastBuild.textContent = 'live · '+new Date().toISOString().slice(0,10);
 
-  // Fetch active users from Vercel API
-  async function fetchActiveUsers() {
-    try {
-      const res = await fetch('https://jobfinder-eta-seven.vercel.app/api/realtime');
-      const data = await res.json();
-      const count = data.activeUsers || 0;
-      document.getElementById('activeCount').textContent = count;
-      document.getElementById('activeUsers').style.display = count > 0 ? 'inline' : 'none';
-    } catch(e) {}
-  }
-  fetchActiveUsers();
-  setInterval(fetchActiveUsers, 30000);
   $stamp.textContent = 'last sync '+now.toLocaleTimeString();
 }
 
@@ -3125,6 +3112,17 @@ async function loadRambam() {
   applyFilters();
 }
 
+// ─── ACTIVE USERS COUNTER ────────────────────────────────────────────────────
+async function fetchActiveUsers() {
+  try {
+    const res = await fetch('https://jobfinder-eta-seven.vercel.app/api/realtime');
+    const data = await res.json();
+    const count = data.activeUsers || 0;
+    document.getElementById('activeCount').textContent = count;
+    document.getElementById('activeUsers').style.display = count > 0 ? 'inline' : 'none';
+  } catch(e) {}
+}
+
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 render();
 (async()=>{
@@ -3163,6 +3161,8 @@ render();
   initSavedSearches();
   makeSearchable($company);
   applyFilters();
+  fetchActiveUsers();
+  setInterval(fetchActiveUsers, 30000);
 
   // Load techmap in background
   loadTechmap().then(()=>{
