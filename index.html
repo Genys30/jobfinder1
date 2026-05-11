@@ -657,15 +657,10 @@
             <option value="rd" selected>R&amp;D / Engineering</option>
             <option value="product">Product</option>
             <option value="data">Data &amp; Analytics</option>
-            <option value="design">Design</option>
             <option value="sales">Sales</option>
             <option value="marketing">Marketing</option>
             <option value="operations">Operations</option>
-            <option value="hr">HR</option>
-            <option value="support">Customer Success</option>
             <option value="management">Management</option>
-            <option value="intern">Intern</option>
-            <option value="administrative">Administrative</option>
           </optgroup>
           <optgroup label="Level">
             <option value="entry">Junior</option>
@@ -1998,13 +1993,49 @@ function _makeRow(cls, toggleChar, cbChecked, cbIndeterminate, labelText, countT
   return { row, tog, cb, lbl };
 }
 
+// ─── CITY CANONICALIZATION ────────────────────────────────────────────────────
+const CITY_CANONICAL = {
+  // Tel Aviv + Yafo variants
+  'תל אביב':'Tel Aviv','תל-אביב':'Tel Aviv','תל אביב-יפו':'Tel Aviv',
+  'תל אביב יפו':'Tel Aviv','יפו':'Tel Aviv','Jaffa':'Tel Aviv',
+  'Tel Aviv-Yafo':'Tel Aviv','Tel Aviv Yafo':'Tel Aviv',
+  'Tel Aviv-Yaffo':'Tel Aviv','Tel Aviv Yaffo':'Tel Aviv','Tel Aviv-Yafo':'Tel Aviv',
+  // Rehovot
+  'רחובות':'Rehovot',
+  // Ramat Gan
+  'רמת גן':'Ramat Gan',
+  // Rishon Lezion
+  'ראשון לציון':'Rishon Lezion',"Rishon LeZion":'Rishon Lezion',"Rishon Le'Zion":'Rishon Lezion','Rishon LeZion':'Rishon Lezion',
+  // Netanya
+  'נתניה':'Netanya',
+  // Petah Tikva
+  'פתח תקווה':'Petah Tikva','Petach Tikva':'Petah Tikva',
+  // Givatayim
+  'גבעתיים':'Givatayim',
+  // Petah Tikva alt
+  'פתח-תקווה':'Petah Tikva',
+  // Haifa
+  'חיפה':'Haifa',
+  // Beer Sheva
+  'בער שבע':'Beer Sheva','בערשבע':'Beer Sheva',"Be'er Sheva":'Beer Sheva','באר שבע':'Beer Sheva',
+  // Jerusalem
+  'ירושלים':'Jerusalem',
+};
+function canonicalCity(city) {
+  if (!city) return city;
+  return CITY_CANONICAL[city] || city;
+}
+
 function buildCityTree(filterText) {
   const f = (filterText || '').toLowerCase().trim();
 
   // city → job count
   const cityCounts = {};
   getPool().forEach(r => {
-    if (_cityIsValid(r.city)) cityCounts[r.city] = (cityCounts[r.city] || 0) + 1;
+    if (_cityIsValid(r.city)) {
+      const c = canonicalCity(r.city);
+      cityCounts[c] = (cityCounts[c] || 0) + 1;
+    }
   });
 
   // build tree structure
@@ -2437,7 +2468,7 @@ function applyFilters(){
 
   const pool = getPool();
   FILTERED = pool.filter(r=>{
-    if(selectedCities.size && !selectedCities.has(r.city)) return false;
+    if(selectedCities.size && !selectedCities.has(canonicalCity(r.city))) return false;
     if(company   && r.company!==company)     return false;
     if(segFilter && classifySegment(r.title)!==segFilter)   return false;
     if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
@@ -3150,7 +3181,7 @@ render();
 // ─── ANALYTICS ───────────────────────────────────────────────────────────────
 const CHART_INSTANCES = {};
 const PALETTE = ['#c97f0c','#0a66c2','#2e7d32','#7c3aed','#d63916','#00695c','#b71c1c','#e65100','#01579b','#4a148c','#558b2f','#6d4c41'];
-const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern',hr:'HR',administrative:'Admin'};
+const ROLE_LABELS   = {rd:'R&D/Eng',product:'Product',data:'Data',design:'Design',sales:'Sales',marketing:'Marketing',operations:'Ops',support:'CS',management:'Mgmt',intern:'Intern',hr:'HR'};
 const SECTOR_LABELS_OLD = {}; // replaced
 
 function destroyChart(id){ if(CHART_INSTANCES[id]){ CHART_INSTANCES[id].destroy(); delete CHART_INSTANCES[id]; } }
@@ -3232,7 +3263,7 @@ async function renderAnalytics(){
 
   // ── Role donut ──
   destroyChart('role');
-  const roleData=topN(byRole,12).filter(([k])=>k);
+  const roleData=topN(byRole,10).filter(([k])=>k);
   CHART_INSTANCES['role']=new Chart(document.getElementById('chartRole'),{
     type:'doughnut',
     data:{labels:roleData.map(([k])=>ROLE_LABELS[k]||k),datasets:[{data:roleData.map(([,v])=>v),backgroundColor:PALETTE}]},
@@ -3459,7 +3490,7 @@ function exportApps(){
 (function(){
   var toggle = document.getElementById('databarToggle');
   var sources = document.getElementById('databar-sources');
-  var collapsed = localStorage.getItem('databar-collapsed') !== '1';
+  var collapsed = localStorage.getItem('databar-collapsed') !== '0';
   function apply(c){
     if(c){ sources.classList.add('collapsed'); toggle.textContent='Sources ▸'; }
     else { sources.classList.remove('collapsed'); toggle.textContent='Sources ▾'; }
@@ -3467,7 +3498,7 @@ function exportApps(){
   apply(collapsed);
   toggle.addEventListener('click', function(){
     collapsed = !collapsed;
-    localStorage.setItem('databar-collapsed', collapsed ? '0' : '1');
+    localStorage.setItem('databar-collapsed', collapsed ? '1' : '0');
     apply(collapsed);
   });
 })();
