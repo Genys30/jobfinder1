@@ -111,6 +111,10 @@
   .datasrc strong{color:var(--ink);}
   .datasrc .err{color:var(--accent-2);}
   .databar-sep{color:var(--rule);}
+  .databar-toggle{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;background:none;border:1px solid var(--rule);color:var(--ink-faint);padding:3px 9px;cursor:pointer;border-radius:3px;transition:all .15s;white-space:nowrap;flex-shrink:0;height:22px;}
+  .databar-toggle:hover{border-color:var(--accent);color:var(--accent);}
+  #databar-sources{display:flex;align-items:center;gap:20px;flex-wrap:wrap;flex:1;transition:opacity .15s;}
+  #databar-sources.collapsed{display:none;}
 
   /* ─── Source pills ─── */
 
@@ -422,6 +426,8 @@
 
 <!-- Live data sources status -->
 <div class="databar">
+  <button class="databar-toggle" id="databarToggle">Sources ▾</button>
+  <div id="databar-sources">
   <div class="datasrc">
     <span class="src-dot li"></span>
     <span id="liStatusText">LinkedIn: loading…</span>
@@ -479,6 +485,7 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--bl)"></span><span id="blStatusText">Beilinson: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--sk)"></span><span id="skStatusText">Soroka: loading…</span></div>
+  </div>
 </div>
 
 <!-- Filters -->
@@ -3434,6 +3441,23 @@ function exportApps(){
   document.body.appendChild(lnk); lnk.click(); document.body.removeChild(lnk);
   setTimeout(function(){ URL.revokeObjectURL(lnk.href); },1000);
 }
+
+// ─── Databar collapse toggle ───
+(function(){
+  var toggle = document.getElementById('databarToggle');
+  var sources = document.getElementById('databar-sources');
+  var collapsed = localStorage.getItem('databar-collapsed') !== '0';
+  function apply(c){
+    if(c){ sources.classList.add('collapsed'); toggle.textContent='Sources ▸'; }
+    else { sources.classList.remove('collapsed'); toggle.textContent='Sources ▾'; }
+  }
+  apply(collapsed);
+  toggle.addEventListener('click', function(){
+    collapsed = !collapsed;
+    localStorage.setItem('databar-collapsed', collapsed ? '1' : '0');
+    apply(collapsed);
+  });
+})();
 
 document.getElementById('appsExport').addEventListener('click',exportApps);
 document.getElementById('appsClear').addEventListener('click',function(){
