@@ -504,9 +504,9 @@
     </div>
   </div>
   <div class="city-multi-wrap" id="cityWrap">
-    <button class="city-multi-btn" id="cityBtn" type="button">City ▾</button>
+    <button class="city-multi-btn" id="cityBtn" type="button">Location ▾</button>
     <div class="city-multi-panel" id="cityPanel">
-      <input class="city-multi-search" id="citySearch" placeholder="Search city…" autocomplete="off">
+      <input class="city-multi-search" id="citySearch" placeholder="Search location…" autocomplete="off">
       <ul class="city-multi-list" id="cityList"></ul>
     </div>
   </div>
@@ -1893,7 +1893,8 @@ const ISRAEL_REGIONS = {
     'כפר יונה','Kfar Yona','אלעד',"El'ad",'Elad','שוהם','Shoham','קריית אונו','Kiryat Ono',
     'גבעת שמואל','Givat Shmuel','אריאל','Ariel','כפר קאסם','Kafr Qasim','טייבה','Tayibe',
     'קלנסווה','Qalansawe','פרדס חנה','Pardes Hanna','בנימינה','Binyamina',
-    'כפר שמריהו','Kfar Shmaryahu','תל מונד','Tel Mond','זכרון יעקב','Zichron Yaakov'],
+    'כפר שמריהו','Kfar Shmaryahu','תל מונד','Tel Mond','זכרון יעקב','Zichron Yaakov',
+    'גוש דן','Gush Dan','Center','מרכז','איכילוב','Ichilov'],
   North:['חיפה','Haifa','נצרת','Nazareth','עכו','Acre','Akko','כרמיאל','Carmiel','Karmiel',
     'טבריה','Tiberias','צפת','Safed','Tzfat','קריית שמונה','Kiryat Shmona','נהריה','Nahariya',
     'עפולה','Afula','בית שאן','Beit Shean','Bet Shean','קריית אתא','Kiryat Ata',
@@ -1902,15 +1903,16 @@ const ISRAEL_REGIONS = {
     'באקה אל-גרבייה','Baqa al-Gharbiyye','אום אל פחם','Umm al-Fahm','שפרעם',"Shfar'am",'Shfaram',
     'ראש פינה','Rosh Pina','דלית אל כרמל','Daliyat al-Karmel','נשר','Nesher',
     'קריית טבעון','Kiryat Tivon','מעלות-תרשיחא','Maalot-Tarshiha','כפר ורדים','Kfar Vradim',
-    'פרדס חנה-כרכור','Pardes Hanna-Karkur','זיכרון יעקב','Zichron Ya\'akov'],
+    'פרדס חנה-כרכור','Pardes Hanna-Karkur','זיכרון יעקב','Zichron Ya\'akov','צפון','North'],
   South:['באר שבע',"Beer Sheva","Be'er Sheva",'Beersheba','Beer-Sheva','Beer Sheba',
     'אשדוד','Ashdod','אשקלון','Ashkelon','אילת','Eilat','דימונה','Dimona',
     'קריית גת','Kiryat Gat','נתיבות','Netivot','שדרות','Sderot','ערד','Arad',
     'מצפה רמון','Mitzpe Ramon','אופקים','Ofakim','רהט','Rahat','לכיש','Lachish',
-    'קריית מלאכי','Kiryat Malachi'],
+    'קריית מלאכי','Kiryat Malachi','דרום','South'],
   Jerusalem:['ירושלים','Jerusalem','בית שמש','Beit Shemesh','Bet Shemesh',
     "Ma'ale Adumim",'Maale Adumim','מעלה אדומים',"Givat Ze'ev",'Givat Zeev','גבעת זאב',
-    'מבשרת ציון','Mevasseret Zion','Mevasseret Tzion','הר חוצבים','Har Hotzvim'],
+    'מבשרת ציון','Mevasseret Zion','Mevasseret Tzion','הר חוצבים','Har Hotzvim',
+    'קמפוס הר הצופים','קמפוס עין כרם',"קמפוס ע\"ש אדמונד י' ספרא"],
 };
 
 const CITY_TO_REGION = {};
@@ -1945,6 +1947,7 @@ const CITY_TO_COUNTRY = {
 
 function getCityClass(city) {
   if (!city) return null;
+  if (city === 'מהבית') return null; // remote — handled by workType filter
   if (CITY_TO_REGION[city]) return { top:'Israel', sub: CITY_TO_REGION[city] };
   const heRatio = (city.match(/[\u0590-\u05FF]/g)||[]).length / city.length;
   if (heRatio > 0.3) return { top:'Israel', sub:'Other' };
@@ -2125,7 +2128,7 @@ function buildCityTree(filterText) {
 
 function updateCityBtn() {
   if (selectedCities.size === 0) {
-    $cityBtn.textContent = 'City ▾';
+    $cityBtn.textContent = 'Location ▾';
     $cityBtn.classList.remove('is-active');
     return;
   }
@@ -2430,7 +2433,7 @@ function applyFilters(){
     if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
     if(secFilter && classifyEmployerType(r.company,r.title,r.source)!==secFilter)   return false;
     if(srcFilter && r.source!==srcFilter)    return false;
-    if(wtFilter  && (r.workType||'')!==wtFilter) return false;
+    if(wtFilter  && (r.workType||'')!==wtFilter && !(wtFilter==='remote' && r.city==='מהבית')) return false;
     if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q)||(r.description||'').toLowerCase().includes(q)||(r.requirements||'').toLowerCase().includes(q))) return false;
     if(cutoff){
       const d = parseDate(r.updated);
