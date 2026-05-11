@@ -998,7 +998,7 @@ function normGreenhouse(row, filename){
 async function loadTechmap(){
   let done = 0;
   const update = () => {
-    $progress.style.setProperty('--pct', done/TECHMAP_FNS.length);
+    if ($progress) $progress.style.setProperty('--pct', done/TECHMAP_FNS.length);
   };
 
   const results = await Promise.all(TECHMAP_FNS.map(async fn => {
@@ -2538,7 +2538,7 @@ function render(){
     const skBadge  = r.source==='soroka'?'<span class="sk-badge">Soroka</span>':'';
     const szBadge  = r.source==='szmc'?'<span class="sz-badge">Shaare Zedek</span>':'';
     const hdBadge  = r.source==='hadassah'?'<span class="hd-badge">Hadassah</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row',szmc:' sz-row',hadassah:' hd-row'})[r.source]||'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
@@ -3216,7 +3216,9 @@ render();
     loadIchilov(),
     loadRambam(),
     loadBeilinson(),
-    loadSoroka()
+    loadSoroka(),
+    loadSzmc(),
+    loadHadassah()
   ]).catch(e=>{
     console.error('load error', e);
   });
