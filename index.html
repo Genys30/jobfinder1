@@ -47,6 +47,14 @@
   --sz:#8b1a1a;--sz-pale:rgba(139,26,26,0.07);
   --hd:#2e6b3e;--hd-pale:rgba(46,107,62,0.07);
   --cl:#1a5f8a;--cl-pale:rgba(26,95,138,0.07);
+  --rabin:#7b3f8f;--rabin-pale:rgba(0,0,0,0.07);
+  --meir:#2e7d52;--meir-pale:rgba(0,0,0,0.07);
+  --kaplan:#8b5e1a;--kaplan-pale:rgba(0,0,0,0.07);
+  --schneider:#1a6b8a;--schneider-pale:rgba(0,0,0,0.07);
+  --yoseftal:#5a3580;--yoseftal-pale:rgba(0,0,0,0.07);
+  --emek:#2d6b8a;--emek-pale:rgba(0,0,0,0.07);
+  --loewenstein:#7a4020;--loewenstein-pale:rgba(0,0,0,0.07);
+  --carmel:#1a7a5e;--carmel-pale:rgba(0,0,0,0.07);
   --sp:#c97f0c;--sp-pale:rgba(201,127,12,0.07);
   }
 
@@ -189,6 +197,22 @@
   .hd-row:hover .title{color:var(--hd);}
   .cl-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--cl);}
   .cl-row:hover .title{color:var(--cl);}
+  .rabin-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--rabin);}
+  .rabin-row:hover .title{color:var(--rabin);}
+  .meir-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--meir);}
+  .meir-row:hover .title{color:var(--meir);}
+  .kaplan-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--kaplan);}
+  .kaplan-row:hover .title{color:var(--kaplan);}
+  .schneider-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--schneider);}
+  .schneider-row:hover .title{color:var(--schneider);}
+  .yoseftal-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--yoseftal);}
+  .yoseftal-row:hover .title{color:var(--yoseftal);}
+  .emek-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--emek);}
+  .emek-row:hover .title{color:var(--emek);}
+  .loewenstein-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--loewenstein);}
+  .loewenstein-row:hover .title{color:var(--loewenstein);}
+  .carmel-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--carmel);}
+  .carmel-row:hover .title{color:var(--carmel);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -500,6 +524,22 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--hd)"></span><span id="hdStatusText">Hadassah: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--cl)"></span><span id="clStatusText">Clalit: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--rabin)"></span><span id="rabinStatusText">Rabin: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--meir)"></span><span id="meirStatusText">Meir: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--kaplan)"></span><span id="kaplanStatusText">Kaplan: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--schneider)"></span><span id="schneiderStatusText">Schneider: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--yoseftal)"></span><span id="yoseftalStatusText">Yoseftal: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--emek)"></span><span id="emekStatusText">Emek: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--loewenstein)"></span><span id="loewensteinStatusText">Loewenstein: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--carmel)"></span><span id="carmelStatusText">Carmel: loading…</span></div>
   </div>
 </div>
 
@@ -597,6 +637,14 @@
       <option value="szmc">Shaare Zedek 🏥</option>
       <option value="hadassah">Hadassah 🏥</option>
       <option value="clalit">Clalit 🏥</option>
+      <option value="rabin">Rabin 🏥</option>
+      <option value="meir">Meir 🏥</option>
+      <option value="kaplan">Kaplan 🏥</option>
+      <option value="schneider">Schneider 🏥</option>
+      <option value="yoseftal">Yoseftal 🏥</option>
+      <option value="emek">Emek 🏥</option>
+      <option value="loewenstein">Loewenstein 🏥</option>
+      <option value="carmel">Carmel 🏥</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -802,7 +850,15 @@ let BL_JOBS  = [];   // Beilinson - Rabin Medical Center
 let SK_JOBS  = [];   // Soroka University Medical Center
 let SZ_JOBS  = [];   // Shaare Zedek
 let HD_JOBS  = [];   // Hadassah
-let CL_JOBS  = [];   // Clalit
+let CL_JOBS  = [];   // Clalit (other)
+let RABIN_JOBS = [];   // Rabin
+let MEIR_JOBS = [];   // Meir
+let KAPLAN_JOBS = [];   // Kaplan
+let SCHNEIDER_JOBS = [];   // Schneider
+let YOSEFTAL_JOBS = [];   // Yoseftal
+let EMEK_JOBS = [];   // Emek
+let LOEWENSTEIN_JOBS = [];   // Loewenstein
+let CARMEL_JOBS = [];   // Carmel
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -854,6 +910,14 @@ const $skStatus  = document.getElementById('skStatusText');
 const $szStatus  = document.getElementById('szStatusText');
 const $hdStatus  = document.getElementById('hdStatusText');
 const $clStatus  = document.getElementById('clStatusText');
+const $rabinStatus = document.getElementById('rabinStatusText');
+const $meirStatus = document.getElementById('meirStatusText');
+const $kaplanStatus = document.getElementById('kaplanStatusText');
+const $schneiderStatus = document.getElementById('schneiderStatusText');
+const $yoseftalStatus = document.getElementById('yoseftalStatusText');
+const $emekStatus = document.getElementById('emekStatusText');
+const $loewensteinStatus = document.getElementById('loewensteinStatusText');
+const $carmelStatus = document.getElementById('carmelStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -1887,6 +1951,14 @@ function getPool(){
   if(activeSrc==='szmc')      return SZ_JOBS;
   if(activeSrc==='hadassah')  return HD_JOBS;
   if(activeSrc==='clalit')    return CL_JOBS;
+  if(activeSrc==='rabin')    return RABIN_JOBS;
+  if(activeSrc==='meir')    return MEIR_JOBS;
+  if(activeSrc==='kaplan')    return KAPLAN_JOBS;
+  if(activeSrc==='schneider')    return SCHNEIDER_JOBS;
+  if(activeSrc==='yoseftal')    return YOSEFTAL_JOBS;
+  if(activeSrc==='emek')    return EMEK_JOBS;
+  if(activeSrc==='loewenstein')    return LOEWENSTEIN_JOBS;
+  if(activeSrc==='carmel')    return CARMEL_JOBS;
   const seen = new Set();
   return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
@@ -2346,6 +2418,14 @@ const SOURCE_EMPLOYER_TYPE = {
   'szmc':'public','sz':'public',
   'hadassah':'public','hd':'public',
   'clalit':'public','cl':'public',
+  'rabin':'public',
+  'meir':'public',
+  'kaplan':'public',
+  'schneider':'public',
+  'yoseftal':'public',
+  'emek':'public',
+  'loewenstein':'public',
+  'carmel':'public',
 };
 
 function classifyEmployerType(company, title, source) {
@@ -2402,6 +2482,14 @@ const DATABAR_SOURCES = [
   { id:'szStatusText',        key:'szmc',        label:'Shaare Zedek' },
   { id:'hdStatusText',        key:'hadassah',    label:'Hadassah' },
   { id:'clStatusText',        key:'clalit',      label:'Clalit' },
+  { id:'rabinStatusText', key:'rabin', label:'Rabin' },
+  { id:'meirStatusText', key:'meir', label:'Meir' },
+  { id:'kaplanStatusText', key:'kaplan', label:'Kaplan' },
+  { id:'schneiderStatusText', key:'schneider', label:'Schneider' },
+  { id:'yoseftalStatusText', key:'yoseftal', label:'Yoseftal' },
+  { id:'emekStatusText', key:'emek', label:'Emek' },
+  { id:'loewensteinStatusText', key:'loewenstein', label:'Loewenstein' },
+  { id:'carmelStatusText', key:'carmel', label:'Carmel' },
 ];
 
 function updateDatabar() {
@@ -2550,14 +2638,22 @@ function render(){
     const szBadge  = r.source==='szmc'?'<span class="sz-badge">Shaare Zedek</span>':'';
     const hdBadge  = r.source==='hadassah'?'<span class="hd-badge">Hadassah</span>':'';
     const clBadge  = r.source==='clalit'?'<span class="cl-badge">Clalit</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row',szmc:' sz-row',hadassah:' hd-row',clalit:' cl-row'})[r.source]||'';
+    const rabinBadge = r.source==='rabin'?'<span class="rabin-badge">Rabin</span>':'';
+    const meirBadge = r.source==='meir'?'<span class="meir-badge">Meir</span>':'';
+    const kaplanBadge = r.source==='kaplan'?'<span class="kaplan-badge">Kaplan</span>':'';
+    const schneiderBadge = r.source==='schneider'?'<span class="schneider-badge">Schneider</span>':'';
+    const yoseftalBadge = r.source==='yoseftal'?'<span class="yoseftal-badge">Yoseftal</span>':'';
+    const emekBadge = r.source==='emek'?'<span class="emek-badge">Emek</span>':'';
+    const loewensteinBadge = r.source==='loewenstein'?'<span class="loewenstein-badge">Loewenstein</span>':'';
+    const carmelBadge = r.source==='carmel'?'<span class="carmel-badge">Carmel</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row',szmc:' sz-row',hadassah:' hd-row',clalit:' cl-row',rabin:' rabin-row',meir:' meir-row',kaplan:' kaplan-row',schneider:' schneider-row',yoseftal:' yoseftal-row',emek:' emek-row',loewenstein:' loewenstein-row',carmel:' carmel-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
     const arrowLabel = hasDesc ? '📄' : '➝';
     return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+szBadge+hdBadge+clBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+szBadge+hdBadge+clBadge+rabinBadge+meirBadge+kaplanBadge+schneiderBadge+yoseftalBadge+emekBadge+loewensteinBadge+carmelBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -3018,7 +3114,7 @@ async function loadSoroka() {
   applyFilters();
 }
 
-// ─── SHAARE ZEDEK MEDICAL CENTER ─────────────────────────────────────────────
+// ─── SHAARE ZEDEK ─────────────────────────────────────────────────────────────
 function normSzmc(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
   const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
@@ -3049,7 +3145,7 @@ async function loadSzmc() {
   if($szStatus)$szStatus.innerHTML=`Shaare Zedek: <strong>${SZ_JOBS.length.toLocaleString()} jobs</strong>`;
   TOTALS['szmc']=SZ_JOBS.length;populateDropdowns();applyFilters();
 }
-// ─── HADASSAH MEDICAL CENTER ──────────────────────────────────────────────────
+// ─── HADASSAH ─────────────────────────────────────────────────────────────────
 function normHadassah(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
   const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
@@ -3080,12 +3176,13 @@ async function loadHadassah() {
   if($hdStatus)$hdStatus.innerHTML=`Hadassah: <strong>${HD_JOBS.length.toLocaleString()} jobs</strong>`;
   TOTALS['hadassah']=HD_JOBS.length;populateDropdowns();applyFilters();
 }
-// ─── CLALIT HEALTH SERVICES ───────────────────────────────────────────────────
+// ─── CLALIT (splits into per-hospital arrays) ─────────────────────────────────
 function normClalit(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
   const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
   const title = g('title'); if (!title) return null;
-  return { source:'clalit', fnArea:'clalit', title,
+  const src = g('source') || 'clalit';
+  return { source: src, fnArea: 'clalit', title,
     company: g('company') || 'כללית',
     category:classifySegment(title)||'administrative', size:'', level:classifyLevel(title),
     city:translateCity(g('location'))||'Israel', url:g('url'), updated:g('date')||date,
@@ -3106,11 +3203,38 @@ async function loadClalit() {
       return parsed.data.map(row=>normClalit(row,fname)).filter(Boolean);
     } catch(e){return[];}
   }))).flat();
-  if(allRows.length===0){if($clStatus)$clStatus.innerHTML='Clalit: <span style="color:var(--ink-faint)">no file yet</span>';return;}
+  if(allRows.length===0){
+    if($clStatus)$clStatus.innerHTML='Clalit: <span style="color:var(--ink-faint)">no file yet</span>';return;
+  }
+  // Split into per-hospital arrays
+  const buckets = {
+    clalit:CL_JOBS, rabin:RABIN_JOBS, meir:MEIR_JOBS, kaplan:KAPLAN_JOBS,
+    schneider:SCHNEIDER_JOBS, yoseftal:YOSEFTAL_JOBS, emek:EMEK_JOBS,
+    loewenstein:LOEWENSTEIN_JOBS, carmel:CARMEL_JOBS
+  };
+  Object.values(buckets).forEach(a=>a.length=0);
   const seen=new Set();
-  CL_JOBS=allRows.filter(r=>{const k=r.url||(r.company+'|'+r.title);if(seen.has(k))return false;seen.add(k);return true;});
-  if($clStatus)$clStatus.innerHTML=`Clalit: <strong>${CL_JOBS.length.toLocaleString()} jobs</strong>`;
-  TOTALS['clalit']=CL_JOBS.length;populateDropdowns();applyFilters();
+  allRows.forEach(r=>{
+    const k=r.url||(r.company+'|'+r.title);
+    if(seen.has(k))return; seen.add(k);
+    (buckets[r.source]||CL_JOBS).push(r);
+  });
+  // Update all status texts
+  const statusMap = {
+    clalit:[$clStatus,'Clalit'], rabin:[$rabinStatus,'Rabin'],
+    meir:[$meirStatus,'Meir'], kaplan:[$kaplanStatus,'Kaplan'],
+    schneider:[$schneiderStatus,'Schneider'], yoseftal:[$yoseftalStatus,'Yoseftal'],
+    emek:[$emekStatus,'Emek'], loewenstein:[$loewensteinStatus,'Loewenstein'],
+    carmel:[$carmelStatus,'Carmel']
+  };
+  Object.entries(statusMap).forEach(([key,[el,label]])=>{
+    const arr = buckets[key];
+    if(el) el.innerHTML = arr.length
+      ? `${label}: <strong>${arr.length.toLocaleString()} jobs</strong>`
+      : `${label}: <span style="color:var(--ink-faint)">no file yet</span>`;
+    TOTALS[key] = arr.length;
+  });
+  populateDropdowns(); applyFilters();
 }
 
 // ─── BEILINSON - RABIN MEDICAL CENTER ────────────────────────────────────────

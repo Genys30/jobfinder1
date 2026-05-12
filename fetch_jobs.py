@@ -1900,15 +1900,30 @@ def run_bis():
         f"bis_jobs_{TODAY}.csv")
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
-# ══ CLALIT HEALTH SERVICES (כללית - Redmatch API) ════════════════════════════
+# ══ CLALIT HEALTH SERVICES (כללית) ════════════════════════════════════════════
+# Maps affiliateDisplayName → source key used in index.html
+CLALIT_SOURCE_MAP = {
+    'מרכז רפואי רבין':                      'rabin',
+    'מרכז רפואי מאיר':                      'meir',
+    'מרכז רפואי קפלן':                      'kaplan',
+    'מרכז שניידר לרפואת ילדים בישראל':      'schneider',
+    'מרכז רפואי יוספטל ומרחב אילת':         'yoseftal',
+    'מרכז רפואי העמק':                      'emek',
+    'מרכז רפואי לשיקום לוינשטיין':          'loewenstein',
+    'מרכז רפואי כרמל':                      'carmel',
+    'מרכז לבריאות הנפש גהה':               'clalit',
+    'מרכז לבריאות הנפש שלוותה':            'clalit',
+    'בית חולים בית רבקה – מרכז רפואי גריאטרי שיקומי': 'clalit',
+    'בית חולים הרצפלד – מרכז רפואי גריאטרי שיקומי': 'clalit',
+}
+
 def run_clalit():
     print("\n-- Clalit Health Services (כללית) -----------------------------------")
     import re as _re
     from bs4 import BeautifulSoup as _BS
 
-    API_BASE  = "https://jobs.clalitapps.co.il/CandidateAPI/api/"
-    GUID      = "9E6C0368-A39E-4D83-803E-CF2AF0BA28DD"
+    API_BASE   = "https://jobs.clalitapps.co.il/CandidateAPI/api/"
+    GUID       = "9E6C0368-A39E-4D83-803E-CF2AF0BA28DD"
     APPLY_BASE = "https://jobs.clalitapps.co.il/clalit/redmatch-apply/redmatch.apply.html"
 
     PAYLOAD = {
@@ -1917,7 +1932,6 @@ def run_clalit():
         "cityId": [],
         "countryId": "2"
     }
-
     HEADERS = {
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
@@ -1926,12 +1940,8 @@ def run_clalit():
     }
 
     try:
-        r = requests.post(
-            f"{API_BASE}/position/Search/{GUID}",
-            json=PAYLOAD,
-            headers=HEADERS,
-            timeout=30
-        )
+        r = requests.post(f"{API_BASE}/position/Search/{GUID}",
+            json=PAYLOAD, headers=HEADERS, timeout=30)
         r.raise_for_status()
         data = r.json()
     except Exception as e:
@@ -1939,43 +1949,44 @@ def run_clalit():
 
     positions = data.get('positions', [])
     print(f"  Got {len(positions)} positions")
-    if not positions:
-        print("  x No positions returned"); return
+    if not positions: print("  x No positions"); return
 
     jobs = []
     for p in positions:
-        pos_id    = p.get('compPositionID', '')
-        title     = _re.sub(r'\s+', ' ', p.get('jobTitleText', '')).strip()
-        company   = p.get('affiliateDisplayName', 'כללית').strip()
-        city      = p.get('displayLocation') or p.get('location', '')
-        date_raw  = p.get('activationDate', '')[:10] if p.get('activationDate') else TODAY
-        url       = f"{APPLY_BASE}?compPositionID={pos_id}"
+        pos_id   = p.get('compPositionID', '')
+        title    = _re.sub(r'\s+', ' ', p.get('jobTitleText', '')).strip()
+        aff      = p.get('affiliateDisplayName', 'כללית').strip()
+        source   = CLALIT_SOURCE_MAP.get(aff, 'clalit')
+        city     = p.get('displayLocation') or p.get('location', '')
+        date_raw = p.get('activationDate', '')[:10] if p.get('activationDate') else TODAY
+        url      = f"{APPLY_BASE}?compPositionID={pos_id}"
+        raw_desc = p.get('description') or p.get('shortDescription') or ''
+        desc     = _BS(raw_desc, 'html.parser').get_text(separator='\n').strip() if raw_desc else ''
 
-        # Strip HTML from description
-        raw_desc  = p.get('description') or p.get('shortDescription') or ''
-        desc      = _BS(raw_desc, 'html.parser').get_text(separator='\n').strip() if raw_desc else ''
-
-        if not title or not pos_id:
-            continue
-
+        if not title or not pos_id: continue
         jobs.append({
-            "title":        title,
-            "company":      company,
-            "location":     city or 'Israel',
-            "date":         date_raw or TODAY,
-            "url":          url,
-            "source":       "clalit",
-            "department":   p.get('fieldDesc', ''),
-            "workplace_type": "onsite",
-            "description":  desc,
+            "title":         title,
+            "company":       aff,
+            "location":      city or 'Israel',
+            "date":          date_raw or TODAY,
+            "url":           url,
+            "source":        source,
+            "department":    p.get('fieldDesc', ''),
+            "workplace_type":"onsite",
+            "description":   desc,
         })
 
+    # Show breakdown
+    from collections import Counter
+    by_src = Counter(j['source'] for j in jobs)
+    for src, cnt in sorted(by_src.items(), key=lambda x: -x[1]):
+        print(f"  {cnt:3d}  {src}")
+
     print(f"  + {len(jobs)}")
-    write_csv(
-        jobs,
+    write_csv(jobs,
         ["title","company","location","date","url","source","department","workplace_type","description"],
-        f"clalit_jobs_{TODAY}.csv"
-    )
+        f"clalit_jobs_{TODAY}.csv")
+
 
 # ══ SHAARE ZEDEK MEDICAL CENTER (שערי צדק - HunterHRMS via Playwright) ════════
 def run_szmc():
@@ -2000,6 +2011,7 @@ def run_hadassah():
     if not html:
         print("  x could not fetch Hadassah careers page"); return
 
+    from bs4 import BeautifulSoup as _BS
     soup = _BS(html, "html.parser")
     job_links = {}
     for a in soup.select("a[href*='position-']"):
@@ -2010,43 +2022,33 @@ def run_hadassah():
         if title and url not in job_links:
             job_links[url] = title
 
-    print(f"  Found {len(job_links)} job links — fetching descriptions...")
+    print(f"  Found {len(job_links)} jobs — fetching descriptions...")
 
     def fetch_desc(url):
         detail = _pw_get(url, wait_ms=2000)
-        if not detail: return "", ""
+        if not detail: return ""
         d    = _BS(detail, "html.parser")
         full = d.get_text("\n", strip=True)
-        desc, reqs = "", ""
         for m in ["תיאור התפקיד", "תיאור", "פרטי המשרה"]:
             if m in full:
                 after = full.split(m, 1)[1]
-                for stop in ["דרישות", "תנאים", "היקף משרה", "הגשת מועמדות", "לפרטים"]:
+                for stop in ["דרישות", "תנאים", "היקף משרה", "הגשת מועמדות"]:
                     if stop in after: after = after.split(stop, 1)[0]
-                desc = after.strip()[:2000]; break
-        for m in ["דרישות התפקיד", "דרישות"]:
-            if m in full:
-                after = full.split(m, 1)[1]
-                for stop in ["היקף משרה", "הגשת מועמדות", "לפרטים", "הערות"]:
-                    if stop in after: after = after.split(stop, 1)[0]
-                reqs = after.strip()[:2000]; break
-        return desc, reqs
+                return after.strip()[:2000]
+        return ""
 
     jobs = []
     for i, (url, title) in enumerate(job_links.items(), 1):
-        desc, reqs = fetch_desc(url)
-        jobs.append({
-            "title": _re.sub(r'\s+', ' ', title).strip(),
-            "company": "הדסה", "location": "Jerusalem",
-            "date": TODAY, "url": url, "department": "",
-            "workplace_type": "onsite", "description": desc, "requirements": reqs,
-        })
+        desc = fetch_desc(url)
+        jobs.append({"title": _re.sub(r'\s+', ' ', title).strip(),
+            "company": "הדסה", "location": "Jerusalem", "date": TODAY,
+            "url": url, "department": "", "workplace_type": "onsite", "description": desc})
         print(f"  [{i}/{len(job_links)}] {title[:60]}")
         time.sleep(0.3)
 
     print(f"  + {len(jobs)}")
     write_csv(jobs,
-        ["title","company","location","date","url","department","workplace_type","description","requirements"],
+        ["title","company","location","date","url","department","workplace_type","description"],
         f"hadassah_jobs_{TODAY}.csv")
 
 
@@ -2068,7 +2070,6 @@ def _run_hunterhrms_playwright(base_url, company, location, outfile):
                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"))
             page.goto(base_url + "/", wait_until="networkidle", timeout=30000)
             time.sleep(2)
-
             def extract_jobs():
                 soup = _BS(page.content(), "html.parser")
                 for el in soup.select("[job-code]"):
@@ -2082,9 +2083,7 @@ def _run_hunterhrms_playwright(base_url, company, location, outfile):
                     if not lbl: continue
                     c = lbl.get("for","").strip()
                     if c and c not in all_codes: all_codes[c] = lbl.get_text(strip=True)
-
             extract_jobs()
-            print(f"  Hot jobs found: {len(all_codes)}")
             for cat in CATEGORIES:
                 try:
                     btn = page.locator(f"text={cat}").first
@@ -2094,7 +2093,6 @@ def _run_hunterhrms_playwright(base_url, company, location, outfile):
     except Exception as e:
         print(f"  x Playwright error: {e}"); return
 
-    print(f"  Total: {len(all_codes)}")
     if not all_codes: print("  x No jobs found"); return
 
     def fetch_description(jobcode):
@@ -2114,7 +2112,7 @@ def _run_hunterhrms_playwright(base_url, company, location, outfile):
             for m in ["דרישות המשרה","דרישות התפקיד:"]:
                 if m in full:
                     after=full.split(m,1)[1]
-                    for s in ["הערות","כפיפות:","היקף משרה:","במסגרת מדיניות"]:
+                    for s in ["הערות","כפיפות:","היקף משרה:"]:
                         if s in after: after=after.split(s,1)[0]
                     reqs=after.strip()[:2000]; break
             return desc,reqs,url
@@ -2129,13 +2127,13 @@ def _run_hunterhrms_playwright(base_url, company, location, outfile):
             "workplace_type":"onsite","description":desc,"requirements":reqs})
         print(f"  [{i}/{len(items)}] {title[:60]}")
         time.sleep(0.3)
-
     print(f"  + {len(jobs)}")
     write_csv(jobs,
         ["title","company","location","date","url","department","workplace_type","description","requirements"],
         outfile)
 
 
+# ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     print(f"=== fetch_jobs.py  {TODAY} ===\n")
     print("Scanning techmap...")
