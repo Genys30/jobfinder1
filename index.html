@@ -46,6 +46,7 @@
   --sk:#d35400;--sk-pale:rgba(211,84,0,0.07);
   --sz:#8b1a1a;--sz-pale:rgba(139,26,26,0.07);
   --hd:#2e6b3e;--hd-pale:rgba(46,107,62,0.07);
+  --cl:#1a5f8a;--cl-pale:rgba(26,95,138,0.07);
   --sp:#c97f0c;--sp-pale:rgba(201,127,12,0.07);
   }
 
@@ -186,6 +187,8 @@
   .sz-row:hover .title{color:var(--sz);}
   .hd-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--hd);}
   .hd-row:hover .title{color:var(--hd);}
+  .cl-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--cl);}
+  .cl-row:hover .title{color:var(--cl);}
   .li-row:hover .title{color:var(--li);}
   .cm-row:hover .title{color:var(--cm);}
   .gh-row:hover .title{color:var(--gh);}
@@ -495,6 +498,8 @@
   <div class="datasrc"><span class="src-dot" style="background:var(--sz)"></span><span id="szStatusText">Shaare Zedek: loading…</span></div>
   <span class="databar-sep">·</span>
   <div class="datasrc"><span class="src-dot" style="background:var(--hd)"></span><span id="hdStatusText">Hadassah: loading…</span></div>
+  <span class="databar-sep">·</span>
+  <div class="datasrc"><span class="src-dot" style="background:var(--cl)"></span><span id="clStatusText">Clalit: loading…</span></div>
   </div>
 </div>
 
@@ -591,6 +596,7 @@
       <option value="soroka">Soroka 🏥</option>
       <option value="szmc">Shaare Zedek 🏥</option>
       <option value="hadassah">Hadassah 🏥</option>
+      <option value="clalit">Clalit 🏥</option>
   </select>
   <select id="worktype">
     <option value="">Type</option>
@@ -746,12 +752,19 @@
 </div>
 
 <footer>
-  <span>github.com/Genys30/jobfinder</span>
+  <span>techmap · ODbL v1.0 · github.com/Genys30/jobfinder</span>
   <span id="stamp"></span>
 </footer>
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
+
+const TECHMAP_FNS = [
+  'admin','business','data-science','design','devops','finance','frontend',
+  'hardware','hr','legal','marketing','procurement-operations','product',
+  'project-management','qa','sales','security','software','support'
+];
+const TECHMAP_BASE = 'https://raw.githubusercontent.com/mluggy/techmap/main/jobs/';
 
 // Your repo — the code will auto-discover all linkedin_jobs_*.csv files
 const LI_REPO    = 'Genys30/jobfinder';
@@ -762,6 +775,7 @@ const PAGE       = 50;
 const SIZE_LABEL = {s:'small',m:'mid',l:'large',xl:'enterprise'};
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
+let TM_JOBS  = [];   // techmap
 let LI_JOBS  = [];   // linkedin
 let CM_JOBS  = [];   // comeet
 let GH_JOBS  = [];   // greenhouse
@@ -788,6 +802,7 @@ let BL_JOBS  = [];   // Beilinson - Rabin Medical Center
 let SK_JOBS  = [];   // Soroka University Medical Center
 let SZ_JOBS  = [];   // Shaare Zedek
 let HD_JOBS  = [];   // Hadassah
+let CL_JOBS  = [];   // Clalit
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -838,6 +853,7 @@ const $blStatus  = document.getElementById('blStatusText');
 const $skStatus  = document.getElementById('skStatusText');
 const $szStatus  = document.getElementById('szStatusText');
 const $hdStatus  = document.getElementById('hdStatusText');
+const $clStatus  = document.getElementById('clStatusText');
 const $sector    = document.getElementById('sector');
 const $source    = document.getElementById('source');
 const $worktype  = document.getElementById('worktype');
@@ -888,6 +904,17 @@ function cleanCity(loc){
 function csvCell(v){
   const s = v==null?'':String(v);
   return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+
+// ─── NORMALIZE ───────────────────────────────────────────────────────────────
+function normTechmap(row, fn){
+  const g = k => (row[k]==null?'':String(row[k]).trim());
+  return {
+    source:'techmap', fnArea:fn,
+    title:g('title'), company:g('company'), category:g('category'),
+    size:g('size').toLowerCase(), level:g('level'),
+    city:g('city'), url:g('url'), updated:g('date')||g('updated')
+  };
 }
 
 function normLinkedIn(row, filename){
@@ -973,6 +1000,42 @@ function normGreenhouse(row, filename){
     updated: g('date')||fnDate,
     workType
   };
+}
+
+// ─── LOAD TECHMAP ─────────────────────────────────────────────────────────────
+async function loadTechmap(){
+  let done = 0;
+  const update = () => {
+    if ($progress) $progress.style.setProperty('--pct', done/TECHMAP_FNS.length);
+  };
+
+  const results = await Promise.all(TECHMAP_FNS.map(async fn => {
+    try {
+      const res = await fetch(TECHMAP_BASE + fn + '.csv');
+      if(!res.ok) throw 0;
+      const text = await res.text();
+      const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      done++; update();
+      return parsed.data.map(r=>normTechmap(r,fn));
+    } catch(e){ done++; update(); return []; }
+  }));
+
+  TM_JOBS = results.flat().filter(r=>r.title&&r.company);
+
+  // Dedupe
+  const seen = new Set();
+  TM_JOBS = TM_JOBS.filter(r=>{
+    const k = r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+  TM_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated), db=parseDate(b.updated);
+    if(da&&db) return db-da; if(db) return 1; if(da) return -1; return 0;
+  });
+  const now = new Date();
+  $lastBuild.textContent = 'live · '+new Date().toISOString().slice(0,10);
+  $stamp.textContent = 'last sync '+now.toLocaleTimeString();
 }
 
 // ─── LOAD LINKEDIN ───────────────────────────────────────────────────────────
@@ -1793,6 +1856,7 @@ async function loadBIS() {
 
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
+  if(activeSrc==='techmap')  return TM_JOBS;
   if(activeSrc==='linkedin') return LI_JOBS;
   if(activeSrc==='comeet')      return CM_JOBS;
   if(activeSrc==='greenhouse') return GH_JOBS;
@@ -1822,8 +1886,9 @@ function getPool(){
   if(activeSrc==='soroka')    return SK_JOBS;
   if(activeSrc==='szmc')      return SZ_JOBS;
   if(activeSrc==='hadassah')  return HD_JOBS;
+  if(activeSrc==='clalit')    return CL_JOBS;
   const seen = new Set();
-  return [...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -2266,7 +2331,7 @@ const KNOWN_EMPLOYER_TYPE = {
 
 // Source-based employer type (most reliable signal)
 const SOURCE_EMPLOYER_TYPE = {
-  'comeet':'startup', 'greenhouse':'startup',
+  'techmap':'startup', 'comeet':'startup', 'greenhouse':'startup',
   'lv':'startup', 'ab':'startup', 'wk':'startup',
   'linkedin':'private',
   'mt':'nonprofit',
@@ -2280,6 +2345,7 @@ const SOURCE_EMPLOYER_TYPE = {
   'soroka':'public','sk':'public',
   'szmc':'public','sz':'public',
   'hadassah':'public','hd':'public',
+  'clalit':'public','cl':'public',
 };
 
 function classifyEmployerType(company, title, source) {
@@ -2335,6 +2401,7 @@ const DATABAR_SOURCES = [
   { id:'skStatusText',        key:'soroka',      label:'Soroka' },
   { id:'szStatusText',        key:'szmc',        label:'Shaare Zedek' },
   { id:'hdStatusText',        key:'hadassah',    label:'Hadassah' },
+  { id:'clStatusText',        key:'clalit',      label:'Clalit' },
 ];
 
 function updateDatabar() {
@@ -2413,7 +2480,8 @@ function applyFilters(){
     if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q)||(r.description||'').toLowerCase().includes(q)||(r.requirements||'').toLowerCase().includes(q))) return false;
     if(cutoff){
       const d = parseDate(r.updated);
-      if(d && d.getTime()<cutoff) return false;
+      if(r.source==='techmap' && (!d||d.getTime()<cutoff)) return false;
+      if(r.source!=='techmap' && d && d.getTime()<cutoff)  return false;
     }
     return true;
   });
@@ -2481,14 +2549,15 @@ function render(){
     const skBadge  = r.source==='soroka'?'<span class="sk-badge">Soroka</span>':'';
     const szBadge  = r.source==='szmc'?'<span class="sz-badge">Shaare Zedek</span>':'';
     const hdBadge  = r.source==='hadassah'?'<span class="hd-badge">Hadassah</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row'})[r.source]||'';
+    const clBadge  = r.source==='clalit'?'<span class="cl-badge">Clalit</span>':'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row',szmc:' sz-row',hadassah:' hd-row',clalit:' cl-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
     const arrowLabel = hasDesc ? '📄' : '➝';
     return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+szBadge+hdBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+szBadge+hdBadge+clBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -2953,8 +3022,7 @@ async function loadSoroka() {
 function normSzmc(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
   const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
-  const title = g('title');
-  if (!title) return null;
+  const title = g('title'); if (!title) return null;
   return { source:'szmc', fnArea:'szmc', title, company:'שערי צדק',
     category:classifySegment(title)||'administrative', size:'', level:classifyLevel(title),
     city:translateCity(g('location'))||'Jerusalem', url:g('url'), updated:g('date')||date,
@@ -2985,8 +3053,7 @@ async function loadSzmc() {
 function normHadassah(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
   const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
-  const title = g('title');
-  if (!title) return null;
+  const title = g('title'); if (!title) return null;
   return { source:'hadassah', fnArea:'hadassah', title, company:'הדסה',
     category:classifySegment(title)||'administrative', size:'', level:classifyLevel(title),
     city:translateCity(g('location'))||'Jerusalem', url:g('url'), updated:g('date')||date,
@@ -3012,6 +3079,38 @@ async function loadHadassah() {
   HD_JOBS=allRows.filter(r=>{const k=r.url||(r.company+'|'+r.title);if(seen.has(k))return false;seen.add(k);return true;});
   if($hdStatus)$hdStatus.innerHTML=`Hadassah: <strong>${HD_JOBS.length.toLocaleString()} jobs</strong>`;
   TOTALS['hadassah']=HD_JOBS.length;populateDropdowns();applyFilters();
+}
+// ─── CLALIT HEALTH SERVICES ───────────────────────────────────────────────────
+function normClalit(row, fname) {
+  const g = k => (row[k] == null ? '' : String(row[k]).trim());
+  const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+  const title = g('title'); if (!title) return null;
+  return { source:'clalit', fnArea:'clalit', title,
+    company: g('company') || 'כללית',
+    category:classifySegment(title)||'administrative', size:'', level:classifyLevel(title),
+    city:translateCity(g('location'))||'Israel', url:g('url'), updated:g('date')||date,
+    workType:'onsite', description:g('description')||'' };
+}
+async function loadClalit() {
+  if ($clStatus) $clStatus.innerHTML = 'Clalit: <span style="color:var(--ink-faint)">loading\u2026</span>';
+  const filenames = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    filenames.push(`clalit_jobs_${y}-${m}-${day}.csv`);
+  }
+  const allRows = (await Promise.all(filenames.map(async fname => {
+    try { const r = await fetch(LI_RAW+fname); if(!r.ok) return [];
+      const text = await r.text();
+      const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normClalit(row,fname)).filter(Boolean);
+    } catch(e){return[];}
+  }))).flat();
+  if(allRows.length===0){if($clStatus)$clStatus.innerHTML='Clalit: <span style="color:var(--ink-faint)">no file yet</span>';return;}
+  const seen=new Set();
+  CL_JOBS=allRows.filter(r=>{const k=r.url||(r.company+'|'+r.title);if(seen.has(k))return false;seen.add(k);return true;});
+  if($clStatus)$clStatus.innerHTML=`Clalit: <strong>${CL_JOBS.length.toLocaleString()} jobs</strong>`;
+  TOTALS['clalit']=CL_JOBS.length;populateDropdowns();applyFilters();
 }
 
 // ─── BEILINSON - RABIN MEDICAL CENTER ────────────────────────────────────────
@@ -3161,7 +3260,8 @@ render();
     loadBeilinson(),
     loadSoroka(),
     loadSzmc(),
-    loadHadassah()
+    loadHadassah(),
+    loadClalit()
   ]).catch(e=>{
     console.error('load error', e);
   });
@@ -3173,6 +3273,11 @@ render();
   fetchActiveUsers();
   setInterval(fetchActiveUsers, 30000);
 
+  // Load techmap in background
+  loadTechmap().then(()=>{
+    populateDropdowns();
+    applyFilters();
+  }).catch(e=>console.error('techmap',e));
 })();
 
 
@@ -3240,7 +3345,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS];
+  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -3378,7 +3483,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS,RB_JOBS,BL_JOBS,SK_JOBS);
+  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS,RB_JOBS,BL_JOBS,SK_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){
