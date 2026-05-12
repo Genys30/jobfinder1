@@ -161,6 +161,8 @@
   .mt-row:hover .title{color:var(--mt);}
   .ac-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ac);}
   .ac-row:hover .title{color:var(--ac);}
+  .wz-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--wz);}
+  .wz-row:hover .title{color:var(--wz);}
   .hj-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--hj);}
   .hj-row:hover .title{color:var(--hj);}
   .huji-badge{display:inline-block;margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 5px;border-radius:2px;vertical-align:middle;transform:translateY(-1px);background:var(--ha);}
@@ -847,18 +849,18 @@ let GF_JOBS  = [];   // GotFriends
 let IC_JOBS  = [];   // Ichilov (TopMatch)
 let RB_JOBS  = [];   // Rambam
 let BL_JOBS  = [];   // Beilinson - Rabin Medical Center
-let SK_JOBS  = [];   // Soroka University Medical Center
+let SK_JOBS  = [];   // Soroka
 let SZ_JOBS  = [];   // Shaare Zedek
 let HD_JOBS  = [];   // Hadassah
-let CL_JOBS  = [];   // Clalit (other)
-let RABIN_JOBS = [];   // Rabin
-let MEIR_JOBS = [];   // Meir
-let KAPLAN_JOBS = [];   // Kaplan
-let SCHNEIDER_JOBS = [];   // Schneider
-let YOSEFTAL_JOBS = [];   // Yoseftal
-let EMEK_JOBS = [];   // Emek
-let LOEWENSTEIN_JOBS = [];   // Loewenstein
-let CARMEL_JOBS = [];   // Carmel
+let CL_JOBS  = [];   // Clalit
+let RABIN_JOBS = [];
+let MEIR_JOBS = [];
+let KAPLAN_JOBS = [];
+let SCHNEIDER_JOBS = [];
+let YOSEFTAL_JOBS = [];
+let EMEK_JOBS = [];
+let LOEWENSTEIN_JOBS = [];
+let CARMEL_JOBS = [];
 let FILTERED = [];
 let visible  = PAGE;
 let activeSrc = 'all';
@@ -2620,6 +2622,7 @@ function render(){
     const spBadge = r.source==='direct'?'<span class="sp-badge">★</span>':'';
     const mtBadge = r.source==='mt'?'<span class="mt-badge">MT</span>':'';
     const acBadge = r.source==='ac'?'<span class="ac-badge">🎓</span>':'';
+    const wzBadge = r.source==='weizmann'?'<span class="wz-badge">Weizmann</span>':'';
     const hjBadge  = r.source==='huji-alumni'?'<span class="hj-badge">Alumni</span>':'';
     const hujiBadge = r.source==='huji'?'<span class="huji-badge">HUJI</span>':'';
     const tauBadge = r.source==='tau'?'<span class="tau-badge">TAU</span>':'';
@@ -2646,14 +2649,14 @@ function render(){
     const emekBadge = r.source==='emek'?'<span class="emek-badge">Emek</span>':'';
     const loewensteinBadge = r.source==='loewenstein'?'<span class="loewenstein-badge">Loewenstein</span>':'';
     const carmelBadge = r.source==='carmel'?'<span class="carmel-badge">Carmel</span>':'';
-    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row',szmc:' sz-row',hadassah:' hd-row',clalit:' cl-row',rabin:' rabin-row',meir:' meir-row',kaplan:' kaplan-row',schneider:' schneider-row',yoseftal:' yoseftal-row',emek:' emek-row',loewenstein:' loewenstein-row',carmel:' carmel-row'})[r.source]||'';
+    const rowCls  = ({linkedin:' li-row',comeet:' cm-row',greenhouse:' gh-row',lv:' lv-row',ab:' ab-row',wk:' wk-row',direct:' sp-row',mt:' mt-row',ac:' ac-row',weizmann:' wz-row','huji-alumni':' hj-row',huji:' huji-row',tau:' tau-row',haifa:' uf-row',kpmg:' kpmg-row',deloitte:' dl-row',ey:' ey-row',joint:' jnt-row',bar:' bar-row',bis:' bis-row',gf:' gf-row',ichilov:' ic-row',rambam:' rb-row',beilinson:' bl-row',soroka:' sk-row',szmc:' sz-row',hadassah:' hd-row',clalit:' cl-row',rabin:' rabin-row',meir:' meir-row',kaplan:' kaplan-row',schneider:' schneider-row',yoseftal:' yoseftal-row',emek:' emek-row',loewenstein:' loewenstein-row',carmel:' carmel-row'})[r.source]||'';
     const jobId   = r.url||(r.title+r.company);
     const tracked = isTracked(jobId);
     const popupClick = hasDesc ? 'onclick="event.preventDefault();var r=window._jobMap[\''+jobKey+'\'];if(r)openPopup(r);"' : '';
     const arrowLabel = hasDesc ? '📄' : '➝';
     return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+hjBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+szBadge+hdBadge+clBadge+rabinBadge+meirBadge+kaplanBadge+schneiderBadge+yoseftalBadge+emekBadge+loewensteinBadge+carmelBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+wzBadge+hjBadge+szBadge+hdBadge+clBadge+rabinBadge+meirBadge+kaplanBadge+schneiderBadge+yoseftalBadge+emekBadge+loewensteinBadge+carmelBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
@@ -3139,7 +3142,7 @@ async function loadSzmc() {
       return parsed.data.map(row=>normSzmc(row,fname)).filter(Boolean);
     } catch(e){return[];}
   }))).flat();
-  if(allRows.length===0){if($szStatus)$szStatus.innerHTML='Shaare Zedek: <span style="color:var(--ink-faint)">no file yet</span>';return;}
+  if(!allRows.length){if($szStatus)$szStatus.innerHTML='Shaare Zedek: <span style="color:var(--ink-faint)">no file yet</span>';return;}
   const seen=new Set();
   SZ_JOBS=allRows.filter(r=>{const k=r.url||(r.company+'|'+r.title);if(seen.has(k))return false;seen.add(k);return true;});
   if($szStatus)$szStatus.innerHTML=`Shaare Zedek: <strong>${SZ_JOBS.length.toLocaleString()} jobs</strong>`;
@@ -3170,20 +3173,19 @@ async function loadHadassah() {
       return parsed.data.map(row=>normHadassah(row,fname)).filter(Boolean);
     } catch(e){return[];}
   }))).flat();
-  if(allRows.length===0){if($hdStatus)$hdStatus.innerHTML='Hadassah: <span style="color:var(--ink-faint)">no file yet</span>';return;}
+  if(!allRows.length){if($hdStatus)$hdStatus.innerHTML='Hadassah: <span style="color:var(--ink-faint)">no file yet</span>';return;}
   const seen=new Set();
   HD_JOBS=allRows.filter(r=>{const k=r.url||(r.company+'|'+r.title);if(seen.has(k))return false;seen.add(k);return true;});
   if($hdStatus)$hdStatus.innerHTML=`Hadassah: <strong>${HD_JOBS.length.toLocaleString()} jobs</strong>`;
   TOTALS['hadassah']=HD_JOBS.length;populateDropdowns();applyFilters();
 }
-// ─── CLALIT (splits into per-hospital arrays) ─────────────────────────────────
+// ─── CLALIT (splits per hospital) ─────────────────────────────────────────────
 function normClalit(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
   const date = (fname.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
   const title = g('title'); if (!title) return null;
-  const src = g('source') || 'clalit';
-  return { source: src, fnArea: 'clalit', title,
-    company: g('company') || 'כללית',
+  return { source:g('source')||'clalit', fnArea:'clalit', title,
+    company:g('company')||'כללית',
     category:classifySegment(title)||'administrative', size:'', level:classifyLevel(title),
     city:translateCity(g('location'))||'Israel', url:g('url'), updated:g('date')||date,
     workType:'onsite', description:g('description')||'' };
@@ -3203,15 +3205,10 @@ async function loadClalit() {
       return parsed.data.map(row=>normClalit(row,fname)).filter(Boolean);
     } catch(e){return[];}
   }))).flat();
-  if(allRows.length===0){
-    if($clStatus)$clStatus.innerHTML='Clalit: <span style="color:var(--ink-faint)">no file yet</span>';return;
-  }
-  // Split into per-hospital arrays
-  const buckets = {
-    clalit:CL_JOBS, rabin:RABIN_JOBS, meir:MEIR_JOBS, kaplan:KAPLAN_JOBS,
-    schneider:SCHNEIDER_JOBS, yoseftal:YOSEFTAL_JOBS, emek:EMEK_JOBS,
-    loewenstein:LOEWENSTEIN_JOBS, carmel:CARMEL_JOBS
-  };
+  if(!allRows.length){if($clStatus)$clStatus.innerHTML='Clalit: <span style="color:var(--ink-faint)">no file yet</span>';return;}
+  const buckets={clalit:CL_JOBS,rabin:RABIN_JOBS,meir:MEIR_JOBS,kaplan:KAPLAN_JOBS,
+    schneider:SCHNEIDER_JOBS,yoseftal:YOSEFTAL_JOBS,emek:EMEK_JOBS,
+    loewenstein:LOEWENSTEIN_JOBS,carmel:CARMEL_JOBS};
   Object.values(buckets).forEach(a=>a.length=0);
   const seen=new Set();
   allRows.forEach(r=>{
@@ -3219,22 +3216,20 @@ async function loadClalit() {
     if(seen.has(k))return; seen.add(k);
     (buckets[r.source]||CL_JOBS).push(r);
   });
-  // Update all status texts
-  const statusMap = {
-    clalit:[$clStatus,'Clalit'], rabin:[$rabinStatus,'Rabin'],
-    meir:[$meirStatus,'Meir'], kaplan:[$kaplanStatus,'Kaplan'],
-    schneider:[$schneiderStatus,'Schneider'], yoseftal:[$yoseftalStatus,'Yoseftal'],
-    emek:[$emekStatus,'Emek'], loewenstein:[$loewensteinStatus,'Loewenstein'],
-    carmel:[$carmelStatus,'Carmel']
+  const statusMap={
+    clalit:[$clStatus,'Clalit'],rabin:[$rabinStatus,'Rabin'],meir:[$meirStatus,'Meir'],
+    kaplan:[$kaplanStatus,'Kaplan'],schneider:[$schneiderStatus,'Schneider'],
+    yoseftal:[$yoseftalStatus,'Yoseftal'],emek:[$emekStatus,'Emek'],
+    loewenstein:[$loewensteinStatus,'Loewenstein'],carmel:[$carmelStatus,'Carmel']
   };
   Object.entries(statusMap).forEach(([key,[el,label]])=>{
-    const arr = buckets[key];
-    if(el) el.innerHTML = arr.length
+    const arr=buckets[key];
+    if(el) el.innerHTML=arr.length
       ? `${label}: <strong>${arr.length.toLocaleString()} jobs</strong>`
       : `${label}: <span style="color:var(--ink-faint)">no file yet</span>`;
-    TOTALS[key] = arr.length;
+    TOTALS[key]=arr.length;
   });
-  populateDropdowns(); applyFilters();
+  populateDropdowns();applyFilters();
 }
 
 // ─── BEILINSON - RABIN MEDICAL CENTER ────────────────────────────────────────
