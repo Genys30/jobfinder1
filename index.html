@@ -746,19 +746,12 @@
 </div>
 
 <footer>
-  <span>techmap · ODbL v1.0 · github.com/Genys30/jobfinder</span>
+  <span>github.com/Genys30/jobfinder</span>
   <span id="stamp"></span>
 </footer>
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-
-const TECHMAP_FNS = [
-  'admin','business','data-science','design','devops','finance','frontend',
-  'hardware','hr','legal','marketing','procurement-operations','product',
-  'project-management','qa','sales','security','software','support'
-];
-const TECHMAP_BASE = 'https://raw.githubusercontent.com/mluggy/techmap/main/jobs/';
 
 // Your repo — the code will auto-discover all linkedin_jobs_*.csv files
 const LI_REPO    = 'Genys30/jobfinder';
@@ -769,7 +762,6 @@ const PAGE       = 50;
 const SIZE_LABEL = {s:'small',m:'mid',l:'large',xl:'enterprise'};
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
-let TM_JOBS  = [];   // techmap
 let LI_JOBS  = [];   // linkedin
 let CM_JOBS  = [];   // comeet
 let GH_JOBS  = [];   // greenhouse
@@ -898,17 +890,6 @@ function csvCell(v){
   return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
 }
 
-// ─── NORMALIZE ───────────────────────────────────────────────────────────────
-function normTechmap(row, fn){
-  const g = k => (row[k]==null?'':String(row[k]).trim());
-  return {
-    source:'techmap', fnArea:fn,
-    title:g('title'), company:g('company'), category:g('category'),
-    size:g('size').toLowerCase(), level:g('level'),
-    city:g('city'), url:g('url'), updated:g('date')||g('updated')
-  };
-}
-
 function normLinkedIn(row, filename){
   // column names from LinkedIn CSV export: title, company, location, date, url
   const keys = Object.keys(row);
@@ -992,42 +973,6 @@ function normGreenhouse(row, filename){
     updated: g('date')||fnDate,
     workType
   };
-}
-
-// ─── LOAD TECHMAP ─────────────────────────────────────────────────────────────
-async function loadTechmap(){
-  let done = 0;
-  const update = () => {
-    if ($progress) $progress.style.setProperty('--pct', done/TECHMAP_FNS.length);
-  };
-
-  const results = await Promise.all(TECHMAP_FNS.map(async fn => {
-    try {
-      const res = await fetch(TECHMAP_BASE + fn + '.csv');
-      if(!res.ok) throw 0;
-      const text = await res.text();
-      const parsed = Papa.parse(text,{header:true,skipEmptyLines:true,
-        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
-      done++; update();
-      return parsed.data.map(r=>normTechmap(r,fn));
-    } catch(e){ done++; update(); return []; }
-  }));
-
-  TM_JOBS = results.flat().filter(r=>r.title&&r.company);
-
-  // Dedupe
-  const seen = new Set();
-  TM_JOBS = TM_JOBS.filter(r=>{
-    const k = r.url||(r.company+'|'+r.title+'|'+r.city);
-    if(seen.has(k)) return false; seen.add(k); return true;
-  });
-  TM_JOBS.sort((a,b)=>{
-    const da=parseDate(a.updated), db=parseDate(b.updated);
-    if(da&&db) return db-da; if(db) return 1; if(da) return -1; return 0;
-  });
-  const now = new Date();
-  $lastBuild.textContent = 'live · '+new Date().toISOString().slice(0,10);
-  $stamp.textContent = 'last sync '+now.toLocaleTimeString();
 }
 
 // ─── LOAD LINKEDIN ───────────────────────────────────────────────────────────
@@ -1848,7 +1793,6 @@ async function loadBIS() {
 
 // ─── POOL ────────────────────────────────────────────────────────────────────
 function getPool(){
-  if(activeSrc==='techmap')  return TM_JOBS;
   if(activeSrc==='linkedin') return LI_JOBS;
   if(activeSrc==='comeet')      return CM_JOBS;
   if(activeSrc==='greenhouse') return GH_JOBS;
@@ -1879,7 +1823,7 @@ function getPool(){
   if(activeSrc==='szmc')      return SZ_JOBS;
   if(activeSrc==='hadassah')  return HD_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
+  return [......LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -2322,7 +2266,7 @@ const KNOWN_EMPLOYER_TYPE = {
 
 // Source-based employer type (most reliable signal)
 const SOURCE_EMPLOYER_TYPE = {
-  'techmap':'startup', 'comeet':'startup', 'greenhouse':'startup',
+  'comeet':'startup', 'greenhouse':'startup',
   'lv':'startup', 'ab':'startup', 'wk':'startup',
   'linkedin':'private',
   'mt':'nonprofit',
@@ -2469,8 +2413,7 @@ function applyFilters(){
     if(q && !(r.title.toLowerCase().includes(q)||r.fnArea.includes(q)||(r.description||'').toLowerCase().includes(q)||(r.requirements||'').toLowerCase().includes(q))) return false;
     if(cutoff){
       const d = parseDate(r.updated);
-      if(r.source==='techmap' && (!d||d.getTime()<cutoff)) return false;
-      if(r.source!=='techmap' && d && d.getTime()<cutoff)  return false;
+      if(d && d.getTime()<cutoff) return false;
     }
     return true;
   });
@@ -3230,11 +3173,6 @@ render();
   fetchActiveUsers();
   setInterval(fetchActiveUsers, 30000);
 
-  // Load techmap in background
-  loadTechmap().then(()=>{
-    populateDropdowns();
-    applyFilters();
-  }).catch(e=>console.error('techmap',e));
 })();
 
 
@@ -3302,7 +3240,7 @@ async function renderAnalytics(){
   const panel = document.getElementById('analyticsPanel');
   if(!panel || panel.style.display==='none') return;
 
-  const pool = [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS];
+  const pool = [......LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS];
   const seen=new Set();
   const jobs=pool.filter(r=>{ const k=r.url||(r.company+'|'+r.title); if(seen.has(k))return false; seen.add(k); return true; });
   if(!jobs.length) return;
@@ -3440,7 +3378,7 @@ function shareJob(btn) {
 }
 
 function toggleTrack(id){
-  var pool=[].concat(TM_JOBS,LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS,RB_JOBS,BL_JOBS,SK_JOBS);
+  var pool=[].concat(LI_JOBS,CM_JOBS,GH_JOBS,LV_JOBS,AB_JOBS,WK_JOBS,TAU_JOBS,HUJI_JOBS,UF_JOBS,KPMG_JOBS,DL_JOBS,EY_JOBS,JNT_JOBS,BAR_JOBS,BIS_JOBS,GF_JOBS,IC_JOBS,RB_JOBS,BL_JOBS,SK_JOBS);
   var r=pool.find(function(j){ return (j.url||j.title+j.company)===id; });
   var apps=getApps();
   if(isTracked(id)){
