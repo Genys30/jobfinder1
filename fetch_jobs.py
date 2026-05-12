@@ -1920,7 +1920,7 @@ def run_hadassah():
     BASE      = "https://he.hadassah.org.il"
     CAREERS   = BASE + "/wanted/careers/"
 
-    html = _pw_get(CAREERS, wait_selector="a[href*='position-']", wait_ms=3000)
+    html = _pw_get(CAREERS, wait_selector="a[href*='position-']", wait_ms=8000)
     if not html:
         print("  x could not fetch Hadassah careers page"); return
 
@@ -1937,7 +1937,7 @@ def run_hadassah():
     print(f"  Found {len(job_links)} job links — fetching descriptions...")
 
     def fetch_desc(url):
-        detail = _pw_get(url, wait_ms=2000)
+        detail = _pw_get(url, wait_ms=5000)
         if not detail: return "", ""
         d = _BS(detail, "html.parser")
         full = d.get_text("\n", strip=True)
