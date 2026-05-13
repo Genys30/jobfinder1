@@ -1,0 +1,1862 @@
+[
+  {
+    "name": "365Scores",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "365scores/B3.006",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "8fig",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "8fig/08.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "ACS Motion Control",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "ACS/14.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "ActiveFence",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "activefence/D5.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Agora",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "agora/08.007",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "AI21 Labs",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "ai21/E6.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Aidoc",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "Aidoc/B4.007",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Airwayz Drones",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "airwayz/79.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Aitech",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "aitechsystems/88.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Aiven",
+    "greenhouse": "aiven36",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "AKA FOODS",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "aka_food/79.00D",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Altair",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "altair-semi/88.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Amobee",
+    "greenhouse": "nexxen",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Anchor",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "anchorfintech/87.00D",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Aqua Security",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "aquasec/91.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Arpeely",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "arpeely/57.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Atera Networks",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "atera/63.00B",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "AugMedics",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "augmedics/26.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Axonius",
+    "greenhouse": "axonius",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Ayyeka",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": "ayyeka",
+    "added_by": "techmap"
+  },
+  {
+    "name": "Beamr",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "beamr/A9.00B",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "BeeHero",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "beehero/78.00E",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "BioCatch",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "biocatch/03.00E",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "BIRD Aerosystems",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "birdaero/97.006",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Bookaway",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "Bookaway/64.006",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "BrandShield",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "brandshield/13.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Browzwear",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "browzwear/03.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Capitolis",
+    "greenhouse": "capitolis",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "CardinalOps",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "cardinalops/66.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Cardo Systems",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "cardosystems/F2.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Cellebrite",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "Cellebrite/C3.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Ceragon Networks",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "Ceragon/D3.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "CEVA",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "ceva/76.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Chargeflow",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "chargeflow/29.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Checkmarx",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "checkmarx/C0.008",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Claroty",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "Claroty/F2.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Clinch",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "clinch/42.007",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Cloudinary",
+    "greenhouse": null,
+    "lever": "cloudinary",
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Cognyte",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "cognyte/F2.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Coinbase Israel",
+    "greenhouse": "Coinbase",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Comunix",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "comunix/86.006",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Contrast Security Israel",
+    "greenhouse": null,
+    "lever": "contrastsecurity",
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Coralogix",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "coralogix/06.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Coro",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "coro/08.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Cross River Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "crossriver/C7.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Cyberbit",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "Cyberbit/C3.00E",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "CyberProof",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "cyberproof/75.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Cycode",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "cycode/A8.00D",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "CYE",
+    "greenhouse": null,
+    "lever": "CYE",
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "CYMOTIVE Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "cymotive/F1.008",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Cynet",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "cynet/33.00D",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "D-Fend Solutions",
+    "greenhouse": null,
+    "lever": "d-fendsolutions",
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Daisy",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "daisy/67.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Dalet",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": "dalet",
+    "added_by": "techmap"
+  },
+  {
+    "name": "Datadog",
+    "greenhouse": "datadog",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Dazz",
+    "greenhouse": "dazzinc",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "DealHub",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "dealhub/86.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Deep Instinct",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "deepinstinct/72.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Descope Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": "descope",
+    "added_by": "techmap"
+  },
+  {
+    "name": "Dig Security",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "dig/E7.00B",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Digital Turbine",
+    "greenhouse": null,
+    "lever": "digitalturbine",
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "DoControl",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "docontrol/07.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Driivz",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "driivz/C4.00B",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "DriveNets",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "drivenets/72.006",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Duda",
+    "greenhouse": "duda",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Eitan Medical",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "eitanmedical/C6.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Elastic Technologies Israel",
+    "greenhouse": "elastic",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Enercon",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "enercon/A4.00D",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "eToro",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "etoro/41.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "EX.CO",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "exco/F0.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Exodigo",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "exodigo/89.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Fabric",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "fabric/52.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Factify",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "A9.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Fetcherr",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "fetcherr/68.006",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Final",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "final/C0.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Fireblocks",
+    "greenhouse": "fireblocks",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Forter",
+    "greenhouse": "forter",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "FullPath",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "fullpath/54.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Gauzy",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "gauzy/C5.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Gett",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "gett/A0.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "GigaSpaces Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "gigaspaces/C5.00E",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Gilat Satellite Networks",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "gilat/39.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "GK8",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "gk8/E8.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Gloat",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "gloat/E5.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Global-e",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "global-e/62.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Guardio",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "guardio/57.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Guesty",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "guesty/10.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "H2Pro",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "h2pro/A7.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Hexagon",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "hexagon/62.00E",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "HiBob",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "hibob/12.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Holisto",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "holisto/76.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Imagen",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "imagen-ai/78.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Imubit",
+    "greenhouse": "imubit",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Innoviz Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "innoviz/52.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Insightec",
+    "greenhouse": "insightec",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "IONIX",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "ionix/08.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Island",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "island/09.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "JFrog",
+    "greenhouse": "jfrog",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Jifiti",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "jifiti/47.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Justt",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "justt/36.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Kaltura",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "kaltura/E2.00D",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "KMS Lighthouse",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "kmslh/97.008",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Konnecto",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "konnecto/36.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Landa Digital Printing",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "landacorp/A4.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Legit Security",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "legitsecurity.com/37.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Lightricks",
+    "greenhouse": "lightricks",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Lili",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "lili/A6.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "LiveU",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "liveu/90.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Locusview",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "locusview/25.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "LSports",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "lsports/26.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Lumenis",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "lumenis/A1.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Lusha",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "lusha/73.00B",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Lynx.MD",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": "lynx-md",
+    "added_by": "techmap"
+  },
+  {
+    "name": "MASSIVit 3D Printing Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "massivit/39.007",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Matific",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "matific/62.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "MDClone",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "mdclone/66.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Mixtiles",
+    "greenhouse": "mixtiles",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Moon Active",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "moonactive/A2.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "mPrest",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "mprest/38.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Navan",
+    "greenhouse": "TripActions",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "NeoGames",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "neogames/16.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Netafim",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "netafim/B7.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "NextSilicon",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "nextsilicon/18.007",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Nominal",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "nominal/E8.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Novidea Software",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "novidea/E5.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Octopus Systems",
+    "greenhouse": null,
+    "lever": "octopus",
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Okoora",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "okoora/85.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "ONE ZERO Digital Bank",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "onezerobank/36.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Optibus",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "optibus/D1.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Orca Security",
+    "greenhouse": "orcasecurity",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Orpak Systems",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "Orpak/65.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Panaya",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "panaya/61.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Parallel Wireless",
+    "greenhouse": null,
+    "lever": "parallelwireless",
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Pentera",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "pentera/C5.00D",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Percepto",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "percepto/44.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Personetics Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "personetics/83.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Placer.ai",
+    "greenhouse": "placerlabs",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "PlainID",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "plainid/C4.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Playstudios",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "playstudios/E2.00B",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Pliops",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "pliops/05.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Plus500",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "plus500/A1.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Prisma Photonics",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "prismaphotonics/18.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Rapyd Financial Network",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "rapyd/73.00E",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "REE Automotive",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "ree/D3.00B",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Retym",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "retym/C6.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Rise",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "risecodes/A9.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Riverside.fm",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "riverside-fm/66.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "ScyllaDB",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "scylladb/E4.006",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Sealights Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "sealights/C5.008",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "SeatGeek",
+    "greenhouse": "seatgeek",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Shopic",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "shopic/E6.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Silverfort",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "silverfort/54.007",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "SimilarWeb",
+    "greenhouse": "similarweb",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Skai",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "skai/22.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "SodaStream",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "sodastream/40.008",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "SolarEdge Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "SolarEdge/71.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Start.io",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "start.io/b2.004",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Storemaven",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "storemaven/45.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "SuperPlay",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "superplay/28.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Surecomp",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "Surecomp/24.00E",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Syqe Medical",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "syqe/F1.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Taboola",
+    "greenhouse": "taboola",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Tastewise",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "tastewise/F8.000",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "ThetaRay",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "thetaray/72.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Thrive DX",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "thrivedx/A7.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "TicTuk",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "tictuk/78.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Tikal",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "tikalk/68.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Tipalti",
+    "greenhouse": "tipaltisolutions",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Toka",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "toka/46.00D",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Transmit Security",
+    "greenhouse": "transmitsecurity",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Trigo",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "trigo/A6.005",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Upstream Security",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "upstream/E4.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "VAST Data",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "vastdata/43.001",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Vectorious Medical Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "vectoriousmedtech/68.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Verifone",
+    "greenhouse": "verifone",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Viber",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "viber/04.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Viz.ai",
+    "greenhouse": "vizai",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Waterfall Security Solutions",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "waterfall-security/C7.009",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "WeTrip",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "weski/F8.00C",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Wiliot",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "wiliot/F6.003",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Windward",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "windward/31.002",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "WSC Sports Technologies",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "wsc-sports/93.007",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "XTEND",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "xtend/85.00A",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Zero Networks",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "zeronetworks/39.00F",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "ZoomInfo",
+    "greenhouse": "zoominfo",
+    "lever": null,
+    "comeet": null,
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "techmap"
+  },
+  {
+    "name": "Zeroport",
+    "greenhouse": null,
+    "lever": null,
+    "comeet": "zeroport",
+    "ashby": null,
+    "workable": null,
+    "breezy": null,
+    "added_by": "manual"
+  }
+]
