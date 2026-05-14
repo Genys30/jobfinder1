@@ -614,6 +614,7 @@
     <option value="comeet">Comeet</option>
     <option value="greenhouse">Greenhouse</option>
     <option value="lv">Lever</option>
+        <option value="osem">Osem-Nestlé</option>
     <option value="ab">Ashby</option>
     <option value="wk">Workable</option>
       <option value="direct">Direct</option>
@@ -828,6 +829,7 @@ const SIZE_LABEL = {s:'small',m:'mid',l:'large',xl:'enterprise'};
 let TM_JOBS  = [];   // techmap
 let LI_JOBS  = [];   // linkedin
 let CM_JOBS  = [];   // comeet
+let OSEM_JOBS = [];  // osem-nestle
 let GH_JOBS  = [];   // greenhouse
 let LV_JOBS  = [];   // lever
 let AB_JOBS  = [];   // ashby
@@ -1358,6 +1360,43 @@ async function loadLever(){
   TOTALS['lv'] = LV_JOBS.length;
 }
 
+
+// ─── LOAD OSEM-NESTLÉ ────────────────────────────────────────────────────────
+async function loadOsem(){
+  const $osemStatus = document.getElementById('osem-status');
+  if($osemStatus) $osemStatus.innerHTML='Osem-Nestlé: <span style="color:var(--ink-faint)">loading…</span>';
+  const filenames=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+    filenames.push('osem_jobs_'+y+'-'+m+'-'+day+'.csv');
+  }
+  const allRows=(await Promise.all(filenames.map(async fname=>{
+    try{
+      const r=await fetch(LI_RAW+fname);
+      if(!r.ok) return [];
+      const text=await r.text();
+      const parsed=Papa.parse(text,{header:true,skipEmptyLines:true,
+        transformHeader:h=>h.replace(/^\uFEFF/,'').trim().toLowerCase()});
+      return parsed.data.map(row=>normComeet(row,fname)).filter(Boolean);
+    }catch(e){return [];}
+  }))).flat();
+  if(allRows.length===0){
+    if($osemStatus) $osemStatus.innerHTML='';
+    return;
+  }
+  const seen=new Set();
+  OSEM_JOBS=allRows.filter(r=>{
+    const k=r.url||(r.company+'|'+r.title+'|'+r.city);
+    if(seen.has(k))return false; seen.add(k); return true;
+  });
+  OSEM_JOBS.sort((a,b)=>{
+    const da=parseDate(a.updated),db=parseDate(b.updated);
+    if(da&&db)return db-da; if(db)return 1; if(da)return -1; return 0;
+  });
+  if($osemStatus) $osemStatus.innerHTML='Osem-Nestlé: <strong>'+OSEM_JOBS.length.toLocaleString()+' jobs</strong>';
+  TOTALS['osem'] = OSEM_JOBS.length;
+}
 // ─── LOAD MITAM (NGO jobs) ───────────────────────────────────────────────────
 function normMitam(row, fname) {
   const g = k => (row[k] == null ? '' : String(row[k]).trim());
@@ -1927,6 +1966,7 @@ function getPool(){
   if(activeSrc==='comeet')      return CM_JOBS;
   if(activeSrc==='greenhouse') return GH_JOBS;
   if(activeSrc==='lv') return LV_JOBS;
+  if(activeSrc==='osem') return OSEM_JOBS;
   if(activeSrc==='ab') return AB_JOBS;
   if(activeSrc==='wk') return WK_JOBS;
   if(activeSrc==='direct') return SP_JOBS;
@@ -1962,7 +2002,7 @@ function getPool(){
   if(activeSrc==='loewenstein')    return LOEWENSTEIN_JOBS;
   if(activeSrc==='carmel')    return CARMEL_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS].filter(r=>{
+  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS,...OSEM_JOBS].filter(r=>{
     const k = r.url||(r.company+'|'+r.title+'|'+r.city);
     if(seen.has(k)) return false; seen.add(k); return true;
   });
@@ -3524,7 +3564,8 @@ render();
     loadSoroka(),
     loadSzmc(),
     loadHadassah(),
-    loadClalit()
+    loadClalit(),
+    loadOsem()
   ]).catch(e=>{
     console.error('load error', e);
   });
