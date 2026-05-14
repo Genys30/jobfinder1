@@ -2085,12 +2085,12 @@ const CITY_TO_COUNTRY = {
 function getCityClass(city) {
   if (!city) return null;
   if (city === 'מהבית') return null; // remote — handled by workType filter
-  // Remote strings → no location classification
-  if (/^remote$/i.test(city.trim())) return null;
-  if (/^remote\s*[-–]/i.test(cityL) || cityL.includes('remote us') || cityL.includes('us- remote')) return { top:'Abroad', sub:'USA' };
-  if (/europe.*remote/i.test(city) || /remote.*europe/i.test(city)) return { top:'Abroad', sub:'Other' };
   // Normalize: lowercase for matching
   const cityL = city.toLowerCase().trim();
+  // Remote strings → no location classification
+  if (/^remote$/i.test(cityL)) return null;
+  if (/^remote\s*[-–]/i.test(cityL) || cityL.includes('remote us') || cityL.includes('us- remote')) return { top:'Abroad', sub:'USA' };
+  if (/europe.*remote/i.test(cityL) || /remote.*europe/i.test(cityL)) return { top:'Abroad', sub:'Other' };
   // Explicit Israel string → Israel/Other
   if (cityL === 'israel') return { top:'Israel', sub:'Other' };
   // Israeli district/region strings
