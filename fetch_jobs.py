@@ -9,6 +9,7 @@ if hasattr(sys.stderr, 'buffer'):
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 import requests, csv, json, re
 from datetime import date
+from fetch_osem import run_osem
 
 TECHMAP_FNS = [
     'admin','business','data-science','design','devops','finance','frontend',
@@ -2163,6 +2164,7 @@ def main():
     run_clalit()
     run_szmc()
     run_hadassah()
+    run_osem()
     print("\nUpdating history...")
     update_history()
     print("\n=== All done ===")
