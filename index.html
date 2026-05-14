@@ -1992,9 +1992,9 @@ const ISRAEL_REGIONS = {
     'חולון','Holon','בני ברק','Bnei Brak','Bney Brak','רמת השרון','Ramat HaSharon','Ramat Hasharon',
     'הרצליה','Herzliya','Herzliyya','כפר סבא','Kfar Sava','Kfar Saba','Kefar Sava','Kefar Saba','רעננה',"Ra'anana",'Raanana',
     'הוד השרון','Hod HaSharon','Hod Hasharon',"Hod Ha'Sharon",'נתניה','Netanya','ראש העין','Rosh HaAyin',"Rosh Ha'Ayin","Rosh Ha'ayin",'Rosh Haain','Rosh Haayin',
-    'לוד','Lod','רמלה','Ramla','מודיעין','מודיעין מכבים רעות','מודיעין-מכבים-רעות',"Modi'in",'Modiin','Modiin-Maccabim-Reut',
+    'לוד','Lod','רמלה','Ramla','מודיעין','מודיעין מכבים רעות','מודיעין-מכבים-רעות',"Modi'in",'Modiin','Modiin-Maccabim-Reut','בני ברק','Bnei Brak','חולון','Holon','קיסריה','Caesarea','רמת השרון','Ramat Hasharon','Ramat HaSharon',
     'נס ציונה','Nes Ziona','ראשון לציון','Rishon LeZion','Rishon Lezion',"Rishon Le'Zion",
-    'יבנה','Yavne','רחובות','Rehovot','גדרה','Gadera','אזור','Azor','בית דגן','Bet Dagan',
+    'יבנה','Yavne','רחובות','Rehovot','גדרה','Gadera','אזור','Azor','בית דגן','Bet Dagan',"Yokne'am Illit",'Yokneam Illit',
     'יהוד','Yehud','אור יהודה','Or Yehuda','גן יבנה','Gan Yavne','חדרה','Hadera',
     'כפר יונה','Kfar Yona','אלעד',"El'ad",'Elad','שוהם','Shoham','קריית אונו','Kiryat Ono',
     'גבעת שמואל','Givat Shmuel','אריאל','Ariel','כפר קאסם','Kafr Qasim','טייבה','Tayibe',
@@ -2027,28 +2027,59 @@ for (const [reg, cities] of Object.entries(ISRAEL_REGIONS)) {
 }
 
 const CITY_TO_COUNTRY = {
-  'London':'UK','Manchester':'UK','Edinburgh':'UK','Birmingham':'UK',
-  'New York':'USA','San Francisco':'USA','Austin':'USA','Boston':'USA',
-  'Chicago':'USA','Seattle':'USA','Los Angeles':'USA','Denver':'USA','Atlanta':'USA','Miami':'USA',
-  'Berlin':'Germany','Munich':'Germany','Hamburg':'Germany','Frankfurt':'Germany',
-  'Madrid':'Spain','Barcelona':'Spain',
+  // UK
+  'London':'UK','Manchester':'UK','Edinburgh':'UK','Birmingham':'UK','United Kingdom':'UK',
+  // USA — cities
+  'New York':'USA','San Francisco':'USA','Austin':'USA','Austin, Texas':'USA','Boston':'USA',
+  'Chicago':'USA','Seattle':'USA','Los Angeles':'USA','Los Angels':'USA','Denver':'USA',
+  'Atlanta':'USA','Miami':'USA','Houston':'USA','Dallas':'USA','Tampa':'USA',
+  'Cupertino':'USA','Plano':'USA','Coppell':'USA','Chatsworth':'USA','Burlington':'USA',
+  'Middletown':'USA','Greenville':'USA','Milwaukee':'USA','Columbus':'USA','Socorro':'USA',
+  'Teaneck':'USA','Tysons':'USA','Washington DC':'USA','Washington, D.C.':'USA',
+  'Virginia':'USA','Florida':'USA','California':'USA','Texas City':'USA','Texas, United States':'USA',
+  // USA — country-level strings
+  'USA':'USA','US':'USA','United States':'USA','United States Remote':'USA',
+  'USA - West Coast':'USA','US- Remote':'USA','West Region':'USA',
+  // Germany
+  'Berlin':'Germany','Munich':'Germany','munich':'Germany','Hamburg':'Germany',
+  'Frankfurt':'Germany','Karlsruhe':'Germany','Bayern & Baden Württ':'Germany',
+  'Germany':'Germany',
+  // Spain
+  'Madrid':'Spain','Barcelona':'Spain','Barselona':'Spain','La Pobla de Vallbona':'Spain',
+  // Netherlands
   'Amsterdam':'Netherlands','Rotterdam':'Netherlands',
-  'Paris':'France','Lyon':'France',
+  // France
+  'Paris':'France','Lyon':'France','France':'France',
+  // Switzerland
   'Zurich':'Switzerland','Geneva':'Switzerland','Basel':'Switzerland',
-  'Toronto':'Canada','Vancouver':'Canada','Montreal':'Canada',
-  'Singapore':'Singapore','Dublin':'Ireland',
-  'Stockholm':'Sweden','Copenhagen':'Denmark','Oslo':'Norway','Helsinki':'Finland',
-  'Prague':'Czech Republic','Warsaw':'Poland','Krakow':'Poland',
+  // Canada
+  'Toronto':'Canada','Vancouver':'Canada','Montreal':'Canada','Canada':'Canada',
+  // Nordics
+  'Stockholm':'Sweden','Copenhagen':'Denmark','Oslo':'Norway','Bergen':'Norway','Helsinki':'Finland',
+  // Eastern Europe
+  'Prague':'Czech Republic','Warsaw':'Poland','Warszawa':'Poland','Krakow':'Poland',
   'Kyiv':'Ukraine','Kiev':'Ukraine',
-  'Nicosia':'Cyprus','Limassol':'Cyprus','Paphos':'Cyprus',
-  'Dubai':'UAE','Abu Dhabi':'UAE',
-  'Bengaluru':'India','Mumbai':'India','Delhi':'India','New Delhi':'India','Hyderabad':'India','Pune':'India',
-  'Tokyo':'Japan','Osaka':'Japan',
-  'Sydney':'Australia','Melbourne':'Australia',
-  'Hong Kong':'Hong Kong','Shanghai':'China','Beijing':'China',
-  'Vienna':'Austria','Milan':'Italy','Rome':'Italy','Lisbon':'Portugal','Athens':'Greece',
   'Bucharest':'Romania','Budapest':'Hungary','Sofia':'Bulgaria',
   'Tallinn':'Estonia','Riga':'Latvia','Vilnius':'Lithuania','Tbilisi':'Georgia',
+  // Cyprus
+  'Nicosia':'Cyprus','Limassol':'Cyprus','Paphos':'Cyprus',
+  // Middle East (non-Israel)
+  'Dubai':'UAE','Abu Dhabi':'UAE','Abu-Dhabi':'UAE','Riyadh':'Saudi Arabia',
+  // Asia
+  'Bengaluru':'India','Mumbai':'India','Delhi':'India','New Delhi':'India',
+  'Hyderabad':'India','Pune':'India','Gurugram':'India','India':'India',
+  'Tokyo':'Japan','Osaka':'Japan','Minato City':'Japan',
+  'Singapore':'Singapore',
+  'Manila':'Philippines','Philippines':'Philippines',
+  'Hong Kong':'Hong Kong','Shanghai':'China','Beijing':'China',
+  // Australia
+  'Sydney':'Australia','Sydney- Australia':'Australia','Melbourne':'Australia','Canberra':'Australia',
+  // Americas
+  'Buenos Aires':'Argentina','Brazil':'Brazil','Sao Paulo':'Brazil','São Paulo':'Brazil','Brasília':'Brazil',
+  'Mexico':'Mexico','Mexico City':'Mexico',
+  // Other Europe
+  'Vienna':'Austria','Milan':'Italy','Rome':'Italy','Lisbon':'Portugal','Athens':'Greece',
+  'APAC':'Asia-Pacific',
 };
 
 function getCityClass(city) {
@@ -2056,6 +2087,8 @@ function getCityClass(city) {
   if (city === 'מהבית') return null; // remote — handled by workType filter
   // Remote strings → no location classification
   if (/^remote$/i.test(city.trim())) return null;
+  if (/^remote\s*[-–]/i.test(cityL) || cityL.includes('remote us') || cityL.includes('us- remote')) return { top:'Abroad', sub:'USA' };
+  if (/europe.*remote/i.test(city) || /remote.*europe/i.test(city)) return { top:'Abroad', sub:'Other' };
   // Normalize: lowercase for matching
   const cityL = city.toLowerCase().trim();
   // Explicit Israel string → Israel/Other
