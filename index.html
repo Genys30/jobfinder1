@@ -2090,6 +2090,9 @@ const CITY_TO_COUNTRY = {
 
 function getCityClass(city) {
   if (!city) return null;
+  // Normalize before classification
+  const normalized = normalizeCity(city);
+  if (normalized && normalized !== city) city = normalized;
   if (city === 'מהבית') return null; // remote — handled by workType filter
   // Normalize: lowercase for matching
   const cityL = city.toLowerCase().trim();
@@ -2174,8 +2177,8 @@ function buildCityTree(filterText) {
   // city → job count
   const cityCounts = {};
   getPool().forEach(r => {
-    const city = translateCity(r.city);
-    if (_cityIsValid(city)) cityCounts[city] = (cityCounts[city] || 0) + 1;
+    const city = normalizeCity(r.city);
+    if (city && _cityIsValid(city)) cityCounts[city] = (cityCounts[city] || 0) + 1;
   });
 
   // build tree structure
@@ -2439,6 +2442,75 @@ const HE_CITIES = {
   'שפלה':'Shephelah',
 };
 
+
+// ─── CITY ALIASES — canonical English names ───────────────────────────────────
+const CITY_ALIASES = {
+  // Tel Aviv variants
+  'TEL AVIV':'Tel Aviv','Tel-Aviv':'Tel Aviv','Tel Aviv-Jaffa':'Tel Aviv',
+  'Tel Aviv-Yafo':'Tel Aviv','Tel Aviv Yafo':'Tel Aviv','Tel aviv Israel':'Tel Aviv',
+  'Tel Aviv, Israel':'Tel Aviv',
+  // Beer Sheva variants
+  "Be'er Sheva":'Beer Sheva','Beer-Sheva':'Beer Sheva','Beersheba':'Beer Sheva',
+  'Beer Sheba':'Beer Sheva','בארשבע':'Beer Sheva',
+  // Herzliya
+  'Herzliyya':'Herzliya',
+  // Petah Tikva
+  'Petah-Tikva':'Petah Tikva','Petach Tikva':'Petah Tikva',
+  'Petach Tiqva':'Petah Tikva','Petach Tiqwa':'Petah Tikva','Petach Tiqwa':'Petah Tikva',
+  // Raanana
+  "Ra'anana":'Raanana','Raanana, Israel':'Raanana',
+  // Hod HaSharon
+  'Hod Hasharon':'Hod HaSharon',"Hod Ha'Sharon":'Hod HaSharon',
+  // Kfar Saba
+  'Kefar Sava':'Kfar Saba','Kfar Sava':'Kfar Saba',
+  // Modi'in
+  "Modiin-Maccabim-Reut":"Modi'in",
+  // Yokneam
+  "Yokne'am Illit":'Yokneam',"Yokne'am (Moshava)":'Yokneam',
+  'Yokneam Illit':'Yokneam','Yokneam Ilit':'Yokneam','Yoqneam Illit':'Yokneam',
+  // Rishon LeZion
+  'Rishon Lezion':'Rishon LeZion',"Rishon Le'Zion":'Rishon LeZion',
+  // Rosh HaAyin
+  "Rosh Ha'Ayin":'Rosh HaAyin',"Rosh Ha'ayin":'Rosh HaAyin','Rosh Haayin':'Rosh HaAyin',
+  // Ramat HaSharon
+  'Ramat Hasharon':'Ramat HaSharon',
+  // Ramat Gan
+  'Ramat-Gan':'Ramat Gan',
+  // Kiryat Gat
+  'Kiryat Malachi':'Kiryat Malachi',
+  // Abroad variants
+  'munich':'Munich','mexico city':'Mexico City','Los Angels':'Los Angeles',
+  'Warshaw':'Warsaw','Warszawa':'Warsaw','Barselona':'Barcelona',
+  'Abu-Dhabi':'Abu Dhabi','São Paulo':'Sao Paulo','Sydney- Australia':'Sydney',
+  'Kraków':'Krakow',"Kraków":'Krakow',
+  // District/region strings → normalize
+  'center':'Israel','south':'Israel','Sharon':'Israel','Shfela':'Israel',
+  'center, tel_aviv':'Tel Aviv',
+  'north, south, center, shephelah, jerusalem, tel_aviv':'Israel',
+  'tel_aviv, jerusalem, shephelah, center, south, north':'Israel',
+};
+
+// Strip ", District, Country (WorkType)" and normalize to canonical name
+function normalizeCity(raw) {
+  if (!raw) return null;
+  // Skip very long compound strings (multi-location)
+  if (raw.length > 80) return null;
+  // Strip work type suffix: "(Hybrid)", "(On-site)", "(Remote)"
+  let city = raw.replace(/\s*\((hybrid|on-?site|remote)\)\s*$/i, '').trim();
+  // Strip district/country: "City, Tel Aviv District, Israel" → "City"
+  // Pattern: "City, Xxx District, Israel" or "City, Israel"
+  city = city.replace(/,\s*(?:[\w\s]+District|Israel).*$/i, '').trim();
+  // Translate Hebrew to English
+  city = translateCity(city);
+  // Apply aliases
+  city = CITY_ALIASES[city] || city;
+  // Skip if still a district/region string
+  if (/district/i.test(city) || city === 'Israel' || city === 'EMEA' ||
+      city === 'MENA' || city === 'Remote' || city === 'ANY' ||
+      /^(north|south|center|sharon|shfela)$/i.test(city)) return null;
+  return city || null;
+}
+
 function translateCity(city) {
   if (!city) return city;
   // Check exact match
@@ -2630,7 +2702,7 @@ function applyFilters(){
 
   const pool = getPool();
   FILTERED = pool.filter(r=>{
-    if(selectedCities.size && !selectedCities.has(r.city)) return false;
+    if(selectedCities.size && !selectedCities.has(normalizeCity(r.city))) return false;
     if(company   && r.company!==company)     return false;
     if(segFilter && classifySegment(r.title)!==segFilter)   return false;
     if(lvlFilter && classifyLevel(r.title)!==lvlFilter)       return false;
