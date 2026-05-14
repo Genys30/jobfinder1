@@ -1994,7 +1994,7 @@ const ISRAEL_REGIONS = {
     'הוד השרון','Hod HaSharon','Hod Hasharon',"Hod Ha'Sharon",'נתניה','Netanya','ראש העין','Rosh HaAyin',"Rosh Ha'Ayin","Rosh Ha'ayin",'Rosh Haain','Rosh Haayin',
     'לוד','Lod','רמלה','Ramla','מודיעין','מודיעין מכבים רעות','מודיעין-מכבים-רעות',"Modi'in",'Modiin','Modiin-Maccabim-Reut','בני ברק','Bnei Brak','חולון','Holon','קיסריה','Caesarea','רמת השרון','Ramat Hasharon','Ramat HaSharon','גבעתיים',"Giv'atayim",'Givatayim','באר יעקב','Beer Yaakov','יהוד','Yehud','Yehud Monosson','יהוד-מונוסון','נס ציונה','Ness Ziona','Nes Ziona','אור עקיבא','Or Akiva','רמת ישי','Ramat Yishai',"Raana'na, Israel",'Raanana, Israel','קדימה','Kadima','קדימה-צורן','Kadima - Zoran','Kadima-Zoran','כפר נטר','Kfar Netter','בית נחמיה','Beit Nehemya','כפר מונש','Kfar Monash','עין החורש','Ein HaHoresh','בנימינה','Binyamina','Binyamina - Givat Ada','שפיים','Shefayim','Shfayim','ריש-פון','Rishpon','גן שורק','Gan Soreq','גני תקווה','Ganei Tikva','בן שמן','Ben Shemen','בית יהושע','Beit Yehoshua','כוכב יאיר','Kochav Yair','Kochav Yair Tzur Yigal','בני דרור','Bney Dror','מעגן מיכאל','Maagan Michael','פלמחים','Palmachim','עמק חפר','Emek Hefer Regional Council','חבל מודיעין','Hevel Modiin Regional Council','פרדס חנה','Pardes Hana','Pardes Hana - Karkur','גן שמואל','Gan Shmuel','יקום','Yaqum',
     'נס ציונה','Nes Ziona','ראשון לציון','Rishon LeZion','Rishon Lezion',"Rishon Le'Zion",
-    'יבנה','Yavne','רחובות','Rehovot','גדרה','Gadera','אזור','Azor','בית דגן','Bet Dagan',"Yokne'am Illit",'Yokneam Illit','Yokneam Ilit','Yoqneam Illit',"Yoqne'am Illit",'יקנעם עילית',
+    'יבנה','Yavne','רחובות','Rehovot','גדרה','Gadera','Gedera','אזור','Azor','בית דגן','Bet Dagan',"Yokne'am Illit",'Yokneam Illit','Yokneam Ilit','Yoqneam Illit',"Yoqne'am Illit",'יקנעם עילית',
     'יהוד','Yehud','אור יהודה','Or Yehuda','גן יבנה','Gan Yavne','חדרה','Hadera',
     'כפר יונה','Kfar Yona','אלעד',"El'ad",'Elad','שוהם','Shoham','קריית אונו','Kiryat Ono',
     'גבעת שמואל','Givat Shmuel','אריאל','Ariel','כפר קאסם','Kafr Qasim','טייבה','Tayibe',
@@ -2101,6 +2101,8 @@ function getCityClass(city) {
   if (cityL === 'israel') return { top:'Israel', sub:'Other' };
   // Lowercase jerusalem
   if (cityL === 'jerusalem') return { top:'Israel', sub:'Jerusalem' };
+  // Normalize Beer Sheva variants
+  if (city === "Be'er Sheva" || cityL === "be'er sheva") return { top:'Israel', sub:'South' };
   // "center" / "center, tel_aviv" → Center
   if (cityL === 'center' || cityL.startsWith('center,')) return { top:'Israel', sub:'Center' };
   // "Tel aviv Israel" variants
@@ -2172,7 +2174,8 @@ function buildCityTree(filterText) {
   // city → job count
   const cityCounts = {};
   getPool().forEach(r => {
-    if (_cityIsValid(r.city)) cityCounts[r.city] = (cityCounts[r.city] || 0) + 1;
+    const city = translateCity(r.city);
+    if (_cityIsValid(city)) cityCounts[city] = (cityCounts[city] || 0) + 1;
   });
 
   // build tree structure
