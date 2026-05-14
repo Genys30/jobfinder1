@@ -1988,11 +1988,11 @@ function populateDropdowns(){
 // ─── CITY HIERARCHY ──────────────────────────────────────────────────────────
 const ISRAEL_REGIONS = {
   Center:['תל אביב','תל-אביב','תל אביב-יפו','תל אביב יפו','יפו','Tel Aviv','Tel Aviv-Yafo','Tel Aviv Yafo','Jaffa',
-    'בת ים','Bat Yam','פתח תקווה','Petah Tikva','Petach Tikva','רמת גן','Ramat Gan','גבעתיים','Givatayim',
+    'בת ים','Bat Yam','פתח תקווה','Petah Tikva','Petach Tikva','Petah-Tikva','רמת גן','Ramat Gan','Ramat-Gan','גבעתיים','Givatayim','TEL AVIV','Tel Aviv-Jaffa','Tel Aviv-Yafo','Tel-Aviv','Yakum','Magal',
     'חולון','Holon','בני ברק','Bnei Brak','Bney Brak','רמת השרון','Ramat HaSharon','Ramat Hasharon',
-    'הרצליה','Herzliya','כפר סבא','Kfar Sava','Kfar Saba','רעננה',"Ra'anana",'Raanana',
-    'הוד השרון','Hod HaSharon','Hod Hasharon','נתניה','Netanya','ראש העין','Rosh HaAyin','Rosh Haain',
-    'לוד','Lod','רמלה','Ramla','מודיעין','מודיעין מכבים רעות',"Modi'in",'Modiin',
+    'הרצליה','Herzliya','Herzliyya','כפר סבא','Kfar Sava','Kfar Saba','Kefar Sava','Kefar Saba','רעננה',"Ra'anana",'Raanana',
+    'הוד השרון','Hod HaSharon','Hod Hasharon',"Hod Ha'Sharon",'נתניה','Netanya','ראש העין','Rosh HaAyin',"Rosh Ha'Ayin","Rosh Ha'ayin",'Rosh Haain','Rosh Haayin',
+    'לוד','Lod','רמלה','Ramla','מודיעין','מודיעין מכבים רעות','מודיעין-מכבים-רעות',"Modi'in",'Modiin','Modiin-Maccabim-Reut',
     'נס ציונה','Nes Ziona','ראשון לציון','Rishon LeZion','Rishon Lezion',"Rishon Le'Zion",
     'יבנה','Yavne','רחובות','Rehovot','גדרה','Gadera','אזור','Azor','בית דגן','Bet Dagan',
     'יהוד','Yehud','אור יהודה','Or Yehuda','גן יבנה','Gan Yavne','חדרה','Hadera',
@@ -2001,7 +2001,7 @@ const ISRAEL_REGIONS = {
     'קלנסווה','Qalansawe','פרדס חנה','Pardes Hanna','בנימינה','Binyamina',
     'כפר שמריהו','Kfar Shmaryahu','תל מונד','Tel Mond','זכרון יעקב','Zichron Yaakov',
     'גוש דן','Gush Dan','Center','מרכז','איכילוב','Ichilov'],
-  North:['חיפה','Haifa','נצרת','Nazareth','עכו','Acre','Akko','כרמיאל','Carmiel','Karmiel',
+  North:['חיפה','Haifa','נצרת','Nazareth','Nazareth Iliit','עכו','Acre','Akko','כרמיאל','Carmiel','Karmiel','Kiryat Bialik','קריית ביאליק',
     'טבריה','Tiberias','צפת','Safed','Tzfat','קריית שמונה','Kiryat Shmona','נהריה','Nahariya',
     'עפולה','Afula','בית שאן','Beit Shean','Bet Shean','קריית אתא','Kiryat Ata',
     'קריית ביאליק','Kiryat Bialik','קריית מוצקין','Kiryat Motzkin','קריית ים','Kiryat Yam',
@@ -2011,7 +2011,7 @@ const ISRAEL_REGIONS = {
     'קריית טבעון','Kiryat Tivon','מעלות-תרשיחא','Maalot-Tarshiha','כפר ורדים','Kfar Vradim',
     'פרדס חנה-כרכור','Pardes Hanna-Karkur','זיכרון יעקב','Zichron Ya\'akov','צפון','North'],
   South:['באר שבע',"Beer Sheva","Be'er Sheva",'Beersheba','Beer-Sheva','Beer Sheba',
-    'אשדוד','Ashdod','אשקלון','Ashkelon','אילת','Eilat','דימונה','Dimona',
+    'אשדוד','Ashdod','אשקלון','Ashkelon','אילת','Eilat','דימונה','Dimona','Hatzerim','חצרים','Kiryat Malachi','קריית מלאכי',
     'קריית גת','Kiryat Gat','נתיבות','Netivot','שדרות','Sderot','ערד','Arad',
     'מצפה רמון','Mitzpe Ramon','אופקים','Ofakim','רהט','Rahat','לכיש','Lachish',
     'קריית מלאכי','Kiryat Malachi','דרום','South','בארשבע','באר שבע','Beer Sheva'],
@@ -2054,12 +2054,26 @@ const CITY_TO_COUNTRY = {
 function getCityClass(city) {
   if (!city) return null;
   if (city === 'מהבית') return null; // remote — handled by workType filter
+  // Remote strings → no location classification
+  if (/^remote$/i.test(city.trim())) return null;
+  // Normalize: lowercase for matching
+  const cityL = city.toLowerCase().trim();
+  // Explicit Israel string → Israel/Other
+  if (cityL === 'israel') return { top:'Israel', sub:'Other' };
+  // Israeli district/region strings
+  if (cityL.includes('tel aviv district') || cityL.includes('center district') ||
+      cityL.includes('central district') || cityL.includes('sharon')) return { top:'Israel', sub:'Center' };
+  if (cityL.includes('jerusalem district')) return { top:'Israel', sub:'Jerusalem' };
+  if (cityL.includes('haifa district') || cityL.includes('northern district')) return { top:'Israel', sub:'North' };
+  if (cityL.includes('southern district') || cityL.includes('negev')) return { top:'Israel', sub:'South' };
   if (CITY_TO_REGION[city]) return { top:'Israel', sub: CITY_TO_REGION[city] };
   // Fuzzy fallbacks for known variants
   if (city.includes('קמפוס') && city.includes('אדמונד')) return { top:'Israel', sub:'Jerusalem' };
   if (city.includes('קמפוס הר הצופים')) return { top:'Israel', sub:'Jerusalem' };
   if (city.includes('קמפוס עין כרם')) return { top:'Israel', sub:'Jerusalem' };
   if (city === 'בארשבע' || city.includes('באר שבע') || city.includes('באר-שבע')) return { top:'Israel', sub:'South' };
+  // Yiftah → North (Upper Galilee kibbutz)
+  if (cityL === 'yiftah') return { top:'Israel', sub:'North' };
   const heRatio = (city.match(/[\u0590-\u05FF]/g)||[]).length / city.length;
   if (heRatio > 0.3) return { top:'Israel', sub:'Other' };
   if (CITY_TO_COUNTRY[city]) return { top:'Abroad', sub: CITY_TO_COUNTRY[city] };
