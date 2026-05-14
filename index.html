@@ -2234,7 +2234,7 @@ function buildCityTree(filterText) {
       : Object.keys(tree[top]).sort();
 
     subs.forEach(sub => {
-      const subCities = (tree[top][sub] || []).sort((a,b) => (cityCounts[b]||0) - (cityCounts[a]||0));
+      const subCities = (tree[top][sub] || []).sort((a,b) => a.localeCompare(b));
       if (!subCities.length) return;
       const subKey = 'S:' + top + ':' + sub;
       if (_cityExpanded[subKey] === undefined) _cityExpanded[subKey] = false;
