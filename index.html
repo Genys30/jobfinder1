@@ -1992,9 +1992,9 @@ const ISRAEL_REGIONS = {
     'חולון','Holon','בני ברק','Bnei Brak','Bney Brak','רמת השרון','Ramat HaSharon','Ramat Hasharon',
     'הרצליה','Herzliya','Herzliyya','כפר סבא','Kfar Sava','Kfar Saba','Kefar Sava','Kefar Saba','רעננה',"Ra'anana",'Raanana',
     'הוד השרון','Hod HaSharon','Hod Hasharon',"Hod Ha'Sharon",'נתניה','Netanya','ראש העין','Rosh HaAyin',"Rosh Ha'Ayin","Rosh Ha'ayin",'Rosh Haain','Rosh Haayin',
-    'לוד','Lod','רמלה','Ramla','מודיעין','מודיעין מכבים רעות','מודיעין-מכבים-רעות',"Modi'in",'Modiin','Modiin-Maccabim-Reut','בני ברק','Bnei Brak','חולון','Holon','קיסריה','Caesarea','רמת השרון','Ramat Hasharon','Ramat HaSharon',
+    'לוד','Lod','רמלה','Ramla','מודיעין','מודיעין מכבים רעות','מודיעין-מכבים-רעות',"Modi'in",'Modiin','Modiin-Maccabim-Reut','בני ברק','Bnei Brak','חולון','Holon','קיסריה','Caesarea','רמת השרון','Ramat Hasharon','Ramat HaSharon','גבעתיים',"Giv'atayim",'Givatayim','באר יעקב','Beer Yaakov','יהוד','Yehud','Yehud Monosson','יהוד-מונוסון',
     'נס ציונה','Nes Ziona','ראשון לציון','Rishon LeZion','Rishon Lezion',"Rishon Le'Zion",
-    'יבנה','Yavne','רחובות','Rehovot','גדרה','Gadera','אזור','Azor','בית דגן','Bet Dagan',"Yokne'am Illit",'Yokneam Illit',
+    'יבנה','Yavne','רחובות','Rehovot','גדרה','Gadera','אזור','Azor','בית דגן','Bet Dagan',"Yokne'am Illit",'Yokneam Illit','Yokneam Ilit','Yoqneam Illit',"Yoqne'am Illit",'יקנעם עילית',
     'יהוד','Yehud','אור יהודה','Or Yehuda','גן יבנה','Gan Yavne','חדרה','Hadera',
     'כפר יונה','Kfar Yona','אלעד',"El'ad",'Elad','שוהם','Shoham','קריית אונו','Kiryat Ono',
     'גבעת שמואל','Givat Shmuel','אריאל','Ariel','כפר קאסם','Kafr Qasim','טייבה','Tayibe',
@@ -2015,7 +2015,7 @@ const ISRAEL_REGIONS = {
     'קריית גת','Kiryat Gat','נתיבות','Netivot','שדרות','Sderot','ערד','Arad',
     'מצפה רמון','Mitzpe Ramon','אופקים','Ofakim','רהט','Rahat','לכיש','Lachish',
     'קריית מלאכי','Kiryat Malachi','דרום','South','בארשבע','באר שבע','Beer Sheva'],
-  Jerusalem:['ירושלים','Jerusalem','בית שמש','Beit Shemesh','Bet Shemesh',
+  Jerusalem:['ירושלים','Jerusalem','West Jerusalem','מערב ירושלים','בית שמש','Beit Shemesh','Bet Shemesh',
     "Ma'ale Adumim",'Maale Adumim','מעלה אדומים',"Givat Ze'ev",'Givat Zeev','גבעת זאב',
     'מבשרת ציון','Mevasseret Zion','Mevasseret Tzion','הר חוצבים','Har Hotzvim',
     'קמפוס הר הצופים','קמפוס עין כרם',"קמפוס ע\"ש אדמונד י' ספרא","קמפוס ע\"ש אדמונד י'.ספרא","קמפוס ע\"ש אדמונד י. ספרא",'קמפוס אדמונד ספרא'],
@@ -2093,6 +2093,8 @@ function getCityClass(city) {
   if (/europe.*remote/i.test(cityL) || /remote.*europe/i.test(cityL)) return { top:'Abroad', sub:'Other' };
   // Explicit Israel string → Israel/Other
   if (cityL === 'israel') return { top:'Israel', sub:'Other' };
+  // EMEA from Israeli ATS → treat as Israel
+  if (cityL === 'emea') return { top:'Israel', sub:'Other' };
   // Israeli district/region strings
   if (cityL.includes('tel aviv district') || cityL.includes('center district') ||
       cityL.includes('central district') || cityL.includes('sharon')) return { top:'Israel', sub:'Center' };
