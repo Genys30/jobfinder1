@@ -128,7 +128,7 @@ def run_comeet(tm):
         tok = comeet_token(slug, uid)
         if not tok: print("    x token not found"); continue
         try:
-            r = requests.get(f'https://www.comeet.co/careers-api/2.0/company/{uid}/positions?token={tok}&details=false', timeout=60, headers=HEADERS)
+            r = requests.get(f'https://www.comeet.co/careers-api/2.0/company/{uid}/positions?token={tok}&details=true', timeout=60, headers=HEADERS)
             if not r.ok: print(f"    - {r.status_code}"); continue
             pos = []
             for p in r.json():
@@ -137,13 +137,20 @@ def run_comeet(tm):
                 city = loc.get('city') or loc.get('name', '')
                 if not is_israel(city + ' ' + loc.get('name',''), loc.get('country',''), 'remote' in wt.lower()):
                     continue
+                details = p.get('details') or {}
+                raw_desc = (details.get('requirements_and_responsibilities') or
+                            details.get('description') or
+                            p.get('description') or '')
+                # strip basic HTML tags if present
+                description = re.sub(r'<[^>]+>', ' ', raw_desc).strip()[:1500]
                 pos.append({'title': p.get('name',''), 'company': p.get('company_name') or name,
                     'location': city, 'date': (p.get('time_updated') or '')[:10],
                     'url': p.get('url_active_page') or p.get('url_comeet_hosted_page',''),
-                    'department': p.get('department',''), 'workplace_type': wt})
+                    'department': p.get('department',''), 'workplace_type': wt,
+                    'description': description})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'comeet_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type','description'], f'comeet_jobs_{TODAY}.csv')
 
 
 # ══ GREENHOUSE ════════════════════════════════════════════════════════════════
@@ -202,12 +209,20 @@ def run_lever(tm):
                 if not is_israel(loc, remote=(wtype == 'remote')): continue
                 ts = job.get('createdAt', 0)
                 dt = date.fromtimestamp(ts/1000).isoformat() if ts else ''
+                desc_plain = (job.get('descriptionPlain') or '').strip()
+                lists_text = ' '.join(
+                    item.get('text', '')
+                    for lst in (job.get('lists') or [])
+                    for item in (lst.get('content') or [])
+                ).strip()
+                description = (desc_plain + (' ' + lists_text if lists_text else '')).strip()[:1500]
                 pos.append({'title': job.get('text',''), 'company': name,
                     'location': loc, 'date': dt, 'url': job.get('hostedUrl',''),
-                    'department': cats.get('team',''), 'workplace_type': wtype})
+                    'department': cats.get('team',''), 'workplace_type': wtype,
+                    'description': description})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'lever_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type','description'], f'lever_jobs_{TODAY}.csv')
 
 
 # ══ ASHBY ════════════════════════════════════════════════════════════════════
@@ -234,13 +249,17 @@ def run_ashby(tm):
                 remote = job.get('locationIsRemote', False)
                 if not is_israel(loc, remote=remote): continue
                 wt = 'Remote' if remote else ('Hybrid' if 'hybrid' in loc.lower() else '')
+                raw_desc = job.get('jobDescriptionHtml') or job.get('jobDescription') or ''
+                description = re.sub(r'<[^>]+>', ' ', raw_desc).strip()
+                description = re.sub(r'\s{2,}', ' ', description)[:1500]
                 pos.append({'title': job.get('title',''), 'company': name,
                     'location': loc, 'date': (job.get('publishedDate') or '')[:10],
                     'url': job.get('externalLink') or job.get('jobUrl',''),
-                    'department': job.get('departmentName',''), 'workplace_type': wt})
+                    'department': job.get('departmentName',''), 'workplace_type': wt,
+                    'description': description})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'ashby_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type','description'], f'ashby_jobs_{TODAY}.csv')
 
 
 # ══ WORKABLE ═════════════════════════════════════════════════════════════════
@@ -809,7 +828,10 @@ def run_gotfriends():
         soup = _BS(html, 'html.parser')
         jobs = []
 
-        for h2 in soup.find_all('h2'):
+        for item in soup.select('div.item'):
+            h2 = item.find('h2')
+            if not h2:
+                continue
             a = h2.find('a', href=re.compile(r'/jobslobby/'))
             if not a:
                 a = h2.find_parent('a', href=re.compile(r'/jobslobby/'))
@@ -826,36 +848,30 @@ def run_gotfriends():
             if not title:
                 continue
 
-            node = h2 if not h2.find_parent('a') else h2.find_parent('a')
-            context_parts = []
-            sibling = node.next_sibling
-            steps = 0
-            while sibling and steps < 8:
-                if hasattr(sibling, 'name'):
-                    if sibling.name == 'h2':
-                        break
-                    context_parts.append(sibling.get_text(' ', strip=True))
-                elif isinstance(sibling, str):
-                    context_parts.append(sibling.strip())
-                sibling = sibling.next_sibling
-                steps += 1
-            context = ' '.join(context_parts)
-
+            # extract location from meta section
             location = 'Israel'
-            parent = node.parent if node else None
-            if parent:
-                for dt in parent.find_all('dt'):
-                    if 'מיקום' in dt.get_text():
-                        dd = dt.find_next_sibling('dd')
-                        if dd:
-                            location = map_loc(dd.get_text(strip=True))
-                        break
-            if location == 'Israel':
-                m = re.search(r'מיקום[:\s]+([^\n\|]{2,30})', context)
-                if m:
-                    location = map_loc(m.group(1))
+            for dt in item.find_all('dt'):
+                if 'מיקום' in dt.get_text():
+                    dd = dt.find_next_sibling('dd')
+                    if dd:
+                        location = map_loc(dd.get_text(strip=True))
+                    break
 
-            combined = title + ' ' + context
+            # extract description and requirements from .desc blocks
+            desc, reqs = '', ''
+            for block in item.select('div.desc'):
+                header = block.select_one('div.title_c')
+                header_text = header.get_text(strip=True) if header else ''
+                # get text without the header label
+                if header:
+                    header.extract()
+                block_text = block.get_text(' ', strip=True)
+                if 'תיאור' in header_text:
+                    desc = block_text[:1500]
+                elif 'דרישות' in header_text:
+                    reqs = block_text[:1000]
+
+            combined = title + ' ' + desc
             if REMOTE_KW.search(combined):
                 wt = 'Remote'
             elif HYBRID_KW.search(combined):
@@ -871,6 +887,8 @@ def run_gotfriends():
                 'url':            url,
                 'department':     cat_en,
                 'workplace_type': wt,
+                'description':    desc,
+                'requirements':   reqs,
             })
 
         return jobs
@@ -920,7 +938,7 @@ def run_gotfriends():
     result = dedup_jobs(all_jobs)
     write_csv(
         result,
-        ['title', 'company', 'location', 'date', 'url', 'department', 'workplace_type'],
+        ['title', 'company', 'location', 'date', 'url', 'department', 'workplace_type', 'description', 'requirements'],
         f'gotfriends_jobs_{TODAY}.csv',
     )
 
