@@ -2147,6 +2147,62 @@ def _run_hunterhrms_playwright(base_url, company, location, outfile):
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
+def update_jobs_seen():
+    """Track first_seen / last_seen per URL for time-to-fill analytics."""
+    import os
+    SEEN_FILE = 'jobs_seen.csv'
+    FIELDS    = ['url', 'title', 'company', 'source', 'department', 'first_seen', 'last_seen']
+    TRACKED   = ['gotfriends', 'greenhouse', 'comeet', 'lever', 'ashby']
+
+    # 1. Collect all URLs from today's CSVs
+    today_jobs = {}
+    for src in TRACKED:
+        fname = f'{src}_jobs_{TODAY}.csv'
+        if not os.path.exists(fname): continue
+        with open(fname, encoding='utf-8-sig') as f:
+            for row in csv.DictReader(f):
+                url = (row.get('url') or '').strip()
+                if not url: continue
+                today_jobs[url] = {
+                    'title':      (row.get('title') or '')[:120],
+                    'company':    (row.get('company') or '').strip(),
+                    'source':     src,
+                    'department': (row.get('department') or '').strip(),
+                }
+    print(f"  today tracked: {len(today_jobs)}")
+
+    # 2. Load existing jobs_seen.csv
+    existing = {}
+    if os.path.exists(SEEN_FILE):
+        with open(SEEN_FILE, encoding='utf-8-sig') as f:
+            for row in csv.DictReader(f):
+                url = (row.get('url') or '').strip()
+                if url: existing[url] = row
+
+    # 3. Merge
+    for url, meta in today_jobs.items():
+        if url in existing:
+            existing[url]['last_seen'] = TODAY
+        else:
+            existing[url] = {
+                'url': url, 'title': meta['title'],
+                'company': meta['company'], 'source': meta['source'],
+                'department': meta['department'],
+                'first_seen': TODAY, 'last_seen': TODAY,
+            }
+
+    # 4. Save
+    with open(SEEN_FILE, 'w', newline='', encoding='utf-8-sig') as f:
+        w = csv.DictWriter(f, fieldnames=FIELDS, extrasaction='ignore')
+        w.writeheader()
+        w.writerows(existing.values())
+
+    new_today  = sum(1 for v in existing.values() if v['first_seen'] == TODAY)
+    still_open = sum(1 for v in existing.values() if v['last_seen']  == TODAY)
+    closed     = len(existing) - still_open
+    print(f"  jobs_seen.csv: {len(existing)} total | {new_today} new | {still_open} open | {closed} closed")
+
+
 def main():
     print(f"=== fetch_jobs.py  {TODAY} ===\n")
     print("Scanning techmap...")
@@ -2179,6 +2235,8 @@ def main():
     run_osem()
     print("\nUpdating history...")
     update_history()
+    print("\nUpdating jobs_seen...")
+    update_jobs_seen()
     print("\n=== All done ===")
 
 if __name__ == '__main__':
