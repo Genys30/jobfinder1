@@ -132,22 +132,16 @@ def run_comeet(tm):
             if not r.ok: print(f"    - {r.status_code}"); continue
             pos = []
             for p in r.json():
+                if not isinstance(p, dict): continue
                 loc = p.get('location') or {}
                 wt = p.get('workplace_type', '')
                 city = loc.get('city') or loc.get('name', '')
                 if not is_israel(city + ' ' + loc.get('name',''), loc.get('country',''), 'remote' in wt.lower()):
                     continue
-                details = p.get('details') or {}
-                raw_desc = (details.get('requirements_and_responsibilities') or
-                            details.get('description') or
-                            p.get('description') or '')
-                # strip basic HTML tags if present
-                description = re.sub(r'<[^>]+>', ' ', raw_desc).strip()[:1500]
                 pos.append({'title': p.get('name',''), 'company': p.get('company_name') or name,
                     'location': city, 'date': (p.get('time_updated') or '')[:10],
                     'url': p.get('url_active_page') or p.get('url_comeet_hosted_page',''),
-                    'department': p.get('department',''), 'workplace_type': wt,
-                    'description': description})
+                    'department': p.get('department',''), 'workplace_type': wt})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
     write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type','description'], f'comeet_jobs_{TODAY}.csv')
