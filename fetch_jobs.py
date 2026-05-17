@@ -138,24 +138,10 @@ def run_comeet(tm):
                 city = loc.get('city') or loc.get('name', '')
                 if not is_israel(city + ' ' + loc.get('name',''), loc.get('country',''), 'remote' in wt.lower()):
                     continue
-                # Extract description from details list: [{name, value, order}]
-                description = ''
-                details_list = p.get('details') or []
-                if isinstance(details_list, list):
-                    parts = []
-                    for section in details_list:
-                        if not isinstance(section, dict): continue
-                        raw = section.get('value') or ''
-                        text = re.sub(r'<[^>]+>', ' ', raw)
-                        text = re.sub(r'\s{2,}', ' ', text).strip()
-                        if text:
-                            parts.append(f"{section.get('name','')}: {text}")
-                    description = ' | '.join(parts)[:1500]
                 pos.append({'title': p.get('name',''), 'company': p.get('company_name') or name,
                     'location': city, 'date': (p.get('time_updated') or '')[:10],
                     'url': p.get('url_active_page') or p.get('url_comeet_hosted_page',''),
-                    'department': p.get('department',''), 'workplace_type': wt,
-                    'description': description})
+                    'department': p.get('department',''), 'workplace_type': wt})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
     write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type','description'], f'comeet_jobs_{TODAY}.csv')
@@ -185,13 +171,25 @@ def run_greenhouse(tm):
                 if not is_israel(loc_name + ' ' + office_names, country): continue
                 wt = 'Remote' if re.search(r'\bremote\b', loc_name, re.I) else ('Hybrid' if re.search(r'\bhybrid\b', loc_name, re.I) else '')
                 dept = next((d.get('name','') for d in job.get('departments',[])), '')
+                # fetch description via individual job endpoint
+                job_id = job.get('id','')
+                description = ''
+                try:
+                    rd = requests.get(f'https://boards-api.greenhouse.io/v1/boards/{token}/jobs/{job_id}', timeout=20, headers=HEADERS)
+                    if rd.ok:
+                        raw = rd.json().get('content') or ''
+                        description = re.sub(r'<[^>]+>', ' ', raw)
+                        description = re.sub(r'\s{2,}', ' ', description).strip()[:1500]
+                except Exception: pass
+                import time as _t; _t.sleep(0.2)
                 pos.append({'title': job.get('title',''), 'company': name,
                     'location': loc_name.split(',')[0].strip(),
                     'date': (job.get('updated_at') or '')[:10],
-                    'url': job.get('absolute_url',''), 'department': dept, 'workplace_type': wt})
+                    'url': job.get('absolute_url',''), 'department': dept,
+                    'workplace_type': wt, 'description': description})
             print(f"    + {len(pos)}"); jobs.extend(pos)
         except Exception as e: print(f"    x {e}")
-    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type'], f'greenhouse_jobs_{TODAY}.csv')
+    write_csv(dedup_jobs(jobs), ['title','company','location','date','url','department','workplace_type','description'], f'greenhouse_jobs_{TODAY}.csv')
 
 
 # ══ LEVER ════════════════════════════════════════════════════════════════════
