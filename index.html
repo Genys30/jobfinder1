@@ -2023,9 +2023,15 @@ function getPool(){
   if(activeSrc==='loewenstein')    return LOEWENSTEIN_JOBS;
   if(activeSrc==='carmel')    return CARMEL_JOBS;
   const seen = new Set();
-  return [...TM_JOBS,...LI_JOBS,...CM_JOBS,...GH_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...GF_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS,...OSEM_JOBS].filter(r=>{
-    const k = r.url||(r.company+'|'+r.title+'|'+r.city);
-    if(seen.has(k)) return false; seen.add(k); return true;
+  const seenTitleCo = new Set();
+  // Priority order: Comeet/GH/GF first (rich data), LinkedIn last
+  return [...CM_JOBS,...GH_JOBS,...GF_JOBS,...LV_JOBS,...AB_JOBS,...WK_JOBS,...TM_JOBS,...SP_JOBS,...MT_JOBS,...AC_JOBS,...HJ_JOBS,...TAU_JOBS,...HUJI_JOBS,...UF_JOBS,...KPMG_JOBS,...DL_JOBS,...EY_JOBS,...JNT_JOBS,...BAR_JOBS,...BIS_JOBS,...IC_JOBS,...RB_JOBS,...BL_JOBS,...SK_JOBS,...OSEM_JOBS,...LI_JOBS].filter(r=>{
+    const k = r.url;
+    const k2 = (r.title||'').toLowerCase().trim()+'|'+(r.company||'').toLowerCase().trim();
+    if((k && seen.has(k)) || seenTitleCo.has(k2)) return false;
+    if(k) seen.add(k);
+    seenTitleCo.add(k2);
+    return true;
   });
 }
 
