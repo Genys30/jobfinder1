@@ -1415,20 +1415,27 @@ async function loadMod() {
     return;
   }
   const g = (row, k) => (row[k]||'').trim();
-  MOD_JOBS = allRows.map(row => ({
-    source:     'mod',
-    fnArea:     'mod',
-    title:      g(row,'title'),
-    company:    g(row,'company') || 'משרד הביטחון',
-    city:       g(row,'location'),
-    date:       g(row,'date_posted'),
-    deadline:   g(row,'deadline'),
-    url:        g(row,'url'),
-    education:  g(row,'education'),
-    experience: g(row,'experience'),
-    summary:    g(row,'summary'),
-    category:   'mod',
-  })).filter(r => r.title && !seen.has(r.url) && seen.add(r.url));
+  MOD_JOBS = allRows.map(row => {
+    const summary    = g(row,'summary');
+    const education  = g(row,'education');
+    const experience = g(row,'experience');
+    const descParts  = [];
+    if (summary)    descParts.push(summary);
+    if (education)  descParts.push('השכלה: ' + education);
+    if (experience) descParts.push('ניסיון: ' + experience);
+    return {
+      source:      'mod',
+      fnArea:      'mod',
+      title:       g(row,'title'),
+      company:     g(row,'company') || 'משרד הביטחון',
+      city:        g(row,'location'),
+      updated:     g(row,'date_posted'),   // ← renderer reads r.updated
+      deadline:    g(row,'deadline'),
+      url:         g(row,'url'),
+      description: descParts.join('\n\n'), // ← popup reads r.description
+      category:    'mod',
+    };
+  }).filter(r => r.title && !seen.has(r.url) && seen.add(r.url));
   if ($modStatus) $modStatus.innerHTML = `MOD: <strong>${MOD_JOBS.length.toLocaleString()} jobs</strong>`;
   TOTALS['mod'] = MOD_JOBS.length;
   populateDropdowns(); applyFilters();
@@ -2923,7 +2930,7 @@ function render(){
     const arrowLabel = hasDesc ? '📄' : '➝';
     return '<a class="job'+rowCls+(hasDesc?' has-desc':'')+'" href="'+esc(href)+'" '+(hasDesc?popupClick:'target="_blank" rel="noopener"')+'>'
       +'<span class="job-date">'+esc(formatDate(r.updated))+'</span>'
-      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+wzBadge+hjBadge+szBadge+hdBadge+clBadge+rabinBadge+meirBadge+kaplanBadge+schneiderBadge+yoseftalBadge+emekBadge+loewensteinBadge+carmelBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+'</span>'
+      +'<span class="title">'+esc(r.title)+liBadge+cmBadge+ghBadge+lvBadge+abBadge+wkBadge+spBadge+mtBadge+acBadge+wzBadge+hjBadge+szBadge+hdBadge+clBadge+rabinBadge+meirBadge+kaplanBadge+schneiderBadge+yoseftalBadge+emekBadge+loewensteinBadge+carmelBadge+hujiBadge+tauBadge+ufBadge+kpmgBadge+dlBadge+eyBadge+jntBadge+barBadge+bisBadge+modBadge+gfBadge+icBadge+rbBadge+blBadge+skBadge+'</span>'
       +'<span class="company-cell">'+esc(r.company)+szMarkup+'</span>'
       +'<span class="city-cell">'+esc(r.city||'—')
       +(r.deadline?'<br><span class="deadline">עד '+esc(fmtDeadline(r.deadline))+'</span>':'')
