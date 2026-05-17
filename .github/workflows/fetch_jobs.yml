@@ -1,6 +1,6 @@
 "on":
   schedule:
-    - cron: '0 22 * * *'   # 22:00 UTC = midnight Israel time (IDT)
+    - cron: '0 3 * * *'    # 03:00 UTC = 06:00 Israel time (IDT)
   workflow_dispatch:
 
 name: Fetch Jobs (Comeet + Greenhouse)
